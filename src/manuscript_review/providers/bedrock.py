@@ -210,6 +210,8 @@ class BedrockReviewer:
                   "Do not wrap it in Markdown or add commentary.\n"
                 + schema_text
             )}]
+            if self.settings.reasoning_effort not in (None, "none"):
+                body["outputConfig"] = {"effort": self.settings.reasoning_effort}
         encoded = json.dumps(body, ensure_ascii=False, allow_nan=False)
         if len(encoded) > self.settings.max_request_chars:
             raise ReviewError(
