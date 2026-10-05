@@ -53,7 +53,7 @@ def parser():
         command.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high", "xhigh"])
         command.add_argument("--max-output-tokens", type=int, default=6000)
         command.add_argument("--max-request-chars", type=int, default=240000)
-        command.add_argument("--timeout", type=float, default=60)
+        command.add_argument("--timeout", type=float, help="Provider timeout in seconds; defaults to 60 for OpenAI and 180 for Bedrock.")
         command.add_argument("--force", action="store_true", help="Replace generated output files if they already exist.")
         command.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                              default=(os.environ.get("MANUSCRIPT_REVIEW_LOG_LEVEL") or "WARNING").upper())
@@ -130,7 +130,7 @@ def _save(directory, outputs, input_paths, force=False):
 def _provider(args):
     if not args.llm:
         if any(value is not None for value in (args.provider, args.model, args.region, args.roles,
-                                               args.temperature, args.reasoning_effort)) or args.dry_run:
+                                               args.temperature, args.reasoning_effort, args.timeout)) or args.dry_run:
             raise ReviewError("Provider/model/role settings and --dry-run require explicit --llm opt-in.")
         return None
     temperature = args.temperature
@@ -152,14 +152,14 @@ def _provider(args):
             reasoning_effort=effort,
             max_output_tokens=args.max_output_tokens,
             max_request_chars=args.max_request_chars,
-            timeout_seconds=args.timeout)
+            timeout_seconds=args.timeout if args.timeout is not None else 180)
         return BedrockReviewer(settings, dry_run=args.dry_run, roles=roles)
     settings = OpenAISettings(
         model=model,
         temperature=temperature,
         reasoning_effort=effort,
         max_output_tokens=args.max_output_tokens, max_request_chars=args.max_request_chars,
-        timeout_seconds=args.timeout)
+        timeout_seconds=args.timeout if args.timeout is not None else 60)
     return OpenAIReviewer(settings, dry_run=args.dry_run, roles=roles)
 
 
