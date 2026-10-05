@@ -1,4 +1,4 @@
-"""Amazon Bedrock Converse adapter with explicit opt-in and structured JSON output."""
+"""Amazon Bedrock Converse adapter with explicit opt-in and validated JSON output."""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -15,9 +15,9 @@ DEFAULT_ROLES = ("scientific", "methods", "computational", "novelty", "reviewer2
 SUPPORTED_ROLES = DEFAULT_ROLES + ("statistics", "clinical", "editor", "strategist")
 
 
-# Bedrock structured outputs support a deliberately limited JSON Schema subset.
-# Keep the full local contract for post-response validation, but remove unsupported
-# assertion keywords from the schema sent to Bedrock.
+# Bedrock tool schemas accept a deliberately limited JSON Schema subset across
+# Anthropic model versions. Keep the full local contract for post-response
+# validation, but normalize the schema sent to Bedrock.
 _UNSUPPORTED_SCHEMA_KEYS = {
     "minLength", "maxLength", "pattern",
     "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
@@ -25,13 +25,43 @@ _UNSUPPORTED_SCHEMA_KEYS = {
 }
 
 
+def _nullable_variant(value):
+    if not isinstance(value, dict):
+        return None
+    variants = value.get("anyOf")
+    if not isinstance(variants, list) or len(variants) != 2:
+        return None
+    nulls = [item for item in variants
+             if isinstance(item, dict) and item.get("type") == "null"]
+    non_nulls = [item for item in variants
+                 if not (isinstance(item, dict) and item.get("type") == "null")]
+    return non_nulls[0] if len(nulls) == 1 and len(non_nulls) == 1 else None
+
+
 def _bedrock_schema(value):
     if isinstance(value, dict):
+        nullable = _nullable_variant(value)
+        if nullable is not None:
+            return _bedrock_schema(nullable)
+
+        nullable_properties = set()
+        properties = value.get("properties")
+        if isinstance(properties, dict):
+            nullable_properties = {
+                name for name, child in properties.items()
+                if _nullable_variant(child) is not None
+            }
+
         result = {}
         for key, child in value.items():
             if key in _UNSUPPORTED_SCHEMA_KEYS:
                 continue
             if key == "minItems" and child not in (0, 1):
+                continue
+            if key == "required" and isinstance(child, list):
+                required = [name for name in child if name not in nullable_properties]
+                if required:
+                    result[key] = required
                 continue
             result[key] = _bedrock_schema(child)
         return result
@@ -46,6 +76,7 @@ class BedrockSettings:
     region: str = None
     temperature: float = None
     reasoning_effort: str = None
+    json_mode: str = "tool"
     max_output_tokens: int = 6000
     max_request_chars: int = 240000
     timeout_seconds: float = 60
@@ -64,6 +95,12 @@ class BedrockSettings:
             raise ReviewError("Bedrock reasoning effort must be none, low, medium, high, or xhigh.")
         if self.temperature is not None and self.reasoning_effort not in (None, "none"):
             raise ReviewError("Do not combine temperature with non-none reasoning effort.")
+        if self.json_mode not in ("tool", "prompt"):
+            raise ReviewError("Bedrock JSON mode must be tool or prompt.")
+        if self.json_mode == "tool" and self.reasoning_effort not in (None, "none"):
+            raise ReviewError(
+                "Bedrock forced tool mode cannot be combined with reasoning effort. "
+                "Use --bedrock-json-mode prompt to use reasoning effort.")
         if type(self.max_output_tokens) is not int or not 256 <= self.max_output_tokens <= 32000:
             raise ReviewError("max_output_tokens must be between 256 and 32000.")
         if type(self.max_request_chars) is not int or not 1000 <= self.max_request_chars <= 2000000:
@@ -140,31 +177,39 @@ class BedrockReviewer:
 
     def prepare(self, role, packet, schema=REVIEW_SCHEMA):
         source_data = {k: v for k, v in packet.items() if k != "instructions"}
-        text_format = {
-            "type": "json_schema",
-            "structure": {
-                "jsonSchema": {
-                    "schema": json.dumps(_bedrock_schema(schema), ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-                    "name": "manuscript_" + role,
-                    "description": "Structured manuscript review response",
-                }
-            },
-        }
-        output_config = {"textFormat": text_format}
-        if self.settings.reasoning_effort not in (None, "none"):
-            output_config["effort"] = self.settings.reasoning_effort
+        outbound_schema = _bedrock_schema(schema)
         inference = {"maxTokens": self.settings.max_output_tokens}
         if self.settings.temperature is not None:
             inference["temperature"] = self.settings.temperature
+
+        instructions = packet["instructions"]
         body = {
             "modelId": self.settings.model,
-            "system": [{"text": packet["instructions"]}],
+            "system": [{"text": instructions}],
             "messages": [{"role": "user", "content": [{
                 "text": json.dumps(source_data, ensure_ascii=False, sort_keys=True)
             }]}],
             "inferenceConfig": inference,
-            "outputConfig": output_config,
         }
+        if self.settings.json_mode == "tool":
+            tool_name = "manuscript_" + role
+            body["toolConfig"] = {
+                "tools": [{"toolSpec": {
+                    "name": tool_name,
+                    "description": "Return the structured manuscript review.",
+                    "inputSchema": {"json": outbound_schema},
+                }}],
+                "toolChoice": {"tool": {"name": tool_name}},
+            }
+        else:
+            schema_text = json.dumps(
+                outbound_schema, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            body["system"] = [{"text": (
+                instructions
+                + "\n\nReturn exactly one JSON object matching this schema. "
+                  "Do not wrap it in Markdown or add commentary.\n"
+                + schema_text
+            )}]
         encoded = json.dumps(body, ensure_ascii=False, allow_nan=False)
         if len(encoded) > self.settings.max_request_chars:
             raise ReviewError(
@@ -225,7 +270,9 @@ class BedrockReviewer:
         if stop_reason in ("guardrail_intervened", "content_filtered"):
             call["status"] = "refused"
             raise ReviewError("Bedrock declined or filtered the request; no generated findings were accepted.")
-        if stop_reason not in ("end_turn", "stop_sequence"):
+        allowed_stops = ("tool_use", "end_turn", "stop_sequence") \
+            if self.settings.json_mode == "tool" else ("end_turn", "stop_sequence")
+        if stop_reason not in allowed_stops:
             raise ReviewError(
                 "Bedrock response was not completed (possibly output/context limit); it was not accepted.")
 
@@ -234,14 +281,27 @@ class BedrockReviewer:
         content = message.get("content") if isinstance(message, dict) else None
         if not isinstance(content, list):
             raise ReviewError("Bedrock response has no valid message content.")
-        texts = [item.get("text", "") for item in content
-                 if isinstance(item, dict) and isinstance(item.get("text"), str)]
-        if not texts:
-            raise ReviewError("Bedrock response contained no text output.")
-        try:
-            payload = json.loads("".join(texts))
-        except (ValueError, TypeError):
-            raise ReviewError("Bedrock output was not valid JSON; no generated findings were accepted.") from None
+
+        if self.settings.json_mode == "tool":
+            tool_inputs = [
+                item["toolUse"].get("input")
+                for item in content
+                if isinstance(item, dict) and isinstance(item.get("toolUse"), dict)
+                and isinstance(item["toolUse"].get("input"), dict)
+            ]
+            if not tool_inputs:
+                raise ReviewError("Bedrock response contained no tool output.")
+            payload = tool_inputs[0]
+        else:
+            texts = [item.get("text", "") for item in content
+                     if isinstance(item, dict) and isinstance(item.get("text"), str)]
+            if not texts:
+                raise ReviewError("Bedrock response contained no text output.")
+            try:
+                payload = json.loads("".join(texts))
+            except (ValueError, TypeError):
+                raise ReviewError(
+                    "Bedrock output was not valid JSON; no generated findings were accepted.") from None
 
         if isinstance(payload, dict) and isinstance(payload.get("findings"), list):
             call["raw_findings"] = len(payload["findings"])
@@ -277,9 +337,11 @@ class BedrockReviewer:
             "usage": usage_totals(self.receipts, len(self.calls)),
             "web_retrieval": False,
             "store": None,
+            "json_mode": self.settings.json_mode,
             "note": (
                 "Uses the standard AWS credential chain; credentials are never serialized into review artifacts. "
-                "No tools, retrieval, or citations are enabled. Provider data handling is governed by the configured "
-                "AWS account and Amazon Bedrock service."
+                "The Bedrock tool mode uses one forced schema tool only to obtain structured output; it enables no "
+                "external actions or retrieval. Provider data handling is governed by the configured AWS account and "
+                "Amazon Bedrock service."
             ),
         }
