@@ -132,7 +132,9 @@ manuscript-review review manuscript.pdf \
 
 The Bedrock adapter uses the Converse API with JSON Schema structured output and
 no tools or retrieval. The selected Bedrock model must support Converse structured
-output. Model access, supported regions, and model or inference-profile IDs are
+output. First use of a new JSON Schema can require server-side schema compilation,
+so Bedrock defaults to a longer 180-second timeout; use `--timeout` up to 300
+seconds if needed. Model access, supported regions, and model or inference-profile IDs are
 controlled by the AWS account. Unsupported model/settings combinations fail
 instead of silently changing the request.
 
@@ -170,11 +172,12 @@ sent; this is not a promise of zero provider retention.
 | `--llm` | None | Required opt-in |
 | `--provider openai\|bedrock` | None | OpenAI remains the default; Bedrock is explicit |
 | `--model` | `MANUSCRIPT_REVIEW_MODEL` | Required; no automatic choice |
-| `--temperature` | `MANUSCRIPT_REVIEW_TEMPERATURE` | Optional, 0–2 |
+| `--region` | `MANUSCRIPT_REVIEW_AWS_REGION`, `AWS_REGION`, `AWS_DEFAULT_REGION` | Required for Bedrock |
+| `--temperature` | `MANUSCRIPT_REVIEW_TEMPERATURE` | Optional; OpenAI 0–2, Bedrock Converse 0–1 |
 | `--reasoning-effort` | `MANUSCRIPT_REVIEW_REASONING_EFFORT` | Optional; must be supported by the chosen model |
 | `--max-output-tokens` | None | Default 6,000 per request; 256–32,000 |
 | `--max-request-chars` | None | Default 240,000 serialized characters per request |
-| `--timeout` | None | Default 60 seconds; maximum 60 |
+| `--timeout` | None | OpenAI default/max 60; Bedrock default 180, max 300 |
 | `--roles` | None | Six defaults; comma-separated overrides |
 | `--config` | `MANUSCRIPT_REVIEW_CONFIG` | Deterministic configuration |
 | `--log-level` | `MANUSCRIPT_REVIEW_LOG_LEVEL` | Default WARNING |
