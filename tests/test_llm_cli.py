@@ -56,7 +56,9 @@ class LlmCliTests(WorkspaceTest):
         self.assertEqual(request["endpoint"], "bedrock-runtime:Converse")
         self.assertEqual(request["region"], "us-west-2")
         self.assertEqual(request["body"]["modelId"], "test-bedrock-model")
-        self.assertEqual(request["body"]["outputConfig"]["textFormat"]["type"], "json_schema")
+        self.assertEqual(request["body"]["toolConfig"]["toolChoice"]["tool"]["name"], "manuscript_scientific")
+        self.assertIsInstance(request["body"]["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"], dict)
+        self.assertNotIn("outputConfig", request["body"])
 
     def test_environment_model_and_temperature(self):
         with patch.dict(os.environ, {"MANUSCRIPT_REVIEW_MODEL": "env-model",

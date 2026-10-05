@@ -6,8 +6,8 @@
   architecture, rubric, schema, evaluation, ChatGPT, and data-safety guides.
 - Removed historical development, readiness, adjudication, and self-audit documents
   from the repository root; their history remains available in Git.
-- Added Amazon Bedrock Converse as a second explicit LLM provider, using JSON
-  Schema structured output and the standard AWS credential chain.
+- Added Amazon Bedrock Converse as a second explicit LLM provider, using a forced
+  schema tool by default, a prompt-only JSON fallback, and the standard AWS credential chain.
 - Added provider-specific region, timeout, temperature, dry-run, usage, and
   failure handling without changing the offline deterministic review path.
 - Updated repository publication guidance now that the source repository is public.

@@ -72,7 +72,9 @@ Human scientific judgment remains the final authority.
 
 `providers/bedrock.py` uses the Converse API and the standard AWS credential chain.
 
-Bedrock structured output supports a smaller JSON Schema subset than the project's full local contract. The adapter therefore sends a compatible schema to Bedrock, then validates the response against the stricter full schema locally.
+The default Bedrock path defines one Converse tool whose `inputSchema.json` is a normalized JSON Schema object and forces that tool when the selected model supports forced tool choice. The returned `toolUse.input` object is validated again against the stricter full local contract. Nullable `anyOf: [X, null]` fields are flattened for the outbound tool schema and removed from its `required` lists, while the original schema remains authoritative locally.
+
+`--bedrock-json-mode prompt` is the compatibility fallback for models that reject forced tool choice. It places the normalized schema in the system prompt, accepts only JSON text, and still performs the same full local validation. No automatic retry switches modes. Bedrock reasoning effort is only allowed on the prompt path because Anthropic thinking and forced tool choice are incompatible.
 
 Provider choice does not change the scientific review pipeline.
 

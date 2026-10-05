@@ -47,6 +47,7 @@ def parser():
         command.add_argument("--provider", choices=["openai", "bedrock"])
         command.add_argument("--model", help="Required in LLM mode unless MANUSCRIPT_REVIEW_MODEL is set.")
         command.add_argument("--region", help="AWS region for Bedrock; otherwise use MANUSCRIPT_REVIEW_AWS_REGION or standard AWS configuration.")
+        command.add_argument("--bedrock-json-mode", choices=["tool", "prompt"], help="Bedrock structured-response path. Default: tool; use prompt when forced tool choice is unsupported.")
         command.add_argument("--dry-run", action="store_true", help="With --llm: export exact requests, with no API call or key needed.")
         command.add_argument("--roles", help="Comma-separated reviewer names; default: six core adversarial roles.")
         command.add_argument("--temperature", type=float)
@@ -129,8 +130,8 @@ def _save(directory, outputs, input_paths, force=False):
 
 def _provider(args):
     if not args.llm:
-        if any(value is not None for value in (args.provider, args.model, args.region, args.roles,
-                                               args.temperature, args.reasoning_effort, args.timeout)) or args.dry_run:
+        if any(value is not None for value in (args.provider, args.model, args.region, args.bedrock_json_mode,
+                                               args.roles, args.temperature, args.reasoning_effort, args.timeout)) or args.dry_run:
             raise ReviewError("Provider/model/role settings and --dry-run require explicit --llm opt-in.")
         return None
     temperature = args.temperature
@@ -150,6 +151,8 @@ def _provider(args):
                     or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or None),
             temperature=temperature,
             reasoning_effort=effort,
+            json_mode=(args.bedrock_json_mode
+                       or os.environ.get("MANUSCRIPT_REVIEW_BEDROCK_JSON_MODE") or "tool"),
             max_output_tokens=args.max_output_tokens,
             max_request_chars=args.max_request_chars,
             timeout_seconds=args.timeout if args.timeout is not None else 180)
