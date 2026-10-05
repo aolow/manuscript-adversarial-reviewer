@@ -50,7 +50,7 @@ class BedrockProviderTests(WorkspaceTest):
         packet = self.packet()
         payload = envelope([finding(self.block(packet))])
         provider = BedrockReviewer(
-            BedrockSettings("test-model"),
+            BedrockSettings("test-model", region="us-west-2"),
             transport=Mock(return_value=self.response(payload)))
         result = provider.review("scientific", packet)
         self.assertEqual(len(result["findings"]), 1)
@@ -62,23 +62,23 @@ class BedrockProviderTests(WorkspaceTest):
     def test_incomplete_or_filtered_output_is_rejected(self):
         for stop_reason in ("max_tokens", "content_filtered", "guardrail_intervened"):
             provider = BedrockReviewer(
-                BedrockSettings("test-model"),
+                BedrockSettings("test-model", region="us-west-2"),
                 transport=Mock(return_value=self.response(envelope(), stop_reason)))
             with self.subTest(stop_reason=stop_reason), self.assertRaises(ReviewError):
                 provider.review("scientific", self.packet())
 
     def test_bedrock_temperature_and_effort_validation(self):
         for settings in (
-            BedrockSettings("test-model", temperature=1.1),
-            BedrockSettings("test-model", temperature=0.2, reasoning_effort="high"),
-            BedrockSettings("test-model", reasoning_effort="minimal"),
+            BedrockSettings("test-model", region="us-west-2", temperature=1.1),
+            BedrockSettings("test-model", region="us-west-2", temperature=0.2, reasoning_effort="high"),
+            BedrockSettings("test-model", region="us-west-2", reasoning_effort="minimal"),
         ):
             with self.subTest(settings=settings), self.assertRaises(ReviewError):
                 BedrockReviewer(settings, dry_run=True)
 
     def test_effort_is_explicit_only(self):
         provider = BedrockReviewer(
-            BedrockSettings("test-model", reasoning_effort="high"), dry_run=True)
+            BedrockSettings("test-model", region="us-west-2", reasoning_effort="high"), dry_run=True)
         body = provider.prepare("scientific", self.packet())
         self.assertEqual(body["outputConfig"]["effort"], "high")
         self.assertNotIn("temperature", body["inferenceConfig"])
