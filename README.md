@@ -1,347 +1,198 @@
 # Manuscript adversarial review
 
-A local-first Python CLI for reviewing scientific manuscripts. The original
-deterministic system remains independent: 46 reporting checks, 10 pattern checks,
-source provenance, manual overrides, and the original 20-section detailed audit.
+A local-first Python CLI for stress-testing scientific manuscripts before submission or revision.
 
-Version 0.2 added explicitly opt-in OpenAI review, claim-level falsification
-analysis, a short **What could kill this paper** section, duplicate/disagreement
-handling, scientific concern comparison, and a small synthetic benchmark.
-The tool supports scientific judgment; it does not establish scientific truth.
+The default workflow is fully offline. It extracts manuscript structure, runs deterministic reporting and design checks, prioritizes concerns, and produces Markdown and JSON reports. Optional LLM review can use either OpenAI or Amazon Bedrock.
 
-Version 0.3 focuses on pilot usability: a shorter revision brief, local run
-diagnostics, blinded human evaluation, and a compact manual ChatGPT handoff with
-staged, source-validated feedback import. The deterministic rules and reviewer
-roster are unchanged.
+This tool supports scientific judgment. It does not verify that a manuscript is correct, execute analyses, inspect raw data, or replace expert review.
 
-LLM execution is provider-independent at the review layer. Live review can use
-either the OpenAI Responses API or Amazon Bedrock Converse, while offline review
-remains the default.
+## What it does
 
-**Start here:** [PILOT_GUIDE.md](PILOT_GUIDE.md). For evaluation, use
-[EVALUATION_GUIDE.md](EVALUATION_GUIDE.md); for manual exchange, use
-[CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md).
+- Reads PDF, DOCX, Markdown, and UTF-8 text, with optional supplements.
+- Flags reporting gaps and selected design risks such as leakage, pseudoreplication, circularity, confounding, and overclaiming.
+- Grounds concerns to exact manuscript excerpts.
+- Adds optional LLM reviewers for scientific, methods, computational, novelty, reproducibility, and adversarial review.
+- Compares manuscript versions and tracks whether prior concerns appear resolved, persistent, worsened, or out of scope.
+- Produces a concise revision brief plus a detailed auditable report.
+- Supports blinded local evaluation of assisted versus deterministic review.
 
-## Clone and install
-
-The source repository is public. Real manuscripts, private reviewer packets,
-credentials, and generated review outputs should remain outside source control.
+## Install
 
 ```bash
-git clone https://github.com/aolow/manuscript-adversarial-reviewer.git manuscript-review
-cd manuscript-review
-```
+git clone https://github.com/aolow/manuscript-adversarial-reviewer.git
+cd manuscript-adversarial-reviewer
 
-For an existing checkout, start in its root. Python 3.9 or later:
-
-```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[pdf,llm,test]"
+```
+
+Run the tests:
+
+```bash
 python -m unittest discover -s tests -t . -v
 ```
 
-Core-only install: `python -m pip install -e .`. The core has no third-party
-runtime dependencies. PDF uses optional `pypdf`; LLM schema validation uses
-optional `jsonschema`. The OpenAI adapter uses the standard-library HTTPS client.
-Amazon Bedrock live mode uses the optional `bedrock` extra and current boto3,
-which requires Python 3.10 or later:
+Amazon Bedrock live mode also needs Python 3.10+ and boto3:
 
 ```bash
 python -m pip install -e ".[bedrock]"
 ```
 
-## Offline review: no API key needed
+## Quick start
+
+### Offline review
+
+No API key or cloud account is needed.
 
 ```bash
-manuscript-review review fixtures/flawed_manuscript.md
+manuscript-review review manuscript.pdf --out reviews/manuscript-v1
+```
+
+Add supplements as needed:
+
+```bash
 manuscript-review review manuscript.pdf \
-  --supplement supplement.docx \
-  --journal "Target journal" \
+  --supplement supplement.pdf \
   --out reviews/manuscript-v1
 ```
 
-Supported: PDF, DOCX, Markdown, UTF-8 text, and repeatable supplements in those
-formats. Scanned PDFs need prior OCR. Images, visual figures, equations, and
-underlying data are not interpreted. A journal name does not trigger retrieval.
+The main outputs are:
 
-Without `--out`, each run creates a unique directory under `reviews/`. Existing
-outputs are protected unless `--force` is supplied. Inputs are protected even
-with `--force`. Writes are atomic per file, not per complete run.
+- `report.md`, the human-readable review.
+- `report.json`, the structured audit record.
 
-## Inspect exact LLM requests without sending anything
+### Preview an LLM request without sending anything
 
-```bash
-manuscript-review review manuscript.pdf \
-  --llm --provider openai --model MODEL_NAME \
-  --dry-run --out reviews/request-preview
-```
-
-Replace `MODEL_NAME` with the model you intend to use. There is no hard-coded
-model or model fallback. Dry runs require no key and never call the provider.
-`requests/ROLE.json` contains the exact request body and its hash, with all
-source text, instructions, schema, and settings. No authentication header is
-exported. Request inputs are independent of prior reviewer output, so dry-run
-and live request bodies match for identical documents, overrides, roles, and
-settings. Review the source text and scope before deciding to send it.
-
-`--export-prompts` also exports the role packets. These files contain manuscript
-text. Export is local and is not permission to upload them elsewhere.
-
-## Explicitly enable live OpenAI review
-
-Set `OPENAI_API_KEY` in your process environment using your normal secure secret
-management. The key is never read from configuration files, stored in reports,
-or included in logs. Do not paste real keys into tracked files or shell examples.
+Use `--dry-run` before a live provider call:
 
 ```bash
 manuscript-review review manuscript.pdf \
   --llm --provider openai --model MODEL_NAME \
-  --reasoning-effort high \
-  --out reviews/llm-review
+  --dry-run --out reviews/preview
 ```
 
-**Running this command authorizes sending the extracted manuscript, supplements,
-and deterministic context to OpenAI and may incur API charges.** Ordinary review
-commands remain offline even when a key is present in the environment.
+The exact provider requests are written under `requests/`. Dry-run mode does not contact the provider.
 
-## Explicitly enable Amazon Bedrock review
+## LLM providers
 
-Bedrock uses the standard AWS credential chain. Authenticate with your approved
-AWS/SSO workflow first. Do not place AWS access keys in this repository.
+LLM use is always explicit through `--llm`. Offline review remains the default even if credentials are present.
+
+### OpenAI
+
+Set `OPENAI_API_KEY` in your environment, then run:
+
+```bash
+manuscript-review review manuscript.pdf \
+  --llm --provider openai --model MODEL_NAME \
+  --out reviews/openai-review
+```
+
+### Amazon Bedrock
+
+Authenticate through your normal AWS or corporate SSO workflow. The project uses the standard AWS credential chain and does not store AWS credentials.
 
 ```bash
 manuscript-review review manuscript.pdf \
   --llm --provider bedrock \
-  --model YOUR_BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
   --region us-west-2 \
   --out reviews/bedrock-review
 ```
 
-A safe first check is a dry run, which needs neither boto3 credentials nor a live
-Bedrock call:
+Bedrock uses the Converse API with structured JSON output. The selected model must support that capability.
+
+### Common settings
+
+| Option | Purpose |
+| --- | --- |
+| `--model` | Required provider model or Bedrock inference-profile ID |
+| `--roles` | Comma-separated reviewer roles instead of the default six |
+| `--temperature` | Optional sampling temperature |
+| `--reasoning-effort` | Optional model reasoning setting when supported |
+| `--max-output-tokens` | Output limit per request |
+| `--max-request-chars` | Local request-size guard |
+| `--timeout` | Provider timeout |
+| `--dry-run` | Build and save exact requests without sending them |
+
+Environment fallbacks include `MANUSCRIPT_REVIEW_MODEL`, `MANUSCRIPT_REVIEW_TEMPERATURE`, `MANUSCRIPT_REVIEW_REASONING_EFFORT`, and `MANUSCRIPT_REVIEW_AWS_REGION`.
+
+The default LLM roles are scientific, methods, computational, novelty, Reviewer 2, and reproducibility. Additional selectable roles include statistics, clinical, editor, and strategist.
+
+## Compare revisions
+
+Compare two manuscript versions offline:
 
 ```bash
-manuscript-review review manuscript.pdf \
+manuscript-review compare manuscript-v1.docx manuscript-v2.docx \
+  --out reviews/v1-v2
+```
+
+To include the prior assisted review and one semantic comparison call:
+
+```bash
+manuscript-review compare manuscript-v1.docx manuscript-v2.docx \
+  --prior-review reviews/manuscript-v1/report.json \
   --llm --provider bedrock \
-  --model YOUR_BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
   --region us-west-2 \
-  --dry-run --out reviews/bedrock-request-preview
+  --out reviews/v1-v2
 ```
 
-The Bedrock adapter uses the Converse API with JSON Schema structured output and
-no tools or retrieval. The selected Bedrock model must support Converse structured
-output. First use of a new JSON Schema can require server-side schema compilation,
-so Bedrock defaults to a longer 180-second timeout; use `--timeout` up to 300
-seconds if needed. Model access, supported regions, and model or inference-profile IDs are
-controlled by the AWS account. Unsupported model/settings combinations fail
-instead of silently changing the request.
+The comparison distinguishes reported resolution from verified execution. A manuscript saying that an analysis was performed is not proof that it was performed correctly.
 
-**Running a live Bedrock command authorizes sending the extracted manuscript,
-supplements, and deterministic context to the configured AWS Bedrock account and
-may incur account charges.**
+## Manual ChatGPT handoff
 
-Default LLM roles (six independent requests):
-
-1. Scientific/biological: central claims, biological alternatives, causal
-   interpretation, state/lineage confounding, and generalizability.
-2. Methods/statistics: design, effective replication, validation, uncertainty,
-   confounding, multiplicity, calibration, and sensitivity.
-3. Computational: leakage, representations, annotation/reference dependence,
-   pipeline sensitivity, nulls, baselines, and ablations.
-4. Novelty/positioning: contribution type, buried strengths, framing, and
-   prior-art hypotheses explicitly requiring external verification.
-5. Reviewer 2: concrete attempts to falsify central conclusions.
-6. Reproducibility: executable procedures, parameters, cohort definitions,
-   artifacts, versions, seeds, and manual curation.
-
-Additional selectable roles: `statistics`, `clinical`, `editor`, `strategist`.
-For example: `--roles scientific,computational,reviewer2`. Clinical review is
-skipped if the biomarker applicability domain is absent.
-
-The OpenAI adapter uses the
-[OpenAI Responses API with strict Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
-It sends no tools and performs no web or literature searches. `store=false` is
-sent; this is not a promise of zero provider retention.
-
-### Settings and limits
-
-| CLI | Environment fallback | Behavior |
-| --- | --- | --- |
-| `--llm` | None | Required opt-in |
-| `--provider openai\|bedrock` | None | OpenAI remains the default; Bedrock is explicit |
-| `--model` | `MANUSCRIPT_REVIEW_MODEL` | Required; no automatic choice |
-| `--region` | `MANUSCRIPT_REVIEW_AWS_REGION`, `AWS_REGION`, `AWS_DEFAULT_REGION` | Required for Bedrock |
-| `--temperature` | `MANUSCRIPT_REVIEW_TEMPERATURE` | Optional; OpenAI 0–2, Bedrock Converse 0–1 |
-| `--reasoning-effort` | `MANUSCRIPT_REVIEW_REASONING_EFFORT` | Optional; must be supported by the chosen model |
-| `--max-output-tokens` | None | Default 6,000 per request; 256–32,000 |
-| `--max-request-chars` | None | Default 240,000 serialized characters per request |
-| `--timeout` | None | OpenAI default/max 60; Bedrock default 180, max 300 |
-| `--roles` | None | Six defaults; comma-separated overrides |
-| `--config` | `MANUSCRIPT_REVIEW_CONFIG` | Deterministic configuration |
-| `--log-level` | `MANUSCRIPT_REVIEW_LOG_LEVEL` | Default WARNING |
-
-Temperature and non-`none` reasoning effort cannot be combined. Unspecified
-settings are omitted, not guessed from the model name. Model/API compatibility
-is checked by the provider; unsupported settings fail rather than silently
-changing your request. This follows the
-[official OpenAI deployment guidance](https://developers.openai.com/api/docs/guides/deployment-checklist).
-
-No automatic retries, chunk dropping, context truncation, or hidden follow-up
-calls occur. Large inputs fail before reviewer calls; raise the explicit limit
-or use a smaller input. A character limit is not an exact token or dollar budget.
-Refusals, incomplete responses, schema failures, or fabricated citations reject
-that reviewer's output. Other roles and the deterministic report remain available.
-Failed or rejected responses may still incur charges. The `completed_calls` count
-tracks responses accepted by the local schema, not a billing ledger.
-Exit status `3` denotes an incomplete LLM run; inspect warnings and request files.
-Exit `2` is an input/configuration/output error; exit `0` is successful processing,
-not scientific validation.
-
-`.env.example` contains names with empty values only. The application does not
-automatically load `.env`.
-
-## Evidence grounding and prioritization
-
-The model cites only an existing block ID and an exact, uniquely locating quote.
-The application derives page, section, paragraph, line, and character offsets.
-Fabricated quotes, invented blocks, model-supplied locations, malformed schemas,
-and unsupported fatal/established verdicts are rejected.
-
-Findings distinguish direct manuscript premises, cross-chunk inference, external
-scientific claims, and reviewer recommendations. Ungrounded or suspicious
-findings are retained at low confidence with `needs_review` disposition and
-excluded from headline concerns. External claims remain unverified. Heuristic
-support checks catch obvious unrelated passages, unsupported numeric/design
-premises, some contradictions, and excessive certainty. **Exact quotation and
-these checks do not prove semantic entailment.**
-
-Duplicate provider concerns are grouped conservatively. Original records and
-severity ratings remain visible; disagreements use the less severe rating
-pending human review. Deterministic findings are not overwritten by model votes.
-
-The main report prioritizes at most seven consequential issues, major strengths,
-ranked claims/evidence, high-priority and secondary analyses, framing, novelty,
-reproducibility, and lower-priority reporting. It never pads the headline list.
-The full 20-section deterministic-compatible audit remains in a collapsible
-appendix and JSON. Computational actions specify input, comparison, held-out
-unit, metric, and interpretation; text actions identify the existing section
-and claim. These are proposals, not invented completed work.
-
-## Compare scientific concerns across versions
-
-Offline:
+You can create a compact local package for a normal ChatGPT conversation:
 
 ```bash
-manuscript-review compare manuscript-v1.docx manuscript-v2.docx \
-  --old-supplement supplement-v1.pdf \
-  --new-supplement supplement-v2.pdf
+manuscript-review export-chatgpt reviews/manuscript-v1/report.json \
+  --out handoffs/manuscript-v1
 ```
 
-Opt-in semantic comparison, with a saved prior LLM review when available:
+Nothing is uploaded automatically. See [CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md) for optional structured feedback import.
+
+## Evaluate whether LLM assistance helps
+
+The project can prepare a blinded A/B comparison between deterministic and assisted reviews:
 
 ```bash
-manuscript-review compare manuscript-v1.docx manuscript-v2.docx \
-  --prior-review reviews/llm-v1/report.json \
-  --llm --model MODEL_NAME \
-  --out reviews/scientific-comparison
+manuscript-review evaluate prepare \
+  --baseline reviews/baseline/report.json \
+  --assisted reviews/assisted/report.json \
+  --out evaluations/pilot
 ```
 
-`--dry-run` exports the exact paired request without sending it. Paired mode
-(`compare` or `review --prior`) performs **one comparison request**, not six fresh
-reviews per version. It includes both full source registries and prior concerns.
-`--prior-review` imports current-schema prior scientific/LLM concerns only when
-all old document hashes match; without it, prior concerns come from the
-independent deterministic audit. There is no automatic prior-report discovery.
+See [EVALUATION_GUIDE.md](EVALUATION_GUIDE.md) for the adjudication and scoring workflow.
 
-Every prior active concern receives a status: `resolved`, `partially_resolved`,
-`unresolved`, `worsened`, `no_longer_applicable`, or `cannot_determine`, with
-separate old/new evidence and a resolution scope. Missing evidence prevents
-resolution. Softer wording cannot override a persistent detected design problem.
-Resolution refers to manuscript descriptions/reporting; analysis execution is
-never claimed verified. Unassessed LLM items retain explicit deterministic
-fallbacks and mark the paired run incomplete.
+## Important limits
 
-## Manual configuration and overrides
+The tool does not currently:
 
-```bash
-manuscript-review list-rules
-manuscript-review review manuscript.md \
-  --config config/review.example.json \
-  --overrides local-overrides.json
-```
+- Interpret figure images or scanned PDFs without prior OCR.
+- Verify raw data, analysis code, or whether proposed analyses were actually run.
+- Search the scientific literature or current journal policies.
+- Establish semantic truth merely because a quote exists.
+- Treat multiple LLM reviewers as independent scientific confirmation.
 
-Rule/domain controls remain unchanged. Overrides are bound to hashes of all
-inputs and require reasons. They can correct section assignments or finding
-severity, confidence, disposition, effort/value, and reviewer likelihood.
-Provider findings can also be overridden by their IDs. Dismissed findings remain
-auditable. See [SCHEMA.md](SCHEMA.md) and the files under [config/](config/).
+Provider output is schema-checked and source-grounded locally, but scientific conclusions still require human judgment.
 
-## Synthetic benchmark
+## Data safety
 
-```bash
-manuscript-review benchmark --manifest benchmarks/manifest.json
-manuscript-review benchmark --manifest benchmarks/manifest.json \
-  --reports reviews/benchmark-runs --layer llm
-```
+Real manuscripts, provider request files, credentials, and private review outputs should stay outside source control. A live `--llm` run sends extracted manuscript content to the selected provider.
 
-The benchmark never calls a provider. Optional saved reports live at
-`CASE_ID/report.json` and must match each synthetic fixture's hashes.
-Score deterministic, LLM, and combined layers separately. Metrics cover scoped
-detection/false positives, exact source grounding, annotated evidence alignment,
-severity calibration, and structured action completeness. Unannotated flags are
-counted separately. The set deliberately contains a known paraphrase miss.
-See [benchmarks/README.md](benchmarks/README.md) and
-[examples/benchmark.json](examples/benchmark.json). It is not expert validation.
+See [DATA_SAFETY.md](DATA_SAFETY.md) before using confidential or unpublished material.
 
-## Portability, GitHub, and ChatGPT
+## Documentation
 
-No runtime path is tied to a particular user or machine. Use relative fixture
-paths and keep real manuscripts outside source control. Generated outputs,
-request packets, credentials, and common manuscript formats are ignored;
-inspect staged files anyway. Only deliberately synthetic examples belong here.
-See [PRIVATE_PROJECT.md](PRIVATE_PROJECT.md) before any distribution.
+- [PILOT_GUIDE.md](PILOT_GUIDE.md), recommended end-to-end workflow.
+- [ARCHITECTURE.md](ARCHITECTURE.md), implementation and trust boundaries.
+- [REVIEW_RUBRIC.md](REVIEW_RUBRIC.md), severity and reviewer logic.
+- [SCHEMA.md](SCHEMA.md), report contracts and provenance fields.
+- [EVALUATION_GUIDE.md](EVALUATION_GUIDE.md), blinded evaluation.
+- [CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md), manual ChatGPT exchange.
+- [EXAMPLE_REPORT.md](EXAMPLE_REPORT.md), full generated example.
+- [CHANGELOG.md](CHANGELOG.md), release history.
 
-Dry-run packets can be manually used in ChatGPT if you explicitly choose to
-upload the manuscript content there. The exported schemas describe expected
-output, but a manual ChatGPT response is not automatically imported or trusted.
-There is no ChatGPT connector, account authentication, or implicit upload.
-Use export-chatgpt for the compact package instead of full request packets.
-Use import-chatgpt to validate feedback against the original manuscript and
-exact export. Import stages candidates by default; explicit --accept-grounded
-can activate eligible findings without bypassing grounding checks.
-
-## Local pilot diagnostics
-
-Each API-assisted run writes diagnostics.json and embeds the same data under
-quality.pilot_diagnostics in report.json. It records model/reasoning settings,
-request byte/input sizes and elapsed call times (in llm-run.json), attempted
-calls, failures, incomplete roles, known token usage, raw/accepted/quarantined
-findings, merged duplicates, and headline counts. Raw counts are explicitly
-incomplete when an output cannot be parsed. Usage on rejected responses is
-retained where available; transport failures leave usage unknown.
-
-The API reports token usage, including non-visible output tokens; see
-[official token-counting guidance](https://developers.openai.com/api/docs/guides/token-counting).
-Cached input and reasoning output are not added twice. No token-counting API
-request or pricing lookup is made. Monetary cost remains null because a verified
-price/billed currency is not supplied by these response receipts. No telemetry
-is introduced. Manual imports identify inherited API history and make zero calls.
-
-## Limits and next steps
-
-No live OpenAI manuscript call was made during development. API behavior is
-covered with mocked Responses payloads and exact-request tests, not a live model
-quality evaluation. Model availability and supported settings depend on your
-account/model. Semantic grounding remains fallible. Novelty and journal policies
-require an explicitly authorized external search; none is implemented.
-
-OCR/layout and visual figures, real cohort identity resolution, raw-data/code
-verification, and analysis execution remain out of scope. Next: a consented
-synthetic live-model pilot, independent human adjudication of a broader benchmark,
-better semantic support verification, and figure/table evidence extraction.
-
-[Architecture](ARCHITECTURE.md) · [Schema](SCHEMA.md) ·
-[Rubric](REVIEW_RUBRIC.md) · [Example report](EXAMPLE_REPORT.md) ·
-[Self-audit](AUDIT.md) · [Changelog](CHANGELOG.md)
+No open-source license is currently granted. Copyright remains with the project owner.

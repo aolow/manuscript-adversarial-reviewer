@@ -1,74 +1,99 @@
-# One paper through one revision
+# Recommended workflow
 
-Run these commands from the project folder. Keep the original manuscript as
-manuscripts/pilot-v1.pdf and save the revision separately as manuscripts/pilot-v2.pdf.
-DOCX and Markdown also work: change the filenames consistently.
+This is the shortest path from a manuscript to a reviewed revision.
 
-For OpenAI review, set OPENAI_API_KEY privately in your process environment and
-set MANUSCRIPT_REVIEW_MODEL to your chosen supported model. There is no default
-model. See [configuration](README.md#settings-and-limits) if needed.
+Examples below use PDF files, but DOCX, Markdown, and text are also supported.
 
-## 1. Preview what would be sent
+## 1. Run the offline review
 
-    .venv/bin/manuscript-review review manuscripts/pilot-v1.pdf --llm --dry-run --out reviews/pilot-preview
+```bash
+manuscript-review review manuscript-v1.pdf --out reviews/v1-baseline
+```
 
-Open the exported requests to check extraction, scope, and included supplements.
-This command sends nothing and needs no key. For an entirely offline review,
-omit --llm and --dry-run.
+Read `report.md`. This gives you the deterministic review without sending content anywhere.
 
-## 2. Review and save V1
+## 2. Preview the LLM request
 
-Run this only when you intend to send the extracted manuscript to OpenAI and
-incur charges. The default is six reviewer calls.
+Choose the provider you intend to use and add `--dry-run`.
 
-    .venv/bin/manuscript-review review manuscripts/pilot-v1.pdf --llm --provider openai --out reviews/pilot-v1
+OpenAI:
 
-Read reviews/pilot-v1/report.md. Start with the revision brief: claims,
-contributions, central threats, decisive analyses, text edits, and Reviewer 2.
-Keep report.json; it is the record used for comparison and handoff.
+```bash
+manuscript-review review manuscript-v1.pdf \
+  --llm --provider openai --model MODEL_NAME \
+  --dry-run --out reviews/v1-preview
+```
 
-Check diagnostics.json for failed/incomplete roles, accepted versus quarantined
-concerns, and known token usage. Exit 3 means incomplete model review; the
-deterministic report is still available. Do not interpret an incomplete run as
-an all-clear. A quoted passage is not proof that the criticism is scientifically sound.
+Bedrock:
 
-If supplements matter, add --supplement manuscripts/supplement-v1.pdf.
+```bash
+manuscript-review review manuscript-v1.pdf \
+  --llm --provider bedrock \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --dry-run --out reviews/v1-preview
+```
 
-## 3. Revise the paper
+Inspect the files under `requests/`. Dry-run mode sends nothing.
 
-Save V2 as a new file. Keep V1 and its review. Address scientific concerns with
-evidence or justified limitations; softer language alone does not repair design.
+## 3. Run the assisted review
 
-## 4. Compare V1 and V2
+Remove `--dry-run` when you are comfortable sending the extracted manuscript to the selected provider.
 
-    .venv/bin/manuscript-review compare manuscripts/pilot-v1.pdf manuscripts/pilot-v2.pdf --prior-review reviews/pilot-v1/report.json --llm --out reviews/pilot-v1-v2
+```bash
+manuscript-review review manuscript-v1.pdf \
+  --llm --provider bedrock \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --out reviews/v1-assisted
+```
 
-This sends both versions in one comparison request. Add --dry-run first to
-inspect it. Use --old-supplement and --new-supplement when applicable.
+For OpenAI, substitute `--provider openai --model MODEL_NAME`.
 
-Read reviews/pilot-v1-v2/comparison.md. Its first section groups major concerns
-as resolved, partially resolved, persistent, worsened, unclear, or newly detected.
-A withdrawn claim is shown separately; it is not a repaired method.
+Start with the revision brief in `report.md`. Keep `report.json`, it is the structured record used by comparison and evaluation workflows.
 
-“Resolved” describes what the text supports, not proof that an analysis ran.
-New concerns in this paired workflow come from the deterministic V2 audit;
-it does not perform six fresh LLM reviews of V2. A newly detected issue may have
-been newly disclosed or previously missed.
+If the command exits with status 3, some LLM roles failed or were rejected. The deterministic review is still valid, but the assisted review is incomplete.
 
-## 5. Continue in a normal ChatGPT conversation
+## 4. Revise the manuscript
 
-    .venv/bin/manuscript-review export-chatgpt reviews/pilot-v1-v2/report.json --out handoffs/pilot-v2
+Save the revision as a new file. Do not overwrite V1.
 
-Upload **handoffs/pilot-v2/chatgpt-review.json** only. It contains selected
-findings, claim analyses, exact excerpts, and comparison state. Paste the short
-prompt from handoffs/pilot-v2/CHATGPT_PROMPT.md. Uploading is your decision; the
-command only writes local files.
+Treat suggested analyses as proposals, not mandatory work. Verify consequential concerns against the manuscript and the underlying science.
 
-The package is selected context, not the complete manuscript. Do not treat
-missing context as missing work. Keep request files, diagnostics, and evaluation
-keys locally.
+## 5. Compare V1 and V2
 
-For structured feedback import, see [CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md).
-To find out whether the LLM review helps more than the baseline, use the
-[blinded evaluation workflow](EVALUATION_GUIDE.md). No human ratings or live
-model-quality results are claimed yet.
+Offline:
+
+```bash
+manuscript-review compare manuscript-v1.pdf manuscript-v2.pdf \
+  --out reviews/v1-v2
+```
+
+With one provider-assisted comparison:
+
+```bash
+manuscript-review compare manuscript-v1.pdf manuscript-v2.pdf \
+  --prior-review reviews/v1-assisted/report.json \
+  --llm --provider bedrock \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --out reviews/v1-v2
+```
+
+Use `--dry-run` first if you want to inspect the paired request.
+
+Read `comparison.md` for resolved, partially resolved, persistent, worsened, unclear, and newly detected concerns.
+
+A reported fix is not verified execution. Softer wording also does not repair a design problem.
+
+## Optional next steps
+
+To continue in ChatGPT:
+
+```bash
+manuscript-review export-chatgpt reviews/v1-v2/report.json --out handoffs/v2
+```
+
+See [CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md).
+
+To test whether assisted review is actually more useful than the deterministic baseline, see [EVALUATION_GUIDE.md](EVALUATION_GUIDE.md).
