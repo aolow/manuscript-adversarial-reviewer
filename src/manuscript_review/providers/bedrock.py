@@ -139,7 +139,7 @@ def _converse(body, timeout, region):
         code = (getattr(exc, "response", {}) or {}).get("Error", {}).get("Code", "AWS error")
         raise ReviewError(
             "Bedrock request failed (%s). Check model access, region, IAM permission, model/inference-profile ID, "
-            "and whether the selected model supports Converse structured output. No automatic retry was made." % code
+            "and whether the selected model supports the requested Converse tool/output settings. No automatic retry was made." % code
         ) from None
     except BotoCoreError:
         raise ReviewError("Bedrock connection or AWS configuration failed. No automatic retry was made.") from None
