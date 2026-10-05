@@ -9,7 +9,7 @@ PDF / DOCX / Markdown / UTF-8 text + optional supplements
   -> extraction (claims, cohorts, methods, statistics, references, domains)
   -> independent reporting checks and narrow pattern checks
   -> finding overrides and ordinal prioritization
-  -> offline routing OR opt-in independent OpenAI reviewer requests
+  -> offline routing OR opt-in independent LLM provider requests (OpenAI or Bedrock)
   -> schema, exact-source, and conservative support validation
   -> duplicate/disagreement reconciliation and claim-centered synthesis
   -> prioritized Markdown + preserved 20-section detailed audit + JSON
@@ -19,9 +19,10 @@ old review + new review -> textual/claim/finding comparison -> comparison output
 ```
 
 The core and test runner use the Python standard library. PDF is an optional
-`pypdf` extra. Optional LLM validation uses `jsonschema`; the Responses adapter
-uses standard-library HTTPS. No infrastructure, database, telemetry, or background
-process is required. Only an explicit LLM operation contacts the provider.
+`pypdf` extra. Optional LLM validation uses `jsonschema`; the OpenAI Responses
+adapter uses standard-library HTTPS. Amazon Bedrock live mode uses optional boto3
+and the standard AWS credential chain. No infrastructure, database, telemetry, or
+background process is required. Only an explicit LLM operation contacts a provider.
 
 ## Repository layout
 
@@ -87,7 +88,8 @@ process is required. Only an explicit LLM operation contacts the provider.
 │   ├── providers/
 │   │   ├── __init__.py
 │   │   ├── contracts.py
-│   │   └── openai.py
+│   │   ├── openai.py
+│   │   └── bedrock.py
 │   └── reviewers/
 │       ├── __init__.py
 │       └── prompts/
@@ -103,6 +105,7 @@ process is required. Only an explicit LLM operation contacts the provider.
     ├── test_schema.py
     ├── test_llm_grounding.py
     ├── test_openai_provider.py
+    ├── test_bedrock_provider.py
     ├── test_llm_cli.py
     ├── test_semantic_comparison.py
     ├── test_benchmark.py
@@ -133,8 +136,8 @@ when feature selection happens before that split.
 `reviewers` routes findings into distinct mandates in offline mode. The hostile
 role reformulates high-priority findings as questions. It is not eight independent
 scientific reviews. Prompt packets separate instructions from untrusted source
-text. Legacy injected providers retain their list contract; the OpenAI adapter
-uses contract version 2 with strict findings, claims, strengths, and limitations.
+text. Legacy injected providers retain their list contract; the OpenAI and Bedrock
+adapters use contract version 2 with strict findings, claims, strengths, and limitations.
 Six default LLM roles are distinct; four additional roles remain selectable.
 Every role sees the same static baseline, so exact dry-run requests need no
 invented upstream responses. No reviewer output becomes another reviewer's input.
@@ -144,6 +147,12 @@ Credentials come only from the environment at send time; request exports contain
 no credentials. Requests disable storage and truncation, expose output/context
 limits, enable no tools, refuse redirects, and do not retry automatically.
 Model-specific settings are never inferred from a hard-coded model name.
+
+`providers/bedrock.py` sends explicitly configured Converse requests with JSON
+Schema structured output. It uses the standard boto3 credential chain, never
+serializes AWS credentials into review artifacts, enables no tools or retrieval,
+and disables SDK retries for the model call. The model or inference-profile ID
+and region remain explicit configuration rather than hard-coded choices.
 
 `grounding.py` resolves exact, unique excerpts into locally derived locations,
 separates factual premises from interpretations, flags obvious support problems,
