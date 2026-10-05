@@ -5,7 +5,6 @@ from dataclasses import asdict, dataclass
 from hashlib import sha256
 import json
 import math
-import os
 from time import perf_counter
 
 from ..errors import ReviewError
@@ -29,8 +28,10 @@ class BedrockSettings:
     def validate(self):
         if not isinstance(self.model, str) or not self.model.strip():
             raise ReviewError("LLM mode requires --model or MANUSCRIPT_REVIEW_MODEL; no model is selected automatically.")
-        if self.region is not None and (not isinstance(self.region, str) or not self.region.strip()):
-            raise ReviewError("Bedrock region must be a nonempty AWS region name.")
+        if not isinstance(self.region, str) or not self.region.strip():
+            raise ReviewError(
+                "Bedrock requires an explicit AWS region via --region, MANUSCRIPT_REVIEW_AWS_REGION, "
+                "AWS_REGION, or AWS_DEFAULT_REGION.")
         if self.temperature is not None and (
                 not math.isfinite(self.temperature) or not 0 <= self.temperature <= 1):
             raise ReviewError("Bedrock Converse temperature must be finite and between 0 and 1.")
@@ -42,8 +43,8 @@ class BedrockSettings:
             raise ReviewError("max_output_tokens must be between 256 and 32000.")
         if type(self.max_request_chars) is not int or not 1000 <= self.max_request_chars <= 2000000:
             raise ReviewError("max_request_chars must be between 1000 and 2000000.")
-        if not math.isfinite(self.timeout_seconds) or not 1 <= self.timeout_seconds <= 60:
-            raise ReviewError("Timeout must be between 1 and 60 seconds.")
+        if not math.isfinite(self.timeout_seconds) or not 1 <= self.timeout_seconds <= 300:
+            raise ReviewError("Bedrock timeout must be between 1 and 300 seconds.")
 
 
 def _converse(body, timeout, region):
