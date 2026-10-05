@@ -15,6 +15,31 @@ DEFAULT_ROLES = ("scientific", "methods", "computational", "novelty", "reviewer2
 SUPPORTED_ROLES = DEFAULT_ROLES + ("statistics", "clinical", "editor", "strategist")
 
 
+# Bedrock structured outputs support a deliberately limited JSON Schema subset.
+# Keep the full local contract for post-response validation, but remove unsupported
+# assertion keywords from the schema sent to Bedrock.
+_UNSUPPORTED_SCHEMA_KEYS = {
+    "minLength", "maxLength", "pattern",
+    "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+    "maxItems", "uniqueItems",
+}
+
+
+def _bedrock_schema(value):
+    if isinstance(value, dict):
+        result = {}
+        for key, child in value.items():
+            if key in _UNSUPPORTED_SCHEMA_KEYS:
+                continue
+            if key == "minItems" and child not in (0, 1):
+                continue
+            result[key] = _bedrock_schema(child)
+        return result
+    if isinstance(value, list):
+        return [_bedrock_schema(item) for item in value]
+    return value
+
+
 @dataclass(frozen=True)
 class BedrockSettings:
     model: str
@@ -119,7 +144,7 @@ class BedrockReviewer:
             "type": "json_schema",
             "structure": {
                 "jsonSchema": {
-                    "schema": json.dumps(schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                    "schema": json.dumps(_bedrock_schema(schema), ensure_ascii=False, sort_keys=True, separators=(",", ":")),
                     "name": "manuscript_" + role,
                     "description": "Structured manuscript review response",
                 }
