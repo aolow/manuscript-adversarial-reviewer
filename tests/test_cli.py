@@ -66,6 +66,21 @@ class CliTests(WorkspaceTest):
         self.assertIn("Refusing to overwrite an input", result.stderr)
         self.assertIn("12 patients", paper.read_text())
 
+
+    def test_bedrock_json_mode_is_wired_through_cli(self):
+        output = self.root / "bedrock-preview"
+        result = self.cli(
+            "review", FIXTURES / "flawed_manuscript.md",
+            "--llm", "--provider", "bedrock", "--model", "test-model",
+            "--region", "us-west-2", "--bedrock-json-mode", "prompt",
+            "--dry-run", "--out", output)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        request = json.loads(next((output / "requests").glob("*.json")).read_text())
+        self.assertNotIn("toolConfig", request["body"])
+        self.assertNotIn("textFormat", request["body"].get("outputConfig", {}))
+        self.assertEqual(
+            json.loads((output / "llm-run.json").read_text())["json_mode"], "prompt")
+
     def test_list_rules(self):
         result = self.cli("list-rules")
         self.assertEqual(result.returncode, 0)
