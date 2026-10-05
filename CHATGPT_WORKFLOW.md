@@ -1,59 +1,64 @@
-# Manual ChatGPT handoff
+# Manual ChatGPT workflow
 
-Export a saved review locally:
+This workflow creates a small local package that you can choose to upload into a normal ChatGPT conversation. The project never uploads it automatically.
 
-    .venv/bin/manuscript-review export-chatgpt reviews/pilot-v1/report.json --out handoffs/pilot-v1
+## Export
 
-Upload only handoffs/pilot-v1/chatgpt-review.json in the conversation where you
-want to continue. The accompanying CHATGPT_PROMPT.md gives a short prompt to
-paste. No upload, connector, or external service is started by this project.
+```bash
+manuscript-review export-chatgpt reviews/v1/report.json --out handoffs/v1
+```
 
-The package includes at most 15 active findings by default, five ranked claims,
-selected exact evidence excerpts with stable IDs, central threats, analysis
-plans, and available revision state. It excludes credentials, model request
-logs, usage receipts, full source registries, and discarded/quarantined findings.
-Omission counts and excerpt truncation are explicit. Use --max-findings N to
-include up to 50 concerns. A 250 KB ceiling prevents an accidental large dump.
+The handoff contains:
 
-The model must not infer absence from omitted text. Old-version quotations are
-omitted; comparison state is supplied for discussion, not fresh adjudication.
-A package ID and source-review digest bind feedback to this exact export.
+- Selected active findings.
+- Ranked claims and relevant evidence.
+- Central threats and proposed analyses.
+- Available comparison state.
+- A feedback schema for structured return.
 
-## Bring structured feedback back locally
+By default it includes at most 15 findings and has a size ceiling to avoid accidental large exports.
 
-Ask ChatGPT to return one JSON object following feedback_schema in the package,
-without Markdown fences. Save it locally as feedback.json. The wrapper contains
-package_id and review; review uses the existing finding/claim/strength contract.
-The schema is embedded, so there is no second schema attachment.
+Upload `handoffs/v1/chatgpt-review.json` only if you are authorized to share its manuscript content. The generated `CHATGPT_PROMPT.md` contains a short companion prompt.
 
-    .venv/bin/manuscript-review import-chatgpt reviews/pilot-v1/report.json feedback.json --context handoffs/pilot-v1/chatgpt-review.json --manuscript manuscripts/pilot-v1.pdf --out reviews/pilot-v1-feedback
+The package is intentionally incomplete. Missing text must not be treated as evidence that a method, control, or analysis is absent.
 
-Include the original --supplement arguments where needed. Import verifies the
-original source hashes and extracted text, reconstructs the expected export,
-validates the feedback schema, checks citations against the excerpts actually
-shared, and applies the same grounding and action checks as API output.
+## Import structured feedback
 
-Default import stages all new findings with needs_review disposition and low
-confidence. They do not enter the headline list. Proposed claims and strengths
-are retained for inspection without replacing the active analysis.
-The original review and manuscript are never modified.
+Ask ChatGPT to return one JSON object matching the embedded `feedback_schema`, then save it locally as `feedback.json`.
 
-After inspecting the candidate report, you may explicitly activate eligible
-feedback by rerunning from the ORIGINAL review into a fresh directory:
+```bash
+manuscript-review import-chatgpt \
+  reviews/v1/report.json \
+  feedback.json \
+  --context handoffs/v1/chatgpt-review.json \
+  --manuscript manuscript-v1.pdf \
+  --out reviews/v1-chatgpt
+```
 
-    .venv/bin/manuscript-review import-chatgpt reviews/pilot-v1/report.json feedback.json --context handoffs/pilot-v1/chatgpt-review.json --manuscript manuscripts/pilot-v1.pdf --accept-grounded --out reviews/pilot-v1-feedback-accepted
+Add the original `--supplement` arguments if applicable.
 
-This flag does not override fabricated citations, unsupported claims, impossible
-actions, or unverified external claims. Source-valid opinions are still judgments,
-not scientific facts. Imports are identified as manual ChatGPT feedback using
-the existing Reviewer 2 role; no persona or API call is added.
+The import checks:
 
-For a V2 comparison export, substitute the comparison report, V2 context path,
-and original V2 manuscript. Imported feedback can add concerns; it cannot edit
-the manuscript, silently modify previous findings, or declare prior issues resolved.
-Re-export after changing a source review. An old package cannot be replayed into
-a different report, even when much of the text is unchanged.
+- The original document hashes.
+- The exact exported package identity.
+- The response schema.
+- Citations against excerpts that were actually shared.
+- The same local grounding and action checks used for provider output.
 
-The package may contain unpublished manuscript content. The local export is
-not permission for any automatic upload. There is no authorship, source, or
-model-authenticity verification for a manually supplied ChatGPT response.
+New findings are staged as `needs_review` by default. They do not enter the headline list automatically.
+
+After manual inspection, eligible feedback can be activated into a fresh output directory:
+
+```bash
+manuscript-review import-chatgpt \
+  reviews/v1/report.json \
+  feedback.json \
+  --context handoffs/v1/chatgpt-review.json \
+  --manuscript manuscript-v1.pdf \
+  --accept-grounded \
+  --out reviews/v1-chatgpt-accepted
+```
+
+`--accept-grounded` does not override fabricated citations, unsupported external claims, or failed local checks.
+
+Manual ChatGPT feedback is still scientific judgment, not verified fact.
