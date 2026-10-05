@@ -10,6 +10,8 @@
   schema tool by default, a prompt-only JSON fallback, and the standard AWS credential chain.
 - Added provider-specific region, timeout, temperature, dry-run, usage, and
   failure handling without changing the offline deterministic review path.
+- Preserved JSON Schema size and validation bounds in Bedrock tool mode so forced
+  tool responses remain constrained instead of expanding toward the token limit.
 - Updated repository publication guidance now that the source repository is public.
 
 ## 0.3.0 — 2026-10-04
