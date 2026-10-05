@@ -13,11 +13,20 @@ class BedrockProviderTests(WorkspaceTest):
         report = self.review_text(PAPER)
         return llm_packet("scientific", report.documents, report.extraction, report.findings, None)
 
-    def response(self, payload, stop_reason="end_turn"):
+    def response(self, payload, stop_reason="tool_use", mode="tool"):
+        content = (
+            [{"toolUse": {
+                "toolUseId": "tool-1",
+                "name": "manuscript_scientific",
+                "input": payload,
+            }}]
+            if mode == "tool"
+            else [{"text": json.dumps(payload)}]
+        )
         return {
             "stopReason": stop_reason,
             "usage": {"inputTokens": 100, "outputTokens": 200, "totalTokens": 300},
-            "output": {"message": {"role": "assistant", "content": [{"text": json.dumps(payload)}]}},
+            "output": {"message": {"role": "assistant", "content": content}},
         }
 
     def block(self, packet, contains="We selected"):
@@ -43,13 +52,16 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertEqual(dry.requests[0]["sha256"], live.requests[0]["sha256"])
         body = dry.requests[0]["body"]
         self.assertEqual(body["modelId"], "test-model")
-        self.assertEqual(body["outputConfig"]["textFormat"]["type"], "json_schema")
-        self.assertNotIn("toolConfig", body)
+        self.assertNotIn("outputConfig", body)
+        self.assertEqual(
+            body["toolConfig"]["toolChoice"]["tool"]["name"], "manuscript_scientific")
+        schema = body["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"]
+        self.assertIsInstance(schema, dict)
 
     def test_outbound_schema_uses_bedrock_supported_subset(self):
         provider = BedrockReviewer(BedrockSettings("test-model", region="us-west-2"), dry_run=True)
         body = provider.prepare("scientific", self.packet())
-        schema = json.loads(body["outputConfig"]["textFormat"]["structure"]["jsonSchema"]["schema"])
+        schema = body["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"]
 
         def keys(value):
             if isinstance(value, dict):
@@ -70,6 +82,10 @@ class BedrockProviderTests(WorkspaceTest):
         }
         self.assertFalse(keys(schema) & unsupported)
         self.assertFalse(schema["additionalProperties"])
+        self.assertNotIn("anyOf", keys(schema))
+        action = schema["properties"]["findings"]["items"]["properties"]["action"]
+        self.assertNotIn("input", action.get("required", []))
+        self.assertEqual(action["properties"]["input"]["type"], "string")
 
     def test_full_local_schema_still_rejects_invalid_bedrock_output(self):
         packet = self.packet()
@@ -102,18 +118,46 @@ class BedrockProviderTests(WorkspaceTest):
             with self.subTest(stop_reason=stop_reason), self.assertRaises(ReviewError):
                 provider.review("scientific", self.packet())
 
-    def test_bedrock_temperature_and_effort_validation(self):
+    def test_bedrock_temperature_effort_and_mode_validation(self):
         for settings in (
             BedrockSettings("test-model", region="us-west-2", temperature=1.1),
             BedrockSettings("test-model", region="us-west-2", temperature=0.2, reasoning_effort="high"),
             BedrockSettings("test-model", region="us-west-2", reasoning_effort="minimal"),
+            BedrockSettings("test-model", region="us-west-2", reasoning_effort="high"),
+            BedrockSettings("test-model", region="us-west-2", json_mode="other"),
         ):
             with self.subTest(settings=settings), self.assertRaises(ReviewError):
                 BedrockReviewer(settings, dry_run=True)
 
-    def test_effort_is_explicit_only(self):
+    def test_prompt_mode_is_zero_structured_output_dependency_fallback(self):
+        packet = self.packet()
+        payload = envelope([finding(self.block(packet))])
+        transport = Mock(return_value=self.response(payload, stop_reason="end_turn", mode="prompt"))
         provider = BedrockReviewer(
-            BedrockSettings("test-model", region="us-west-2", reasoning_effort="high"), dry_run=True)
+            BedrockSettings("test-model", region="us-west-2", json_mode="prompt"),
+            transport=transport)
+        result = provider.review("scientific", packet)
+        body = transport.call_args.args[0]
+        self.assertEqual(len(result["findings"]), 1)
+        self.assertNotIn("toolConfig", body)
+        self.assertNotIn("outputConfig", body)
+        self.assertIn('"findings"', body["system"][0]["text"])
+
+    def test_effort_is_prompt_mode_only(self):
+        provider = BedrockReviewer(
+            BedrockSettings(
+                "test-model", region="us-west-2",
+                reasoning_effort="high", json_mode="prompt"),
+            dry_run=True)
         body = provider.prepare("scientific", self.packet())
         self.assertEqual(body["outputConfig"]["effort"], "high")
+        self.assertNotIn("toolConfig", body)
         self.assertNotIn("temperature", body["inferenceConfig"])
+
+    def test_tool_mode_requires_tool_output(self):
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2"),
+            transport=Mock(return_value=self.response(
+                envelope(), stop_reason="end_turn", mode="prompt")))
+        with self.assertRaisesRegex(ReviewError, "no tool output"):
+            provider.review("scientific", self.packet())
