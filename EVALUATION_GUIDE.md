@@ -1,97 +1,101 @@
-# Does the assisted review help?
+# Evaluate assisted review
 
-Use the same manuscript, supplements, deterministic configuration, and overrides
-for both arms. Evaluate a realistically complex paper that you are authorized
-to share with any selected provider. Nothing in the evaluation command uploads it.
+Use this workflow to compare the deterministic review with an LLM-assisted review without showing the rater which is which.
 
-First make a deterministic review:
+This is an exploratory evaluation, not a validated benchmark of scientific quality.
 
-    .venv/bin/manuscript-review review manuscripts/pilot-v1.pdf --out reviews/pilot-baseline
+## 1. Create both reviews
 
-Use the LLM-assisted review saved by [PILOT_GUIDE.md](PILOT_GUIDE.md). Then:
+Baseline:
 
-    .venv/bin/manuscript-review evaluate prepare --baseline reviews/pilot-baseline/report.json --assisted reviews/pilot-v1/report.json --out evaluations/pilot
+```bash
+manuscript-review review manuscript.pdf --out reviews/baseline
+```
 
-A dry run is not an assisted review. At least one provider role must have
-completed, or manual feedback must have been imported. Partial provider runs
-are permitted but disclosed in the unblinded result. This supports exploratory
-failure evaluation; it does not imply the full workflow succeeded.
+Assisted:
 
-## What to give the adjudicator
+```bash
+manuscript-review review manuscript.pdf \
+  --llm --provider bedrock \
+  --model BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --out reviews/assisted
+```
 
-Give the adjudicator the manuscript plus:
+Use the same manuscript, supplements, configuration, and overrides for both arms.
 
-- blinded-reviews.md: neutral randomized A/B labels, individually numbered concerns.
-- manuscript-context.json: stable source blocks for recording missed issues.
-- RUBRIC.md: concise classification and 0–3 rating anchors.
-- concern-ratings.csv: one row per concern, fillable in a spreadsheet or text editor.
-- adjudication.json: rater identity, issue inventory, overall usefulness, preference, and notes.
+## 2. Prepare a blinded package
 
-Keep private/key.json away from the adjudicator until scoring. Blinding hides
-origin labels, provider/model metadata, and rule IDs; style, content, and length
-can still reveal the source. An independent person preparing the package makes
-blinding more credible. Record source exposure in blinding_notes.
+```bash
+manuscript-review evaluate prepare \
+  --baseline reviews/baseline/report.json \
+  --assisted reviews/assisted/report.json \
+  --out evaluations/pilot
+```
 
-Read the paper and enter important_issues BEFORE reading either review where
-possible. This inventory is a rater judgment, not an exhaustive gold standard.
-Classify each concern as important, valid minor, redundant, speculative/unsupported,
-false positive, or unable to judge. A missed important issue is an inventory
-entry not identified by an active concern in that arm.
+Give the adjudicator:
 
-Score scientific correctness, severity calibration, evidence grounding,
-specificity, actionability, novelty/positioning, nonredundancy, and author usefulness.
-Higher is better; null/blank means not assessable, not zero. Give overall usefulness
-for each arm and optionally the reading time. Use notes to explain disputed
-judgments and data/feasibility constraints.
+- `blinded-reviews.md`
+- `manuscript-context.json`
+- `RUBRIC.md`
+- `concern-ratings.csv`
+- `adjudication.json`
 
-The CSV ratings replace only the concern-rating section of adjudication.json.
-Keep important_issues, overall ratings, and blinding notes in the JSON form.
-Mark completed=true only after all applicable ratings are filled. Set
-preferred_arm to A/B/C, tie, or unclear. You can also fill the JSON alone and
-omit --ratings-csv.
+Keep `private/key.json` hidden until scoring.
 
-## Score and unblind
+Blinding removes explicit source labels and provider metadata, but writing style or review length may still reveal the source.
 
-    .venv/bin/manuscript-review evaluate score evaluations/pilot --ratings-csv evaluations/pilot/concern-ratings.csv --out evaluations/pilot-result
+## 3. Rate the reviews
 
-Read evaluation.md and evaluation.json. They show:
+Before reading the blinded reviews, list the important issues you think a good review should identify when practical.
 
-- Important issue groups found and missed, including assisted-only discoveries.
-- Incorrect/speculative, minor, redundant, and unjudged concern counts.
-- Separate counts for quarantined suggestions.
-- Per-dimension ordinal means with rated/total denominators and assisted-minus-baseline differences.
-- Author usefulness, reading time, preference, blinding notes, and incomplete roles.
+For each concern, classify it as one of:
 
-No weighted quality score or significance claim is produced. Unfilled forms
-produce an explicitly incomplete result; missing scores are never zero-filled.
-Incomplete scoring keeps arm identities blinded and withholds comparative deltas.
-The saved result includes the original ratings and their digest.
-For another adjudicator, copy the blank form and use --adjudication plus a new
-output directory. Compare disagreements rather than silently averaging them away.
+- `true_important_concern`
+- `valid_minor_concern`
+- `redundant_concern`
+- `unsupported_speculative_concern`
+- `false_positive`
+- `unable_to_judge`
 
-Before choosing the assisted workflow, weigh additional important insights
-against false alarms, redundancy, impractical analyses, and time spent checking
-the review. A tiny set of papers or one rater cannot establish general performance.
+Rate applicable dimensions from 0 to 3:
 
-## Optional human/expert comparison
+| Dimension | Question |
+| --- | --- |
+| Scientific correctness | Is the concern scientifically sound? |
+| Severity calibration | Is its importance rated appropriately? |
+| Evidence grounding | Does the cited text actually support it? |
+| Specificity | Does it identify the exact problem? |
+| Actionability | Is the proposed next step useful and feasible? |
+| Novelty positioning | Is the framing useful, with literature claims kept provisional? |
+| Nonredundancy | Does it add distinct information? |
+| Author usefulness | Would it materially improve revision decisions? |
 
-Add --expert expert-review.json to prepare. The expert review becomes a randomized
-third arm; it is not used as an answer key. The concise input format is:
+Use blank or null when a dimension cannot be judged. Do not convert missing ratings to zero.
 
-    {
-      "document_hashes": {"manuscript": "COPY SHA256 FROM REPORT"},
-      "concerns": [{
-        "issue": "The proposed scientific concern.",
-        "severity": "major",
-        "citations": [{"block_id": "COPY BLOCK ID", "quote": "COPY EXACT SOURCE TEXT"}],
-        "suggested_action": "A specific corrective analysis or explanation."
-      }]
-    }
+Record an overall usefulness score for each arm and an optional preferred arm. Explain disputed, speculative, or false-positive concerns briefly.
 
-Copy all supplement hashes too. Locations are derived locally. Empty citations
-are allowed but the concern is displayed as requiring verification.
-An expert's unsupported statement does not become validated engine output.
+## 4. Score and unblind
 
-For local practice, fixtures/pilot_complex_manuscript.md is fictional and
-deliberately contains overlapping concerns and safeguards. The stress tests use
-constructed responses; they provide no live scientific-quality score.
+```bash
+manuscript-review evaluate score evaluations/pilot \
+  --ratings-csv evaluations/pilot/concern-ratings.csv \
+  --out evaluations/pilot-result
+```
+
+The result reports:
+
+- Important issues found and missed.
+- False, speculative, minor, redundant, and unjudged concerns.
+- Per-dimension ordinal means and denominators.
+- Assisted-minus-baseline differences.
+- Overall usefulness, preference, and blinding notes.
+- Incomplete provider roles.
+
+It does not produce a single weighted scientific-quality score or claim statistical significance.
+
+One manuscript and one rater are useful for debugging the workflow, not for establishing general performance.
+
+## Optional expert arm
+
+Add `--expert expert-review.json` to `evaluate prepare` for a randomized third arm. The expert review is treated as another comparison arm, not as ground truth.
