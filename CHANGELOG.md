@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Simplified the documentation around a concise README and focused workflow,
+  architecture, rubric, schema, evaluation, ChatGPT, and data-safety guides.
+- Removed historical development, readiness, adjudication, and self-audit documents
+  from the repository root; their history remains available in Git.
 - Added Amazon Bedrock Converse as a second explicit LLM provider, using JSON
   Schema structured output and the standard AWS credential chain.
 - Added provider-specific region, timeout, temperature, dry-run, usage, and
