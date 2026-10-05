@@ -84,8 +84,9 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertIn("maxItems", keys(schema))
         self.assertEqual(schema["properties"]["findings"]["maxItems"], 30)
         finding_schema = schema["properties"]["findings"]["items"]
-        self.assertEqual(finding_schema["properties"]["title"]["maxLength"], 500)
-        self.assertEqual(finding_schema["properties"]["title"]["minLength"], 1)
+        self.assertEqual(finding_schema["properties"]["evidence_statement"]["maxLength"], 4000)
+        self.assertEqual(finding_schema["properties"]["evidence_statement"]["minLength"], 1)
+        self.assertEqual(finding_schema["properties"]["citations"]["maxItems"], 8)
         self.assertIn("pattern", finding_schema["properties"]["id"])
         action = finding_schema["properties"]["action"]
         self.assertNotIn("input", action.get("required", []))
