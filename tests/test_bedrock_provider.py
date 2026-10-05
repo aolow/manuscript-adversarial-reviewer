@@ -46,6 +46,41 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertEqual(body["outputConfig"]["textFormat"]["type"], "json_schema")
         self.assertNotIn("toolConfig", body)
 
+    def test_outbound_schema_uses_bedrock_supported_subset(self):
+        provider = BedrockReviewer(BedrockSettings("test-model", region="us-west-2"), dry_run=True)
+        body = provider.prepare("scientific", self.packet())
+        schema = json.loads(body["outputConfig"]["textFormat"]["structure"]["jsonSchema"]["schema"])
+
+        def keys(value):
+            if isinstance(value, dict):
+                result = set(value)
+                for child in value.values():
+                    result.update(keys(child))
+                return result
+            if isinstance(value, list):
+                result = set()
+                for child in value:
+                    result.update(keys(child))
+                return result
+            return set()
+
+        unsupported = {
+            "minLength", "maxLength", "pattern", "minimum", "maximum",
+            "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "maxItems", "uniqueItems",
+        }
+        self.assertFalse(keys(schema) & unsupported)
+        self.assertFalse(schema["additionalProperties"])
+
+    def test_full_local_schema_still_rejects_invalid_bedrock_output(self):
+        packet = self.packet()
+        row = finding(self.block(packet))
+        row["id"] = "INVALID ID"
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2"),
+            transport=Mock(return_value=self.response(envelope([row]))))
+        with self.assertRaises(ReviewError):
+            provider.review("scientific", packet)
+
     def test_structured_finding_is_schema_validated(self):
         packet = self.packet()
         payload = envelope([finding(self.block(packet))])
