@@ -76,16 +76,31 @@ class BedrockProviderTests(WorkspaceTest):
                 return result
             return set()
 
-        unsupported = {
-            "minLength", "maxLength", "pattern", "minimum", "maximum",
-            "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "maxItems", "uniqueItems",
-        }
-        self.assertFalse(keys(schema) & unsupported)
         self.assertFalse(schema["additionalProperties"])
         self.assertNotIn("anyOf", keys(schema))
-        action = schema["properties"]["findings"]["items"]["properties"]["action"]
+        self.assertIn("minLength", keys(schema))
+        self.assertIn("maxLength", keys(schema))
+        self.assertIn("pattern", keys(schema))
+        self.assertIn("maxItems", keys(schema))
+        self.assertEqual(schema["properties"]["findings"]["maxItems"], 30)
+        finding_schema = schema["properties"]["findings"]["items"]
+        self.assertEqual(finding_schema["properties"]["title"]["maxLength"], 500)
+        self.assertEqual(finding_schema["properties"]["title"]["minLength"], 1)
+        self.assertIn("pattern", finding_schema["properties"]["id"])
+        action = finding_schema["properties"]["action"]
         self.assertNotIn("input", action.get("required", []))
         self.assertEqual(action["properties"]["input"]["type"], "string")
+        self.assertEqual(action["properties"]["input"]["maxLength"], 4000)
+
+    def test_prompt_mode_keeps_conservative_schema_stripping(self):
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2", json_mode="prompt"),
+            dry_run=True)
+        body = provider.prepare("scientific", self.packet())
+        system_text = body["system"][0]["text"]
+        self.assertNotIn('"maxLength"', system_text)
+        self.assertNotIn('"maxItems"', system_text)
+        self.assertNotIn('"pattern"', system_text)
 
     def test_full_local_schema_still_rejects_invalid_bedrock_output(self):
         packet = self.packet()
