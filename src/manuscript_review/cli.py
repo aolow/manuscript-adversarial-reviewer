@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import tempfile
 from .providers.openai import OpenAIReviewer, OpenAISettings
+from .providers.bedrock import BedrockReviewer, BedrockSettings
 
 from . import __version__
 from .comparison import compare_reviews
@@ -43,15 +44,16 @@ def parser():
         command.add_argument("--export-prompts", action="store_true", help="Save local reviewer packets containing manuscript text.")
         command.add_argument("--prior-review", type=Path, help="In paired mode, include a saved prior JSON review, including LLM concerns; hashes must match old inputs.")
         command.add_argument("--llm", action="store_true", help="Explicitly send extracted manuscript text to the selected provider.")
-        command.add_argument("--provider", choices=["openai"])
+        command.add_argument("--provider", choices=["openai", "bedrock"])
         command.add_argument("--model", help="Required in LLM mode unless MANUSCRIPT_REVIEW_MODEL is set.")
+        command.add_argument("--region", help="AWS region for Bedrock; otherwise use MANUSCRIPT_REVIEW_AWS_REGION or standard AWS configuration.")
         command.add_argument("--dry-run", action="store_true", help="With --llm: export exact requests, with no API call or key needed.")
         command.add_argument("--roles", help="Comma-separated reviewer names; default: six core adversarial roles.")
         command.add_argument("--temperature", type=float)
         command.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high", "xhigh"])
         command.add_argument("--max-output-tokens", type=int, default=6000)
         command.add_argument("--max-request-chars", type=int, default=240000)
-        command.add_argument("--timeout", type=float, default=60)
+        command.add_argument("--timeout", type=float, help="Provider timeout in seconds; defaults to 60 for OpenAI and 180 for Bedrock.")
         command.add_argument("--force", action="store_true", help="Replace generated output files if they already exist.")
         command.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                              default=(os.environ.get("MANUSCRIPT_REVIEW_LOG_LEVEL") or "WARNING").upper())
@@ -127,8 +129,8 @@ def _save(directory, outputs, input_paths, force=False):
 
 def _provider(args):
     if not args.llm:
-        if any(value is not None for value in (args.provider, args.model, args.roles,
-                                               args.temperature, args.reasoning_effort)) or args.dry_run:
+        if any(value is not None for value in (args.provider, args.model, args.region, args.roles,
+                                               args.temperature, args.reasoning_effort, args.timeout)) or args.dry_run:
             raise ReviewError("Provider/model/role settings and --dry-run require explicit --llm opt-in.")
         return None
     temperature = args.temperature
@@ -137,14 +139,28 @@ def _provider(args):
             temperature = float(os.environ["MANUSCRIPT_REVIEW_TEMPERATURE"])
         except ValueError:
             raise ReviewError("MANUSCRIPT_REVIEW_TEMPERATURE must be numeric.") from None
+    model = args.model or os.environ.get("MANUSCRIPT_REVIEW_MODEL")
+    effort = args.reasoning_effort or os.environ.get("MANUSCRIPT_REVIEW_REASONING_EFFORT") or None
+    roles = [r.strip() for r in args.roles.split(",")] if args.roles else None
+    provider_name = args.provider or "openai"
+    if provider_name == "bedrock":
+        settings = BedrockSettings(
+            model=model,
+            region=(args.region or os.environ.get("MANUSCRIPT_REVIEW_AWS_REGION")
+                    or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or None),
+            temperature=temperature,
+            reasoning_effort=effort,
+            max_output_tokens=args.max_output_tokens,
+            max_request_chars=args.max_request_chars,
+            timeout_seconds=args.timeout if args.timeout is not None else 180)
+        return BedrockReviewer(settings, dry_run=args.dry_run, roles=roles)
     settings = OpenAISettings(
-        model=args.model or os.environ.get("MANUSCRIPT_REVIEW_MODEL"),
+        model=model,
         temperature=temperature,
-        reasoning_effort=args.reasoning_effort or os.environ.get("MANUSCRIPT_REVIEW_REASONING_EFFORT") or None,
+        reasoning_effort=effort,
         max_output_tokens=args.max_output_tokens, max_request_chars=args.max_request_chars,
-        timeout_seconds=args.timeout)
-    return OpenAIReviewer(settings, dry_run=args.dry_run,
-                          roles=[r.strip() for r in args.roles.split(",")] if args.roles else None)
+        timeout_seconds=args.timeout if args.timeout is not None else 60)
+    return OpenAIReviewer(settings, dry_run=args.dry_run, roles=roles)
 
 
 def main(argv=None):

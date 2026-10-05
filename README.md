@@ -14,17 +14,21 @@ diagnostics, blinded human evaluation, and a compact manual ChatGPT handoff with
 staged, source-validated feedback import. The deterministic rules and reviewer
 roster are unchanged.
 
+LLM execution is provider-independent at the review layer. Live review can use
+either the OpenAI Responses API or Amazon Bedrock Converse, while offline review
+remains the default.
+
 **Start here:** [PILOT_GUIDE.md](PILOT_GUIDE.md). For evaluation, use
 [EVALUATION_GUIDE.md](EVALUATION_GUIDE.md); for manual exchange, use
 [CHATGPT_WORKFLOW.md](CHATGPT_WORKFLOW.md).
 
 ## Clone and install
 
-This is a private local project. No remote repository has been created or
-published. After the owner approves and creates a private remote:
+The source repository is public. Real manuscripts, private reviewer packets,
+credentials, and generated review outputs should remain outside source control.
 
 ```bash
-git clone <your-approved-private-repository-url> manuscript-review
+git clone https://github.com/aolow/manuscript-adversarial-reviewer.git manuscript-review
 cd manuscript-review
 ```
 
@@ -41,6 +45,12 @@ python -m unittest discover -s tests -t . -v
 Core-only install: `python -m pip install -e .`. The core has no third-party
 runtime dependencies. PDF uses optional `pypdf`; LLM schema validation uses
 optional `jsonschema`. The OpenAI adapter uses the standard-library HTTPS client.
+Amazon Bedrock live mode uses the optional `bedrock` extra and current boto3,
+which requires Python 3.10 or later:
+
+```bash
+python -m pip install -e ".[bedrock]"
+```
 
 ## Offline review: no API key needed
 
@@ -96,6 +106,42 @@ manuscript-review review manuscript.pdf \
 and deterministic context to OpenAI and may incur API charges.** Ordinary review
 commands remain offline even when a key is present in the environment.
 
+## Explicitly enable Amazon Bedrock review
+
+Bedrock uses the standard AWS credential chain. Authenticate with your approved
+AWS/SSO workflow first. Do not place AWS access keys in this repository.
+
+```bash
+manuscript-review review manuscript.pdf \
+  --llm --provider bedrock \
+  --model YOUR_BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --out reviews/bedrock-review
+```
+
+A safe first check is a dry run, which needs neither boto3 credentials nor a live
+Bedrock call:
+
+```bash
+manuscript-review review manuscript.pdf \
+  --llm --provider bedrock \
+  --model YOUR_BEDROCK_MODEL_OR_INFERENCE_PROFILE \
+  --region us-west-2 \
+  --dry-run --out reviews/bedrock-request-preview
+```
+
+The Bedrock adapter uses the Converse API with JSON Schema structured output and
+no tools or retrieval. The selected Bedrock model must support Converse structured
+output. First use of a new JSON Schema can require server-side schema compilation,
+so Bedrock defaults to a longer 180-second timeout; use `--timeout` up to 300
+seconds if needed. Model access, supported regions, and model or inference-profile IDs are
+controlled by the AWS account. Unsupported model/settings combinations fail
+instead of silently changing the request.
+
+**Running a live Bedrock command authorizes sending the extracted manuscript,
+supplements, and deterministic context to the configured AWS Bedrock account and
+may incur account charges.**
+
 Default LLM roles (six independent requests):
 
 1. Scientific/biological: central claims, biological alternatives, causal
@@ -114,7 +160,7 @@ Additional selectable roles: `statistics`, `clinical`, `editor`, `strategist`.
 For example: `--roles scientific,computational,reviewer2`. Clinical review is
 skipped if the biomarker applicability domain is absent.
 
-The adapter uses the
+The OpenAI adapter uses the
 [OpenAI Responses API with strict Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
 It sends no tools and performs no web or literature searches. `store=false` is
 sent; this is not a promise of zero provider retention.
@@ -124,13 +170,14 @@ sent; this is not a promise of zero provider retention.
 | CLI | Environment fallback | Behavior |
 | --- | --- | --- |
 | `--llm` | None | Required opt-in |
-| `--provider openai` | None | OpenAI is the only implementation |
+| `--provider openai\|bedrock` | None | OpenAI remains the default; Bedrock is explicit |
 | `--model` | `MANUSCRIPT_REVIEW_MODEL` | Required; no automatic choice |
-| `--temperature` | `MANUSCRIPT_REVIEW_TEMPERATURE` | Optional, 0–2 |
+| `--region` | `MANUSCRIPT_REVIEW_AWS_REGION`, `AWS_REGION`, `AWS_DEFAULT_REGION` | Required for Bedrock |
+| `--temperature` | `MANUSCRIPT_REVIEW_TEMPERATURE` | Optional; OpenAI 0–2, Bedrock Converse 0–1 |
 | `--reasoning-effort` | `MANUSCRIPT_REVIEW_REASONING_EFFORT` | Optional; must be supported by the chosen model |
 | `--max-output-tokens` | None | Default 6,000 per request; 256–32,000 |
 | `--max-request-chars` | None | Default 240,000 serialized characters per request |
-| `--timeout` | None | Default 60 seconds; maximum 60 |
+| `--timeout` | None | OpenAI default/max 60; Bedrock default 180, max 300 |
 | `--roles` | None | Six defaults; comma-separated overrides |
 | `--config` | `MANUSCRIPT_REVIEW_CONFIG` | Deterministic configuration |
 | `--log-level` | `MANUSCRIPT_REVIEW_LOG_LEVEL` | Default WARNING |

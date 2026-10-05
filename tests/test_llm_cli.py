@@ -43,6 +43,21 @@ class LlmCliTests(WorkspaceTest):
             self.assertNotIn("Authorization", data)
             self.assertEqual(data["body"]["model"], "test-model")
 
+    def test_bedrock_dry_run_exports_converse_request_without_boto3(self):
+        with patch.dict(os.environ, {}, clear=True):
+            code, output, err = self.call(
+                "review", FIXTURES / "flawed_manuscript.md", "--llm",
+                "--provider", "bedrock", "--model", "test-bedrock-model",
+                "--region", "us-west-2", "--dry-run", "--roles", "scientific",
+                "--out", self.root / "bedrock-dry")
+        self.assertEqual(code, 0, err)
+        self.assertIn("1 exact", output)
+        request = json.loads((self.root / "bedrock-dry/requests/scientific.json").read_text())
+        self.assertEqual(request["endpoint"], "bedrock-runtime:Converse")
+        self.assertEqual(request["region"], "us-west-2")
+        self.assertEqual(request["body"]["modelId"], "test-bedrock-model")
+        self.assertEqual(request["body"]["outputConfig"]["textFormat"]["type"], "json_schema")
+
     def test_environment_model_and_temperature(self):
         with patch.dict(os.environ, {"MANUSCRIPT_REVIEW_MODEL": "env-model",
                                      "MANUSCRIPT_REVIEW_TEMPERATURE": "0.25"}, clear=True):

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Added Amazon Bedrock Converse as a second explicit LLM provider, using JSON
+  Schema structured output and the standard AWS credential chain.
+- Added provider-specific region, timeout, temperature, dry-run, usage, and
+  failure handling without changing the offline deterministic review path.
+- Updated repository publication guidance now that the source repository is public.
+
 ## 0.3.0 — 2026-10-04
 
 - Preserved the v0.2.0 deterministic engine and reviewer roster.
