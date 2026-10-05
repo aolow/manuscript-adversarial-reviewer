@@ -15,10 +15,10 @@ DEFAULT_ROLES = ("scientific", "methods", "computational", "novelty", "reviewer2
 SUPPORTED_ROLES = DEFAULT_ROLES + ("statistics", "clinical", "editor", "strategist")
 
 
-# Bedrock tool schemas accept a deliberately limited JSON Schema subset across
-# Anthropic model versions. Keep the full local contract for post-response
-# validation, but normalize the schema sent to Bedrock.
-_UNSUPPORTED_SCHEMA_KEYS = {
+# Prompt-mode JSON keeps the conservative schema subset used by the older
+# structured-output path. Converse tool input schemas can retain validation and
+# size bounds; tool mode only needs nullable-union normalization.
+_PROMPT_UNSUPPORTED_SCHEMA_KEYS = {
     "minLength", "maxLength", "pattern",
     "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
     "maxItems", "uniqueItems",
@@ -38,11 +38,11 @@ def _nullable_variant(value):
     return non_nulls[0] if len(nulls) == 1 and len(non_nulls) == 1 else None
 
 
-def _bedrock_schema(value):
+def _bedrock_schema(value, strip_assertions=True):
     if isinstance(value, dict):
         nullable = _nullable_variant(value)
         if nullable is not None:
-            return _bedrock_schema(nullable)
+            return _bedrock_schema(nullable, strip_assertions)
 
         nullable_properties = set()
         properties = value.get("properties")
@@ -54,19 +54,19 @@ def _bedrock_schema(value):
 
         result = {}
         for key, child in value.items():
-            if key in _UNSUPPORTED_SCHEMA_KEYS:
+            if strip_assertions and key in _PROMPT_UNSUPPORTED_SCHEMA_KEYS:
                 continue
-            if key == "minItems" and child not in (0, 1):
+            if strip_assertions and key == "minItems" and child not in (0, 1):
                 continue
             if key == "required" and isinstance(child, list):
                 required = [name for name in child if name not in nullable_properties]
                 if required:
                     result[key] = required
                 continue
-            result[key] = _bedrock_schema(child)
+            result[key] = _bedrock_schema(child, strip_assertions)
         return result
     if isinstance(value, list):
-        return [_bedrock_schema(item) for item in value]
+        return [_bedrock_schema(item, strip_assertions) for item in value]
     return value
 
 
@@ -177,7 +177,8 @@ class BedrockReviewer:
 
     def prepare(self, role, packet, schema=REVIEW_SCHEMA):
         source_data = {k: v for k, v in packet.items() if k != "instructions"}
-        outbound_schema = _bedrock_schema(schema)
+        outbound_schema = _bedrock_schema(
+            schema, strip_assertions=self.settings.json_mode != "tool")
         inference = {"maxTokens": self.settings.max_output_tokens}
         if self.settings.temperature is not None:
             inference["temperature"] = self.settings.temperature
