@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "synthetic_only": true,
+  "evaluated_rule_ids": [
+    "feature_selection_before_split", "test_set_tuning", "cohort_reuse",
+    "cell_pseudoreplication", "circular_signature", "causal_overclaim",
+    "conservation_overclaim", "novelty_overclaim", "design_confounding",
+    "external_validation", "confidence_intervals", "multiple_testing"
+  ],
+  "cases": [
+    {
+      "id": "leakage", "file": "fixtures/leakage.md",
+      "expected": [
+        {"rule_id": "feature_selection_before_split", "acceptable_severities": ["major"], "evidence_phrases": ["all samples and outcome labels before splitting"]},
+        {"rule_id": "test_set_tuning", "acceptable_severities": ["major"], "evidence_phrases": ["tuned hyperparameters on the test set"]},
+        {"rule_id": "cohort_reuse", "acceptable_severities": ["major"], "evidence_phrases": ["same cohort"]},
+        {"rule_id": "external_validation", "acceptable_severities": ["major"], "evidence_phrases": ["No external validation"]}
+      ]
+    },
+    {
+      "id": "pseudoreplication", "file": "fixtures/pseudoreplication.md",
+      "expected": [
+        {"rule_id": "cell_pseudoreplication", "acceptable_severities": ["major"], "evidence_phrases": ["Cells were treated as independent biological replicates"]}
+      ]
+    },
+    {
+      "id": "circular_biology", "file": "fixtures/circular_biology.md",
+      "expected": [
+        {"rule_id": "circular_signature", "acceptable_severities": ["major"], "evidence_phrases": ["same genes"]},
+        {"rule_id": "causal_overclaim", "acceptable_severities": ["major"], "evidence_phrases": ["prove a causal mechanism"]},
+        {"rule_id": "novelty_overclaim", "acceptable_severities": ["moderate"], "evidence_phrases": ["first-ever framework"]}
+      ]
+    },
+    {"id": "safe_control", "file": "fixtures/safe_control.md", "expected": []},
+    {
+      "id": "paraphrased_leakage", "file": "fixtures/paraphrased_leakage.md",
+      "expected": [
+        {"rule_id": "feature_selection_before_split", "acceptable_severities": ["major"], "evidence_phrases": ["Outcome-guided marker ranking used the complete cohort"]}
+      ]
+    },
+    {
+      "id": "missing_reporting", "file": "fixtures/missing_reporting.md",
+      "expected": [
+        {"rule_id": "external_validation", "acceptable_severities": ["major"], "evidence_phrases": ["No external validation"]},
+        {"rule_id": "confidence_intervals", "acceptable_severities": ["moderate"], "evidence_phrases": ["Confidence intervals were omitted"]},
+        {"rule_id": "multiple_testing", "acceptable_severities": ["major"], "evidence_phrases": ["20,000 genes"]}
+      ]
+    }
+  ]
+}

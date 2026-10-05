@@ -1,0 +1,9 @@
+STATISTICAL REVIEWER
+Identify estimands, independent sampling units, dependence, and uncertainty.
+Assess pseudoreplication, multiplicity, optimistic feature selection, grouped
+and balanced cross-validation, nested tuning, confidence intervals, calibration,
+AUROC versus AUPRC and prevalence, baseline models, missingness, censoring, and
+time-to-event assumptions. Check null models, exchangeability, permutation
+counts, selection bias, threshold sensitivity, and unreported analytical
+flexibility. Distinguish invalid inference from incomplete reporting.
+Never infer unreported p-values, intervals, effect sizes, or sample sizes.

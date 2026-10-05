@@ -1,0 +1,717 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manuscript Review 1.1.0",
+  "$ref": "#/$defs/Review",
+  "$defs": {
+    "Review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "tool_version",
+        "run_id",
+        "created_at",
+        "target_journal",
+        "documents",
+        "extraction",
+        "findings",
+        "checklist",
+        "reviewer_runs",
+        "sections",
+        "warnings",
+        "configuration",
+        "comparison",
+        "claim_analyses",
+        "adversarial",
+        "quality",
+        "llm"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.1.0"
+        },
+        "tool_version": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "target_journal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Document"
+          }
+        },
+        "extraction": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        },
+        "checklist": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckResult"
+          }
+        },
+        "reviewer_runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "minItems": 20,
+          "maxItems": 20
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "comparison": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Comparison"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claim_analyses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "adversarial": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "llm": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      }
+    },
+    "Document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "name",
+        "path",
+        "sha256",
+        "format",
+        "blocks",
+        "warnings"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Block"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "document_id",
+        "section",
+        "text",
+        "kind",
+        "page",
+        "line_start",
+        "line_end",
+        "paragraph",
+        "extraction_confidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "line_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "line_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "paragraph": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extraction_confidence": {
+          "type": "string"
+        }
+      }
+    },
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rule_id",
+        "severity",
+        "category",
+        "manuscript_section",
+        "claim",
+        "issue",
+        "why_it_matters",
+        "evidence",
+        "suggested_fix",
+        "suggested_analysis",
+        "confidence",
+        "issue_status",
+        "reviewer_roles",
+        "origin",
+        "priority",
+        "priority_rationale",
+        "reviewer_likelihood",
+        "effort",
+        "value",
+        "disposition",
+        "manual_note",
+        "limitation",
+        "basis",
+        "grounding_status",
+        "evidence_statement",
+        "support_rationale",
+        "topic",
+        "claim_ids",
+        "action",
+        "quality_flags",
+        "duplicate_of",
+        "reviewer_assessments"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "fatal_flaw",
+            "major",
+            "moderate",
+            "minor",
+            "optional_strengthening"
+          ]
+        },
+        "category": {
+          "type": "string"
+        },
+        "manuscript_section": {
+          "type": "string"
+        },
+        "claim": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string"
+        },
+        "why_it_matters": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 0
+        },
+        "suggested_fix": {
+          "type": "string"
+        },
+        "suggested_analysis": {
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "issue_status": {
+          "type": "string",
+          "enum": [
+            "established_issue",
+            "plausible_issue",
+            "speculative_concern"
+          ]
+        },
+        "reviewer_roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "origin": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "P0_verify_before_submission",
+            "P1_high_value_revision",
+            "P2_targeted_clarification",
+            "P3_optional_strengthening"
+          ]
+        },
+        "priority_rationale": {
+          "type": "string"
+        },
+        "reviewer_likelihood": {
+          "type": "string"
+        },
+        "effort": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "active",
+            "dismissed",
+            "confirmed",
+            "needs_review",
+            "duplicate"
+          ]
+        },
+        "manual_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limitation": {
+          "type": "string"
+        },
+        "basis": {
+          "enum": [
+            "manuscript_direct",
+            "manuscript_inference",
+            "external_claim",
+            "reviewer_opinion"
+          ]
+        },
+        "grounding_status": {
+          "enum": [
+            "source_verified",
+            "needs_semantic_review",
+            "ungrounded",
+            "external_unverified"
+          ]
+        },
+        "evidence_statement": {
+          "type": "string"
+        },
+        "support_rationale": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "quality_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "duplicate_of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewer_assessments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "block_id",
+        "section",
+        "quote",
+        "start",
+        "end",
+        "relation",
+        "page",
+        "line_start",
+        "paragraph"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "block_id": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relation": {
+          "enum": [
+            "trigger",
+            "context_only",
+            "candidate_support",
+            "reported_result"
+          ]
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "line_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "paragraph": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "CheckResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "status",
+        "evidence",
+        "searched_document_ids",
+        "searched_block_count",
+        "confidence",
+        "interpretation",
+        "domain"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "reported",
+            "not_established",
+            "explicit_negative_statement",
+            "conflicting",
+            "not_applicable"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "searched_document_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "searched_block_count": {
+          "type": "integer"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "interpretation": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        }
+      }
+    },
+    "Comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "old_run_id",
+        "new_run_id",
+        "old_document_hashes",
+        "new_document_hashes",
+        "substantive_changes",
+        "claims_strengthened",
+        "claims_weakened",
+        "concerns_resolved",
+        "reported_remediation",
+        "concerns_unresolved",
+        "new_concerns",
+        "no_longer_detected",
+        "rigor_assessment",
+        "positioning_assessment",
+        "limitations",
+        "issue_assessments",
+        "llm"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.1.0"
+        },
+        "old_run_id": {
+          "type": "string"
+        },
+        "new_run_id": {
+          "type": "string"
+        },
+        "old_document_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "new_document_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "substantive_changes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "claims_strengthened": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "claims_weakened": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "concerns_resolved": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "reported_remediation": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "concerns_unresolved": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "new_concerns": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "no_longer_detected": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "rigor_assessment": {
+          "type": "string"
+        },
+        "positioning_assessment": {
+          "type": "string"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "issue_assessments": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "llm": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

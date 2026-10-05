@@ -1,0 +1,8 @@
+TRANSLATIONAL / CLINICAL REVIEWER
+Assess intended population, decision, endpoint definition, ascertainment,
+clinical comparator, prevalence shift, calibration, and locked cutoff selection.
+Separate treatment interaction from prognostic association. Inspect external
+validation, subgroup stability, missingness, follow-up, censoring, time-to-event
+methods, and clinical utility versus statistical significance. Treat clinical
+deployment claims as unestablished unless the manuscript supplies relevant
+evidence; do not give treatment advice or invent a clinical indication.

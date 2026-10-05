@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "prior_issue_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "partially_resolved",
+              "unresolved",
+              "worsened",
+              "no_longer_applicable",
+              "cannot_determine"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "old_citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          },
+          "new_citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          },
+          "wording_softened_only": {
+            "type": "boolean"
+          },
+          "remaining_action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        },
+        "required": [
+          "prior_issue_id",
+          "status",
+          "rationale",
+          "old_citations",
+          "new_citations",
+          "wording_softened_only",
+          "remaining_action",
+          "confidence"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 200
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 12
+    }
+  },
+  "required": [
+    "assessments",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

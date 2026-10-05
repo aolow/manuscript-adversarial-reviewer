@@ -1,0 +1,792 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+          },
+          "topic": {
+            "type": "string",
+            "enum": [
+              "leakage",
+              "pseudoreplication",
+              "circularity",
+              "causality",
+              "conservation",
+              "novelty",
+              "validation",
+              "confounding",
+              "statistics",
+              "calibration",
+              "reproducibility",
+              "clinical",
+              "writing",
+              "other"
+            ]
+          },
+          "issue_key": {
+            "type": "string",
+            "enum": [
+              "ambient_rna",
+              "annotation_robustness",
+              "ascertainment",
+              "baseline_models",
+              "batch_platform",
+              "biological_replicates",
+              "calibration",
+              "causal_overclaim",
+              "cell_pseudoreplication",
+              "censoring",
+              "circular_signature",
+              "clinical_use",
+              "clinical_utility",
+              "cluster_stability",
+              "code_availability",
+              "cohort_reuse",
+              "composition",
+              "confidence_intervals",
+              "confounding",
+              "conservation_overclaim",
+              "cutoff",
+              "data_availability",
+              "design_confounding",
+              "donor_cell_balance",
+              "doublets",
+              "endpoint",
+              "external_validation",
+              "feature_selection_before_split",
+              "grouped_validation",
+              "guides",
+              "integration",
+              "latent_overinterpretation",
+              "limitations",
+              "metric_context",
+              "missingness",
+              "moi",
+              "multiple_testing",
+              "novelty_overclaim",
+              "null_models",
+              "off_targets",
+              "perturbation_efficiency",
+              "perturbation_model",
+              "prevalence_shift",
+              "pseudobulk",
+              "random_seed",
+              "sample_sizes",
+              "screen_controls",
+              "screen_quality",
+              "sensitivity",
+              "software_versions",
+              "subgroups",
+              "test_set_tuning",
+              "thresholds",
+              "toxicity",
+              "train_test_split",
+              "treatment_interaction",
+              "other"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "major",
+              "moderate",
+              "minor",
+              "optional_strengthening"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "design",
+              "statistics",
+              "leakage",
+              "confounding",
+              "circularity",
+              "validation",
+              "interpretation",
+              "positioning",
+              "clinical",
+              "single_cell",
+              "perturbation",
+              "reproducibility",
+              "reporting",
+              "writing"
+            ]
+          },
+          "issue_status": {
+            "type": "string",
+            "enum": [
+              "plausible_issue",
+              "speculative_concern"
+            ]
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "manuscript_direct",
+              "manuscript_inference",
+              "external_claim",
+              "reviewer_opinion"
+            ]
+          },
+          "evidence_statement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "interpretation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "support_rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "why_it_matters": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "suggested_fix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "suggested_analysis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "maxItems": 10
+          },
+          "action": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "analysis",
+                  "experiment",
+                  "text",
+                  "reporting",
+                  "none"
+                ]
+              },
+              "input": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "comparison": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "held_out_unit": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "metric": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expected_interpretation": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_section": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_claim": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recommended_framing": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "input",
+              "comparison",
+              "held_out_unit",
+              "metric",
+              "expected_interpretation",
+              "text_section",
+              "text_claim",
+              "recommended_framing"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "topic",
+          "issue_key",
+          "severity",
+          "category",
+          "issue_status",
+          "basis",
+          "evidence_statement",
+          "interpretation",
+          "support_rationale",
+          "why_it_matters",
+          "suggested_fix",
+          "suggested_analysis",
+          "confidence",
+          "citations",
+          "claim_ids",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 30
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+          },
+          "claim_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "importance": {
+            "type": "string",
+            "enum": [
+              "central",
+              "supporting",
+              "exploratory"
+            ]
+          },
+          "importance_rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "manuscript_evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          },
+          "supporting_evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          },
+          "strongest_support": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "strongest_weakness": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "alternative_explanation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "falsification_analysis": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "analysis",
+                  "experiment",
+                  "text",
+                  "reporting",
+                  "none"
+                ]
+              },
+              "input": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "comparison": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "held_out_unit": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "metric": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expected_interpretation": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_section": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_claim": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recommended_framing": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "input",
+              "comparison",
+              "held_out_unit",
+              "metric",
+              "expected_interpretation",
+              "text_section",
+              "text_claim",
+              "recommended_framing"
+            ],
+            "additionalProperties": false
+          },
+          "decisive_analysis": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "analysis",
+                  "experiment",
+                  "text",
+                  "reporting",
+                  "none"
+                ]
+              },
+              "input": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "comparison": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "held_out_unit": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "metric": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expected_interpretation": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_section": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text_claim": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recommended_framing": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "input",
+              "comparison",
+              "held_out_unit",
+              "metric",
+              "expected_interpretation",
+              "text_section",
+              "text_claim",
+              "recommended_framing"
+            ],
+            "additionalProperties": false
+          },
+          "impact_if_false": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "confidence_in_claim": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "claim_text",
+          "importance",
+          "importance_rationale",
+          "rank",
+          "manuscript_evidence",
+          "supporting_evidence",
+          "strongest_support",
+          "strongest_weakness",
+          "alternative_explanation",
+          "falsification_analysis",
+          "decisive_analysis",
+          "impact_if_false",
+          "confidence_in_claim"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 12
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "block_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 1200
+                }
+              },
+              "required": [
+                "block_id",
+                "quote"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 8
+          }
+        },
+        "required": [
+          "text",
+          "citations"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 8
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 12
+    }
+  },
+  "required": [
+    "findings",
+    "claims",
+    "strengths",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

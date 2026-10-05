@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manuscript Comparison 1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "old_run_id",
+    "new_run_id",
+    "old_document_hashes",
+    "new_document_hashes",
+    "substantive_changes",
+    "claims_strengthened",
+    "claims_weakened",
+    "concerns_resolved",
+    "reported_remediation",
+    "concerns_unresolved",
+    "new_concerns",
+    "no_longer_detected",
+    "rigor_assessment",
+    "positioning_assessment",
+    "limitations",
+    "issue_assessments",
+    "llm"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "old_run_id": {
+      "type": "string"
+    },
+    "new_run_id": {
+      "type": "string"
+    },
+    "old_document_hashes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "new_document_hashes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "substantive_changes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "claims_strengthened": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "claims_weakened": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "concerns_resolved": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "reported_remediation": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "concerns_unresolved": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "new_concerns": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "no_longer_detected": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "rigor_assessment": {
+      "type": "string"
+    },
+    "positioning_assessment": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "issue_assessments": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "llm": {
+      "type": "object"
+    }
+  }
+}

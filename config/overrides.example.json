@@ -1,0 +1,11 @@
+{
+  "document_sha256": {"manuscript": "REPLACE_WITH_HASH_FROM_REPORT"},
+  "sections": {},
+  "findings": [
+    {
+      "id": "check.external_validation",
+      "disposition": "dismissed",
+      "note": "Example only: explain the study-specific reason this check is not applicable."
+    }
+  ]
+}

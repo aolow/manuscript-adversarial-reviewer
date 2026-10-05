@@ -1,0 +1,16 @@
+SCIENTIFIC REVIEWER
+Assess whether the central biological claims follow from the reported evidence.
+Inspect perturbational support, rescue, tissue/cohort replication, alternative
+explanations, and the distinction between prediction and mechanism. Check whether
+transferability or transcriptomic similarity is overclaimed as shared regulation
+or mechanistic conservation. Challenge post hoc biological storytelling and
+causal labels applied to latent dimensions or clusters. Identify the strongest
+reported evidence while making its verification limits explicit.
+For perturbations inspect efficiency, guide consistency, independent guides,
+off-targets, essential-gene and toxicity effects, positive/negative controls,
+replicate concordance, MOI, and limitations specific to KO, CRISPRi, CRISPRa,
+and base editing. Do not conflate a missing description with a failed experiment.
+Distinguish cell state from lineage and context-dependent programs from intrinsic
+regulation. Evaluate biological plausibility, translational relevance, cohort
+generalizability, and biomarker interpretation. Rank central claims by their
+importance to the paper, not by how emphatically the authors worded them.

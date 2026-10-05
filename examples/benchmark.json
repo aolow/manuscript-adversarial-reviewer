@@ -1,0 +1,112 @@
+{
+  "benchmark_version": "1.0.0",
+  "mode": "deterministic",
+  "layer": "deterministic",
+  "case_count": 6,
+  "counts": {
+    "tp": 11,
+    "fp": 0,
+    "fn": 1,
+    "evaluated_findings": 11,
+    "unscored_findings": 68,
+    "provenance_valid": 79,
+    "provenance_total": 79,
+    "evidence_aligned": 11,
+    "evidence_total": 11,
+    "severity_correct": 11,
+    "severity_total": 11,
+    "actionable": 11,
+    "action_total": 11
+  },
+  "scores": {
+    "precision_in_annotated_scope": 1.0,
+    "recall_in_annotated_scope": 0.9166666666666666,
+    "exact_source_grounding": 1.0,
+    "expected_evidence_alignment": 1.0,
+    "severity_calibration": 1.0,
+    "structured_action_completeness": 1.0
+  },
+  "cases": [
+    {
+      "id": "leakage",
+      "true_positives": [
+        "cohort_reuse",
+        "external_validation",
+        "feature_selection_before_split",
+        "test_set_tuning"
+      ],
+      "false_positives": [],
+      "false_negatives": [],
+      "unscored_findings": 11
+    },
+    {
+      "id": "pseudoreplication",
+      "true_positives": [
+        "cell_pseudoreplication"
+      ],
+      "false_positives": [],
+      "false_negatives": [],
+      "unscored_findings": 18
+    },
+    {
+      "id": "circular_biology",
+      "true_positives": [
+        "causal_overclaim",
+        "circular_signature",
+        "novelty_overclaim"
+      ],
+      "false_positives": [],
+      "false_negatives": [],
+      "unscored_findings": 7
+    },
+    {
+      "id": "safe_control",
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [],
+      "unscored_findings": 8
+    },
+    {
+      "id": "paraphrased_leakage",
+      "true_positives": [],
+      "false_positives": [],
+      "false_negatives": [
+        "feature_selection_before_split"
+      ],
+      "unscored_findings": 12
+    },
+    {
+      "id": "missing_reporting",
+      "true_positives": [
+        "confidence_intervals",
+        "external_validation",
+        "multiple_testing"
+      ],
+      "false_positives": [],
+      "false_negatives": [],
+      "unscored_findings": 12
+    }
+  ],
+  "evaluated_rule_ids": [
+    "causal_overclaim",
+    "cell_pseudoreplication",
+    "circular_signature",
+    "cohort_reuse",
+    "confidence_intervals",
+    "conservation_overclaim",
+    "design_confounding",
+    "external_validation",
+    "feature_selection_before_split",
+    "multiple_testing",
+    "novelty_overclaim",
+    "test_set_tuning"
+  ],
+  "limitations": [
+    "Tiny author-designed synthetic regression set; annotations are expert-style, not independently expert-validated.",
+    "Precision/recall and false positives are measured only inside the declared rule scope; unscored findings are counted separately.",
+    "Exact source matching is not semantic entailment; expected-phrase alignment is a limited synthetic grounding check.",
+    "Actionability measures populated analysis/text fields, not feasibility or scientific value.",
+    "No expert-level performance, real-manuscript generalization, or live LLM quality is established.",
+    "Saved LLM findings map through their declared issue_key; independently review those labels before interpreting model scores."
+  ]
+}

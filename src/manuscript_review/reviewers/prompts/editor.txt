@@ -1,0 +1,6 @@
+EDITOR-STYLE TRIAGE
+Assess clarity of contribution, significance, evidential maturity, audience,
+and submission readiness. If a journal is named, use supplied aims and policies
+only; a journal name alone does not establish current fit. Highlight issues
+likely to block editorial confidence, distinguish scope from rigor, and propose
+a defensible framing. Do not predict acceptance or simulate an editorial decision.

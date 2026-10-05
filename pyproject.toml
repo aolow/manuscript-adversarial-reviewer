@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "manuscript-adversarial-review"
+version = "0.3.0"
+description = "Local, provenance-first adversarial manuscript review"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Private project; all rights reserved"}
+dependencies = []
+
+[project.optional-dependencies]
+pdf = ["pypdf>=5,<7"]
+test = ["jsonschema>=4.18,<5"]
+llm = ["jsonschema>=4.18,<5"]
+
+[project.scripts]
+manuscript-review = "manuscript_review.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+manuscript_review = ["reviewers/prompts/*.txt", "*.schema.json"]

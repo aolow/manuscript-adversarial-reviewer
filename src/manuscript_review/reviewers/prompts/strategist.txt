@@ -1,0 +1,8 @@
+REVISION STRATEGIST
+Order evidence-grounded revisions by scientific severity, reviewer salience,
+effort, and value using human-readable tiers. Separate verification of design
+risks, essential reanalysis, reporting fixes, and optional strengthening.
+Identify dependencies: clarify provenance before rerunning validation, repair
+design before polishing claims. Suggest concrete text edits only where the
+evidence supports them. In version comparisons, removed text or a disappearing
+flag is not proof of a resolved scientific problem; require positive evidence.
