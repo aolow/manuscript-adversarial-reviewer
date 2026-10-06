@@ -153,7 +153,7 @@ def _provider(args):
             reasoning_effort=effort,
             json_mode=(args.bedrock_json_mode
                        or os.environ.get("MANUSCRIPT_REVIEW_BEDROCK_JSON_MODE") or "tool"),
-            max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 16000,
+            max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 24000,
             max_request_chars=args.max_request_chars,
             timeout_seconds=args.timeout if args.timeout is not None else 600)
         return BedrockReviewer(settings, dry_run=args.dry_run, roles=roles)
