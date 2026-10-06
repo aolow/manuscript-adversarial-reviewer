@@ -117,7 +117,8 @@
               "perturbation",
               "reproducibility",
               "reporting",
-              "writing"
+              "writing",
+              "other"
             ]
           },
           "issue_status": {
@@ -318,15 +319,7 @@
               }
             },
             "required": [
-              "kind",
-              "input",
-              "comparison",
-              "held_out_unit",
-              "metric",
-              "expected_interpretation",
-              "text_section",
-              "text_claim",
-              "recommended_framing"
+              "kind"
             ],
             "additionalProperties": false
           }
@@ -352,7 +345,7 @@
         ],
         "additionalProperties": false
       },
-      "maxItems": 30
+      "maxItems": 10
     },
     "claims": {
       "type": "array",
@@ -560,15 +553,7 @@
               }
             },
             "required": [
-              "kind",
-              "input",
-              "comparison",
-              "held_out_unit",
-              "metric",
-              "expected_interpretation",
-              "text_section",
-              "text_claim",
-              "recommended_framing"
+              "kind"
             ],
             "additionalProperties": false
           },
@@ -683,15 +668,7 @@
               }
             },
             "required": [
-              "kind",
-              "input",
-              "comparison",
-              "held_out_unit",
-              "metric",
-              "expected_interpretation",
-              "text_section",
-              "text_claim",
-              "recommended_framing"
+              "kind"
             ],
             "additionalProperties": false
           },
@@ -727,7 +704,7 @@
         ],
         "additionalProperties": false
       },
-      "maxItems": 12
+      "maxItems": 6
     },
     "strengths": {
       "type": "array",
