@@ -101,7 +101,7 @@ manuscript-review review manuscript.pdf \
   --out reviews/bedrock-review
 ```
 
-Bedrock uses the Converse API with a forced schema tool by default. The tool arguments are the structured review payload, which is then validated against the full local schema. If a model does not support forced tool choice, use `--bedrock-json-mode prompt`; that fallback asks for JSON in the prompt and still rejects malformed or schema-invalid output without retrying.
+Bedrock uses the Converse API with a forced schema tool by default. The tool arguments are the structured review payload, which is then validated against the full local schema. Review responses are bounded to 10 findings and 6 claims; Bedrock defaults to 16,000 output tokens and a 600-second read timeout for full manuscripts. If a model does not support forced tool choice, use `--bedrock-json-mode prompt`; that fallback asks for JSON in the prompt and still rejects malformed or schema-invalid output without retrying.
 
 ### Common settings
 
@@ -112,9 +112,9 @@ Bedrock uses the Converse API with a forced schema tool by default. The tool arg
 | `--temperature` | Optional sampling temperature |
 | `--reasoning-effort` | Optional model reasoning setting when supported; Bedrock requires `--bedrock-json-mode prompt` when effort is enabled |
 | `--bedrock-json-mode` | Bedrock only: `tool` (default) or `prompt` fallback |
-| `--max-output-tokens` | Output limit per request |
+| `--max-output-tokens` | Output limit per request; defaults to 16,000 for Bedrock and 6,000 for OpenAI |
 | `--max-request-chars` | Local request-size guard |
-| `--timeout` | Provider timeout |
+| `--timeout` | Provider timeout; defaults to 600 seconds for Bedrock and 60 seconds for OpenAI |
 | `--dry-run` | Build and save exact requests without sending them |
 
 Environment fallbacks include `MANUSCRIPT_REVIEW_MODEL`, `MANUSCRIPT_REVIEW_TEMPERATURE`, `MANUSCRIPT_REVIEW_REASONING_EFFORT`, `MANUSCRIPT_REVIEW_BEDROCK_JSON_MODE`, and `MANUSCRIPT_REVIEW_AWS_REGION`.
