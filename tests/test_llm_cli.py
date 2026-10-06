@@ -59,6 +59,9 @@ class LlmCliTests(WorkspaceTest):
         self.assertEqual(request["body"]["toolConfig"]["toolChoice"]["tool"]["name"], "manuscript_scientific")
         self.assertIsInstance(request["body"]["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"], dict)
         self.assertNotIn("outputConfig", request["body"])
+        self.assertEqual(request["body"]["inferenceConfig"]["maxTokens"], 16000)
+        run = json.loads((self.root / "bedrock-dry/llm-run.json").read_text())
+        self.assertEqual(run["settings"]["timeout_seconds"], 600)
 
     def test_environment_model_and_temperature(self):
         with patch.dict(os.environ, {"MANUSCRIPT_REVIEW_MODEL": "env-model",
@@ -90,6 +93,7 @@ class LlmCliTests(WorkspaceTest):
                                         "--roles", "scientific", "--out", self.root / "failed")
         self.assertEqual(code, 3)
         self.assertIn("deterministic output preserved", output)
+        self.assertIn("schema_rejected", output)
         self.assertTrue((self.root / "failed/report.json").exists())
 
     def test_paired_dry_run_exports_one_comparison_request(self):
