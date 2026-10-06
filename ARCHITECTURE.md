@@ -62,6 +62,38 @@ Provider findings must pass local validation before they can enter the report:
 
 Human scientific judgment remains the final authority.
 
+## Reviewer orchestration
+
+Reviewer roles are implemented as a shared safety/grounding prompt plus a role-specific mandate. The default live panel is `scientific,methods,computational,novelty,reviewer2,reproducibility`. The selectable `statistics`, `clinical`, `editor`, and `strategist` roles use the same response contract and grounding pipeline.
+
+Before any live call, `reviewers.llm_packet()` constructs a static packet containing the source blocks, extracted candidate claims, deterministic-context leads, target journal name when supplied, and the selected mandate. All selected role packets are prepared from the same baseline before provider results are incorporated. This prevents one model role from anchoring later roles to its own generated concerns.
+
+The roles are deliberately overlapping at boundaries but have different centers of gravity:
+
+- **Scientific** owns the central-story and claim-evidence question. It is the primary role expected to return ranked claim analyses.
+- **Methods** owns experimental design and provenance and, in the default panel, includes a practical statistics pass so a separate statistics call is not mandatory.
+- **Computational** follows information flow through representations, feature construction, references, tuning, and validation boundaries.
+- **Novelty** evaluates what contribution is actually being claimed while explicitly treating current prior-art verification as external work.
+- **Reviewer 2** attacks the strongest claims through falsification and competing explanations rather than generating a generic second checklist.
+- **Reproducibility** asks whether the reported procedure can be reconstructed and rerun without private knowledge.
+- **Statistics**, **clinical**, **editor**, and **strategist** provide optional specialist depth rather than silently running in every review.
+
+Provider output then passes through three distinct layers that should not be conflated:
+
+```text
+provider response
+  -> schema accepted
+  -> source grounding / per-item fault isolation
+  -> support + action audit
+  -> Finding objects and claim analyses
+  -> cross-role duplicate reconciliation
+  -> adversarial prioritization and report
+```
+
+A provider call can therefore be successful while some of its individual findings are rejected or quarantined. Schema acceptance is a transport/contract result, not a scientific-quality verdict. Grounding establishes provenance of quoted text, not semantic truth. The support audit deliberately leaves scientific entailment unverified for human adjudication.
+
+Finding and claim failures are fault-isolated. Bad claim evidence drops that claim without discarding independent findings. Finding citations are resolved independently; bad citations are filtered, a finding with at least one valid supplied citation can continue, and an all-invalid cited finding is dropped. This is intentional because one malformed model citation should not erase unrelated valid output from the same expensive reviewer call.
+
 ## Providers
 
 ### OpenAI
