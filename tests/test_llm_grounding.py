@@ -28,17 +28,30 @@ class GroundingTests(WorkspaceTest):
         self.assertIn("semantic_entailment_not_verified", items[0].quality_flags)
         self.assertEqual(items[0].confidence, "medium")
 
-    def test_fabricated_quote_rejected(self):
-        row = finding(self.block)
-        row["citations"][0]["quote"] = "We performed a randomized trial in 900 patients."
-        with self.assertRaisesRegex(ReviewError, "Fabricated"):
-            self.normalize(envelope([row]))
+    def test_finding_with_only_fabricated_quote_is_dropped_not_role_aborted(self):
+        bad = finding(self.block, "bad-citation")
+        bad["citations"][0]["quote"] = "We performed a randomized trial in 900 patients."
+        good = finding(self.block, "good-citation")
+        items, _, _ = self.normalize(envelope([bad, good]))
+        self.assertEqual([item.id for item in items], ["reviewer.scientific.good-citation"])
 
-    def test_nonexistent_block_rejected(self):
+    def test_finding_with_nonexistent_block_is_dropped_not_role_aborted(self):
+        bad = finding(self.block, "bad-block")
+        bad["citations"][0]["block_id"] = "invented-block"
+        good = finding(self.block, "good-block")
+        items, _, _ = self.normalize(envelope([bad, good]))
+        self.assertEqual([item.id for item in items], ["reviewer.scientific.good-block"])
+
+    def test_invalid_citation_is_filtered_when_another_citation_is_valid(self):
         row = finding(self.block)
-        row["citations"][0]["block_id"] = "invented-block"
-        with self.assertRaises(ReviewError):
-            self.normalize(envelope([row]))
+        row["citations"].append({
+            "block_id": self.block["id"],
+            "quote": "A fabricated quote that is not in the cited block.",
+        })
+        items, _, _ = self.normalize(envelope([row]))
+        self.assertEqual(len(items), 1)
+        self.assertEqual(len(items[0].evidence), 1)
+        self.assertIn("invalid_citations_dropped", items[0].quality_flags)
 
     def test_model_cannot_supply_page_or_section(self):
         for field, value in (("page", 999), ("section", "Imaginary Methods"), ("start", 19)):
