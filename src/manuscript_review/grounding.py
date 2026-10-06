@@ -233,14 +233,14 @@ def normalize_response(role, response, documents, extraction, provider_name):
             continue
         unknown = set(row["claim_ids"]) - set(claim_map)
         truly_unknown = unknown - rejected_claim_ids
-        if truly_unknown:
-            raise ReviewError("Finding refers to a nonexistent supplied or returned claim ID.")
         linked_claim_ids = [claim_map[x] for x in row["claim_ids"] if x in claim_map]
         grounding, confidence, flags = support_audit(
             row["basis"], row["evidence_statement"], row["interpretation"],
             row["support_rationale"], citations, row["topic"], row["confidence"], row["issue_key"])
         if rejected_citations:
             flags.append("invalid_citations_dropped")
+        if truly_unknown:
+            flags.append("dangling_claim_ref_dropped")
         flags += action_flags(row["action"], row["severity"])
         flags += action_context_flags(row["action"], documents)
         substantive = row["basis"] in ("manuscript_direct", "manuscript_inference")
