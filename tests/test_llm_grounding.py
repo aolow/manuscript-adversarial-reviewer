@@ -159,12 +159,26 @@ class GroundingTests(WorkspaceTest):
         self.assertEqual(claims[0]["manuscript_evidence"][0]["section"], "Abstract")
         self.assertEqual(claims[0]["supporting_evidence"][0]["section"], "Results")
 
-    def test_invented_central_claim_rejected(self):
+    def test_paraphrased_central_claim_is_retained_for_semantic_review(self):
         row = claim(source_block(self.report.documents, "Our model predicts"),
                     source_block(self.report.documents, "achieved an AUROC"))
-        row["claim_text"] = "The drug cures cancer in every patient."
-        with self.assertRaisesRegex(ReviewError, "Central claim text"):
-            self.normalize(envelope(claims=[row]))
+        row["claim_text"] = "A transcriptional signature may generalize as a predictive biomarker."
+        _, claims, _ = self.normalize(envelope(claims=[row]))
+        self.assertEqual(len(claims), 1)
+        self.assertIn("claim_paraphrase_needs_semantic_review", claims[0]["quality_flags"])
+        self.assertEqual(claims[0]["confidence_in_claim"], "low")
+
+    def test_bad_claim_citation_does_not_discard_independent_findings(self):
+        row = claim(source_block(self.report.documents, "Our model predicts"),
+                    source_block(self.report.documents, "achieved an AUROC"))
+        row["manuscript_evidence"][0]["quote"] = "A fabricated central claim excerpt that is not in the manuscript."
+        item = finding(self.block)
+        item["claim_ids"] = [row["id"]]
+        findings, claims, _ = self.normalize(envelope([item], claims=[row]))
+        self.assertEqual(claims, [])
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].claim_ids, [])
+        self.assertEqual(findings[0].origin, "provider:test")
 
     def test_unknown_claim_links_rejected(self):
         row = finding(self.block)
