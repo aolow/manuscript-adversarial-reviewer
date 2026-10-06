@@ -98,7 +98,7 @@ class BedrockSettings:
     json_mode: str = "tool"
     max_output_tokens: int = 16000
     max_request_chars: int = 240000
-    timeout_seconds: float = 60
+    timeout_seconds: float = 600
 
     def validate(self):
         if not isinstance(self.model, str) or not self.model.strip():
