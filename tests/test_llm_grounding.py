@@ -193,11 +193,13 @@ class GroundingTests(WorkspaceTest):
         self.assertEqual(findings[0].claim_ids, [])
         self.assertEqual(findings[0].origin, "provider:test")
 
-    def test_unknown_claim_links_rejected(self):
+    def test_unknown_claim_link_is_dropped_without_aborting_finding(self):
         row = finding(self.block)
         row["claim_ids"] = ["unprovided-claim"]
-        with self.assertRaisesRegex(ReviewError, "nonexistent"):
-            self.normalize(envelope([row]))
+        findings, _, _ = self.normalize(envelope([row]))
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].claim_ids, [])
+        self.assertIn("dangling_claim_ref_dropped", findings[0].quality_flags)
 
     def test_runtime_validation_catches_tampered_locations(self):
         for field, value in (("page", 99), ("section", "Fake"), ("paragraph", 999), ("line_start", 1234)):
