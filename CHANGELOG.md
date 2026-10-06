@@ -15,8 +15,10 @@
 - Bounded live review output to 10 findings and 6 claims, made nonapplicable ACTION
   fields optional, safely normalized unknown classification labels to `other`, and
   exposed schema failure path/validator metadata without model or manuscript text.
-- Raised Bedrock defaults to 16,000 output tokens and a 600-second read timeout for
+- Raised Bedrock defaults to 24,000 output tokens and a 600-second read timeout for
   full manuscripts; timeouts remain non-retrying to avoid hidden duplicate long calls.
+- Made central-claim grounding tolerant of reviewer paraphrase and isolated invalid claim
+  citations so one claim cannot discard independently grounded findings from the role.
 - Updated repository publication guidance now that the source repository is public.
 
 ## 0.3.0 — 2026-10-04
