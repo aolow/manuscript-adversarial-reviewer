@@ -42,7 +42,7 @@ class PilotDiagnosticsTests(WorkspaceTest):
         self.assertEqual(data["schema_accepted_calls"], 1)
         self.assertEqual(data["accepted_findings"], 0)
         self.assertEqual(data["rejected_findings_known"], 1)
-        self.assertEqual(data["incomplete_roles"], ["scientific"])
+        self.assertEqual(data["incomplete_roles"], [])
 
     def test_accepted_quarantined_and_duplicate_counts_are_separate(self):
         def fake(body, timeout):
@@ -57,13 +57,18 @@ class PilotDiagnosticsTests(WorkspaceTest):
         self.assertEqual(data["quarantined_findings"], 2)
         self.assertEqual(data["merged_duplicates"], 1)
 
-    def test_source_validation_failure_has_a_diagnostic_reason(self):
+    def test_invalid_finding_citation_is_rejected_without_failing_role(self):
         def fake(body, timeout):
             row = finding(packet_block(body))
             row["citations"][0]["block_id"] = "fabricated"
             return response(envelope([row]))
         report, _ = self.review(fake)
-        self.assertEqual(report.quality["pilot_diagnostics"]["failures"][0]["status"], "source_validation_rejected")
+        data = report.quality["pilot_diagnostics"]
+        self.assertEqual(data["failures"], [])
+        self.assertEqual(data["incomplete_roles"], [])
+        self.assertEqual(data["schema_accepted_calls"], 1)
+        self.assertEqual(data["accepted_findings"], 0)
+        self.assertEqual(data["rejected_findings_known"], 1)
 
     def test_transport_failure_has_unknown_usage_not_zero(self):
         report, _ = self.review(Mock(side_effect=ReviewError("Connection failed.")))

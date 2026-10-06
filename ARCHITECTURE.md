@@ -78,6 +78,8 @@ The default Bedrock path defines one Converse tool whose `inputSchema.json` is a
 
 Bedrock review payloads are deliberately bounded to 10 findings and 6 claims. ACTION objects require `kind`; the remaining typed fields are optional because tool-use models commonly omit nonapplicable nullable fields. Unknown Bedrock finding classifications are mapped only to the explicit `other` fallback for topic, issue key, or category, and diagnostics record the coerced field paths without retaining the original model values.
 
+Provider grounding is fault-isolated at the claim and finding level. An invalid model citation cannot abort an otherwise usable reviewer role: invalid finding citations are filtered individually, findings survive when at least one supplied citation resolves, and findings whose supplied citations all fail are dropped. Exact quote and block validation itself remains strict.
+
 Provider choice does not change the scientific review pipeline.
 
 ## Provenance

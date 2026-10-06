@@ -19,6 +19,9 @@
   full manuscripts; timeouts remain non-retrying to avoid hidden duplicate long calls.
 - Made central-claim grounding tolerant of reviewer paraphrase and isolated invalid claim
   citations so one claim cannot discard independently grounded findings from the role.
+- Isolated citation failures per finding: invalid citations are filtered, findings with at
+  least one valid citation survive with a quality flag, and all-invalid findings are dropped
+  without aborting the reviewer role.
 - Updated repository publication guidance now that the source repository is public.
 
 ## 0.3.0 — 2026-10-04
