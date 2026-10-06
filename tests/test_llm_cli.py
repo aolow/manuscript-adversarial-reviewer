@@ -59,7 +59,7 @@ class LlmCliTests(WorkspaceTest):
         self.assertEqual(request["body"]["toolConfig"]["toolChoice"]["tool"]["name"], "manuscript_scientific")
         self.assertIsInstance(request["body"]["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"], dict)
         self.assertNotIn("outputConfig", request["body"])
-        self.assertEqual(request["body"]["inferenceConfig"]["maxTokens"], 16000)
+        self.assertEqual(request["body"]["inferenceConfig"]["maxTokens"], 24000)
         run = json.loads((self.root / "bedrock-dry/llm-run.json").read_text())
         self.assertEqual(run["settings"]["timeout_seconds"], 600)
 
