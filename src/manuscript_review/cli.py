@@ -52,9 +52,9 @@ def parser():
         command.add_argument("--roles", help="Comma-separated reviewer names; default: six core adversarial roles.")
         command.add_argument("--temperature", type=float)
         command.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high", "xhigh"])
-        command.add_argument("--max-output-tokens", type=int, default=6000)
+        command.add_argument("--max-output-tokens", type=int)
         command.add_argument("--max-request-chars", type=int, default=240000)
-        command.add_argument("--timeout", type=float, help="Provider timeout in seconds; defaults to 60 for OpenAI and 180 for Bedrock.")
+        command.add_argument("--timeout", type=float, help="Provider timeout in seconds; defaults to 60 for OpenAI and 600 for Bedrock.")
         command.add_argument("--force", action="store_true", help="Replace generated output files if they already exist.")
         command.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                              default=(os.environ.get("MANUSCRIPT_REVIEW_LOG_LEVEL") or "WARNING").upper())
@@ -153,15 +153,16 @@ def _provider(args):
             reasoning_effort=effort,
             json_mode=(args.bedrock_json_mode
                        or os.environ.get("MANUSCRIPT_REVIEW_BEDROCK_JSON_MODE") or "tool"),
-            max_output_tokens=args.max_output_tokens,
+            max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 16000,
             max_request_chars=args.max_request_chars,
-            timeout_seconds=args.timeout if args.timeout is not None else 180)
+            timeout_seconds=args.timeout if args.timeout is not None else 600)
         return BedrockReviewer(settings, dry_run=args.dry_run, roles=roles)
     settings = OpenAISettings(
         model=model,
         temperature=temperature,
         reasoning_effort=effort,
-        max_output_tokens=args.max_output_tokens, max_request_chars=args.max_request_chars,
+        max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 6000,
+        max_request_chars=args.max_request_chars,
         timeout_seconds=args.timeout if args.timeout is not None else 60)
     return OpenAIReviewer(settings, dry_run=args.dry_run, roles=roles)
 
@@ -316,7 +317,11 @@ def main(argv=None):
             print("Dry run: %d exact request(s) exported; no API calls made." % len(provider.requests))
         if (report.quality.get("failed_roles") or (report.comparison and
                 any(report.comparison.get("llm", {}).get(k) for k in ("failed", "incomplete")))):
-            print("LLM review incomplete; deterministic output preserved. Inspect warnings and llm-run.json.")
+            failures = report.quality.get("pilot_diagnostics", {}).get("failures", [])
+            statuses = [item.get("status") for item in failures if item.get("status")]
+            dominant = max(set(statuses), key=statuses.count) if statuses else "unknown"
+            print("LLM review incomplete (%s); deterministic output preserved. "
+                  "Inspect warnings and llm-run.json." % dominant)
             return 3
         return 0
     except (ReviewError, OSError) as exc:
