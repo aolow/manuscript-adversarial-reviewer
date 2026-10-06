@@ -223,7 +223,14 @@ def normalize_response(role, response, documents, extraction, provider_name):
             "quality_flags": sorted(set(flags + ["scientific_judgment_unverified"])),
         })
     for row in response["findings"]:
-        citations = resolve_citations(row["citations"], documents)
+        citations, rejected_citations = [], 0
+        for citation in row["citations"]:
+            try:
+                citations.extend(resolve_citations([citation], documents))
+            except ReviewError:
+                rejected_citations += 1
+        if row["citations"] and not citations:
+            continue
         unknown = set(row["claim_ids"]) - set(claim_map)
         truly_unknown = unknown - rejected_claim_ids
         if truly_unknown:
@@ -232,6 +239,8 @@ def normalize_response(role, response, documents, extraction, provider_name):
         grounding, confidence, flags = support_audit(
             row["basis"], row["evidence_statement"], row["interpretation"],
             row["support_rationale"], citations, row["topic"], row["confidence"], row["issue_key"])
+        if rejected_citations:
+            flags.append("invalid_citations_dropped")
         flags += action_flags(row["action"], row["severity"])
         flags += action_context_flags(row["action"], documents)
         substantive = row["basis"] in ("manuscript_direct", "manuscript_inference")
