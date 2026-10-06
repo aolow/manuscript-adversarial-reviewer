@@ -17,7 +17,14 @@ class SchemaTests(unittest.TestCase):
                     self.assertEqual(value.get("type"), "string")
                 if value.get("type") == "object":
                     self.assertIs(value.get("additionalProperties"), False)
-                    self.assertEqual(set(value["required"]), set(value["properties"]))
+                    self.assertLessEqual(set(value["required"]), set(value["properties"]))
+                    if set(value["properties"]) == {
+                            "kind", "input", "comparison", "held_out_unit", "metric",
+                            "expected_interpretation", "text_section", "text_claim",
+                            "recommended_framing"}:
+                        self.assertEqual(value["required"], ["kind"])
+                    else:
+                        self.assertEqual(set(value["required"]), set(value["properties"]))
                 for child in value.values():
                     inspect(child)
             elif isinstance(value, list):
@@ -29,6 +36,14 @@ class SchemaTests(unittest.TestCase):
             shipped = json.loads((ROOT / "src/manuscript_review" / name).read_text())
             shipped.pop("$schema")
             self.assertEqual(shipped, contract)
+
+    def test_review_contract_is_bounded_for_live_generation(self):
+        from manuscript_review.providers.contracts import REVIEW_SCHEMA
+        self.assertEqual(REVIEW_SCHEMA["properties"]["findings"]["maxItems"], 10)
+        self.assertEqual(REVIEW_SCHEMA["properties"]["claims"]["maxItems"], 6)
+        finding = REVIEW_SCHEMA["properties"]["findings"]["items"]
+        self.assertIn("other", finding["properties"]["category"]["enum"])
+        self.assertEqual(finding["properties"]["action"]["required"], ["kind"])
 
     def test_reports_and_comparison_validate_against_shipped_schema(self):
         import jsonschema
