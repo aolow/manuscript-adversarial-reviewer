@@ -61,6 +61,7 @@ class BedrockProviderTests(WorkspaceTest):
     def test_outbound_schema_uses_bedrock_supported_subset(self):
         provider = BedrockReviewer(BedrockSettings("test-model", region="us-west-2"), dry_run=True)
         body = provider.prepare("scientific", self.packet())
+        self.assertEqual(body["inferenceConfig"]["maxTokens"], 24000)
         schema = body["toolConfig"]["tools"][0]["toolSpec"]["inputSchema"]["json"]
 
         def keys(value):
