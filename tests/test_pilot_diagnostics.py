@@ -22,7 +22,7 @@ class PilotDiagnosticsTests(WorkspaceTest):
         self.assertEqual(data["attempted_api_calls"], 1)
         self.assertEqual(data["schema_accepted_calls"], 0)
         self.assertEqual(data["usage"]["input_tokens"], 100)
-        self.assertEqual(data["incomplete_roles"], [])
+        self.assertEqual(data["incomplete_roles"], ["scientific"])
         self.assertIsNone(data["estimated_cost_usd"])
 
     def test_invalid_schema_retains_raw_count_and_usage(self):
@@ -42,7 +42,7 @@ class PilotDiagnosticsTests(WorkspaceTest):
         self.assertEqual(data["schema_accepted_calls"], 1)
         self.assertEqual(data["accepted_findings"], 0)
         self.assertEqual(data["rejected_findings_known"], 1)
-        self.assertEqual(data["incomplete_roles"], ["scientific"])
+        self.assertEqual(data["incomplete_roles"], [])
 
     def test_accepted_quarantined_and_duplicate_counts_are_separate(self):
         def fake(body, timeout):
