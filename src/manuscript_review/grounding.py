@@ -183,14 +183,25 @@ def normalize_response(role, response, documents, extraction, provider_name):
     claim_raw_ids = [row["id"] for row in response["claims"]]
     if len(set(raw_ids)) != len(raw_ids) or len(set(claim_raw_ids)) != len(claim_raw_ids):
         raise ReviewError("Duplicate LLM IDs within one reviewer response.")
+    rejected_claim_ids = set()
     for row in response["claims"]:
-        sources = resolve_citations(row["manuscript_evidence"], documents)
-        if not sources or not any(row["claim_text"] in ev.quote for ev in sources):
-            raise ReviewError("Central claim text must occur in its cited manuscript excerpt.")
-        supporting = resolve_citations(row["supporting_evidence"], documents)
+        try:
+            sources = resolve_citations(row["manuscript_evidence"], documents)
+            if not sources:
+                rejected_claim_ids.add(row["id"])
+                continue
+            supporting = resolve_citations(row["supporting_evidence"], documents)
+        except ReviewError:
+            # A bad claim must not discard independently grounded findings from the role.
+            rejected_claim_ids.add(row["id"])
+            continue
         identifier = stable_id("central-claim", row["claim_text"])
         claim_map[row["id"]] = identifier
         flags = []
+        claim_words = words(row["claim_text"])
+        source_words = words(" ".join(ev.quote for ev in sources))
+        if claim_words and not claim_words & source_words:
+            flags.append("claim_paraphrase_needs_semantic_review")
         if not supporting:
             flags.append("support_not_established")
         flags += action_flags(row["falsification_analysis"]) + action_flags(row["decisive_analysis"])
@@ -214,8 +225,10 @@ def normalize_response(role, response, documents, extraction, provider_name):
     for row in response["findings"]:
         citations = resolve_citations(row["citations"], documents)
         unknown = set(row["claim_ids"]) - set(claim_map)
-        if unknown:
+        truly_unknown = unknown - rejected_claim_ids
+        if truly_unknown:
             raise ReviewError("Finding refers to a nonexistent supplied or returned claim ID.")
+        linked_claim_ids = [claim_map[x] for x in row["claim_ids"] if x in claim_map]
         grounding, confidence, flags = support_audit(
             row["basis"], row["evidence_statement"], row["interpretation"],
             row["support_rationale"], citations, row["topic"], row["confidence"], row["issue_key"])
@@ -240,7 +253,7 @@ def normalize_response(role, response, documents, extraction, provider_name):
             issue_status=row["issue_status"], reviewer_roles=[role],
             origin="provider:" + provider_name, basis=row["basis"], grounding_status=grounding,
             evidence_statement=row["evidence_statement"], support_rationale=row["support_rationale"],
-            topic=row["topic"], claim_ids=[claim_map[x] for x in row["claim_ids"]],
+            topic=row["topic"], claim_ids=linked_claim_ids,
             action=row["action"], quality_flags=sorted(set(flags)), disposition=disposition,
             reviewer_assessments=[{"role": role, "severity": row["severity"], "confidence": row["confidence"]}],
             limitation="Exact source text was checked. Reviewer interpretation, external facts, and scientific adequacy are unverified.")))
