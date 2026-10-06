@@ -70,6 +70,25 @@ def _bedrock_schema(value, strip_assertions=True):
     return value
 
 
+
+
+def _normalize_review_enums(payload):
+    """Map model-invented classification labels to explicit fallbacks without retaining values."""
+    if not isinstance(payload, dict) or not isinstance(payload.get("findings"), list):
+        return []
+    properties = REVIEW_SCHEMA["properties"]["findings"]["items"]["properties"]
+    fallbacks = {"topic": "other", "issue_key": "other", "category": "other"}
+    changed = []
+    for index, finding in enumerate(payload["findings"]):
+        if not isinstance(finding, dict):
+            continue
+        for field, fallback in fallbacks.items():
+            allowed = properties[field].get("enum", [])
+            if field in finding and finding[field] not in allowed:
+                finding[field] = fallback
+                changed.append("findings.%d.%s" % (index, field))
+    return changed
+
 @dataclass(frozen=True)
 class BedrockSettings:
     model: str
@@ -77,7 +96,7 @@ class BedrockSettings:
     temperature: float = None
     reasoning_effort: str = None
     json_mode: str = "tool"
-    max_output_tokens: int = 6000
+    max_output_tokens: int = 16000
     max_request_chars: int = 240000
     timeout_seconds: float = 60
 
@@ -105,8 +124,8 @@ class BedrockSettings:
             raise ReviewError("max_output_tokens must be between 256 and 32000.")
         if type(self.max_request_chars) is not int or not 1000 <= self.max_request_chars <= 2000000:
             raise ReviewError("max_request_chars must be between 1000 and 2000000.")
-        if not math.isfinite(self.timeout_seconds) or not 1 <= self.timeout_seconds <= 300:
-            raise ReviewError("Bedrock timeout must be between 1 and 300 seconds.")
+        if not math.isfinite(self.timeout_seconds) or not 1 <= self.timeout_seconds <= 900:
+            raise ReviewError("Bedrock timeout must be between 1 and 900 seconds.")
 
 
 def _converse(body, timeout, region):
@@ -243,6 +262,8 @@ class BedrockReviewer:
             "request_bytes": len(json.dumps(body, ensure_ascii=False).encode("utf-8")),
             "status": "transport_error",
             "raw_findings": None,
+            "normalized_enum_paths": [],
+            "schema_error": None,
         }
         self.calls.append(call)
         started = perf_counter()
@@ -306,12 +327,22 @@ class BedrockReviewer:
                 raise ReviewError(
                     "Bedrock output was not valid JSON; no generated findings were accepted.") from None
 
+        if schema is REVIEW_SCHEMA:
+            call["normalized_enum_paths"] = _normalize_review_enums(payload)
+
         if isinstance(payload, dict) and isinstance(payload.get("findings"), list):
             call["raw_findings"] = len(payload["findings"])
         elif schema is COMPARISON_SCHEMA:
             call["raw_findings"] = 0
         call["status"] = "schema_rejected"
-        validate_payload(payload, schema)
+        try:
+            validate_payload(payload, schema)
+        except ReviewError as exc:
+            path = getattr(exc, "schema_path", None)
+            validator = getattr(exc, "schema_validator", None)
+            if path is not None and validator is not None:
+                call["schema_error"] = {"path": path, "validator": validator}
+            raise
         call["status"] = "schema_accepted"
         return payload
 
