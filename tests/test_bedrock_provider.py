@@ -176,6 +176,7 @@ class BedrockProviderTests(WorkspaceTest):
             BedrockSettings("test-model", region="us-west-2", reasoning_effort="minimal"),
             BedrockSettings("test-model", region="us-west-2", reasoning_effort="high"),
             BedrockSettings("test-model", region="us-west-2", json_mode="other"),
+            BedrockSettings("test-model", region="us-west-2", timeout_seconds=901),
         ):
             with self.subTest(settings=settings), self.assertRaises(ReviewError):
                 BedrockReviewer(settings, dry_run=True)
