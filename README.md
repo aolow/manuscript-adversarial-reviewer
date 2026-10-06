@@ -121,6 +121,59 @@ Environment fallbacks include `MANUSCRIPT_REVIEW_MODEL`, `MANUSCRIPT_REVIEW_TEMP
 
 The default LLM roles are scientific, methods, computational, novelty, Reviewer 2, and reproducibility. Additional selectable roles include statistics, clinical, editor, and strategist.
 
+## How the reviewer panel works
+
+The LLM mode is a **panel of focused reviewers**, not one model call that repeatedly critiques its own previous answer. Each selected role receives the same static manuscript source blocks, extracted candidate claims, deterministic review leads, target journal name if supplied, and a role-specific mandate. Roles are called independently. Output from the scientific reviewer is not shown to Reviewer 2, for example, and agreement between roles is therefore useful as convergence but is not treated as independent experimental evidence.
+
+The default six-role panel is intended to cover complementary failure modes:
+
+| Role | Main question | Typical focus |
+| --- | --- | --- |
+| **scientific** | Do the central biological/scientific conclusions follow from the reported evidence? | Central claims, alternative explanations, perturbational support, biological interpretation, mechanism versus association, transferability, biomarker interpretation |
+| **methods** | Is the experimental and analytical design capable of answering the question? | Cohorts, independent units, controls, preprocessing, train/test separation, single-cell design, confounding, effective replication, uncertainty |
+| **computational** | Could information leakage, representation choice, or computational dependence create the result? | Feature definition, embeddings, atlas/reference dependence, integration, tuning, baselines, nulls, ablations, held-out evaluation |
+| **novelty** | What is actually new, and how strongly can that novelty be claimed from the manuscript alone? | Contribution type, comparator choice, scope, positioning, prior-art questions that require later literature verification |
+| **reviewer2** | What would a skeptical reviewer attack in the paper's strongest claims? | Falsification tests, competing explanations, hidden selection, circular validation, optimistic metrics, claim-breaking evidence |
+| **reproducibility** | Could another group reconstruct the cohort and analysis without private knowledge? | Code/data provenance, software versions, parameters, exclusions, seeds, manual decisions, reference choices, executable procedures |
+
+Optional roles can be selected with `--roles` when they are useful:
+
+| Role | Use it when |
+| --- | --- |
+| **statistics** | The paper needs a dedicated audit of estimands, dependence, multiplicity, uncertainty, calibration, censoring, grouped/nested validation, or statistical assumptions. Methods already covers some statistics in the default panel, so this role is intentionally extra depth. |
+| **clinical** | The manuscript makes translational, biomarker, treatment-prediction, endpoint, external-validation, or clinical-utility claims. |
+| **editor** | You want submission-readiness triage: significance, evidential maturity, audience, framing, and likely editorial-confidence blockers. It does not predict acceptance. |
+| **strategist** | You want the concerns converted into an ordered revision strategy, separating essential design/reanalysis work from reporting fixes and optional strengthening. |
+
+For example, a computational biomarker manuscript might use:
+
+```bash
+manuscript-review review manuscript.md \
+  --llm --provider bedrock --model MODEL --region REGION \
+  --roles scientific,methods,computational,statistics,clinical,reviewer2 \
+  --out reviews/assisted
+```
+
+### What happens to a reviewer response
+
+A provider response does **not** enter the report just because the model returned valid JSON. The application applies several local gates:
+
+1. **Schema validation.** The response must match the structured review contract. A normal review is bounded to at most 10 findings and 6 claim analyses per role.
+2. **Claim grounding.** Claim evidence must resolve to real manuscript excerpts. Reviewer-written claim summaries may be paraphrases. A bad claim is isolated rather than discarding the whole role.
+3. **Finding grounding.** Model citations are checked against the supplied source blocks. Invalid citations are filtered individually. A finding survives if at least one supplied citation resolves; a finding whose supplied citations all fail is dropped without aborting the role.
+4. **Support audit.** Exact quotation proves only that text exists in the manuscript. It does not prove the reviewer's interpretation. Weakly supported, externally dependent, overly certain, or otherwise questionable interpretations are marked for semantic/human review and given conservative confidence.
+5. **Action audit.** Major concerns are expected to propose a concrete analysis, experiment, text change, or reporting action. Vague, incomplete, or apparently infeasible actions are flagged.
+6. **Reconciliation.** Similar concerns from different reviewers can be grouped as duplicates. Multiple reviewers making the same criticism does not convert that criticism into verified scientific truth.
+7. **Prioritization and report assembly.** The final adversarial summary emphasizes a small number of consequential, source-grounded concerns. The headline section is capped at seven rather than padding the report with weak issues.
+
+### Reading the output
+
+Provider findings have several possible outcomes. **Active/confirmed** findings passed the local grounding gates and are eligible for the main report, but their scientific interpretation still requires human judgment. **Needs review** findings are retained but quarantined because grounding, semantics, action quality, or confidence is insufficient. **Duplicate** findings remain auditable but are grouped under another concern. Findings with unusable supplied citations may be dropped at grounding rather than contaminating the rest of the role.
+
+This distinction is important: `schema_accepted` means the provider returned a structurally valid response. It does **not** mean every returned finding was accepted into the scientific review. `llm-run.json` and the pilot diagnostics show provider-call status, raw finding counts, accepted/quarantined counts, and known rejections.
+
+The deterministic review always remains the baseline. If an LLM role fails, its generated output is not substituted with guesses, and the deterministic findings are preserved.
+
 ## Compare revisions
 
 Compare two manuscript versions offline:
