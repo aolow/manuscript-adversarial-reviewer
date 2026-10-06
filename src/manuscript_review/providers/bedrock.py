@@ -96,7 +96,7 @@ class BedrockSettings:
     temperature: float = None
     reasoning_effort: str = None
     json_mode: str = "tool"
-    max_output_tokens: int = 16000
+    max_output_tokens: int = 24000
     max_request_chars: int = 240000
     timeout_seconds: float = 600
 
