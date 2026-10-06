@@ -76,6 +76,8 @@ The default Bedrock path defines one Converse tool whose `inputSchema.json` is a
 
 `--bedrock-json-mode prompt` is the compatibility fallback for models that reject forced tool choice. It places the normalized schema in the system prompt, accepts only JSON text, and still performs the same full local validation. No automatic retry switches modes. Bedrock reasoning effort is only allowed on the prompt path because Anthropic thinking and forced tool choice are incompatible.
 
+Bedrock review payloads are deliberately bounded to 10 findings and 6 claims. ACTION objects require `kind`; the remaining typed fields are optional because tool-use models commonly omit nonapplicable nullable fields. Unknown Bedrock finding classifications are mapped only to the explicit `other` fallback for topic, issue key, or category, and diagnostics record the coerced field paths without retaining the original model values.
+
 Provider choice does not change the scientific review pipeline.
 
 ## Provenance

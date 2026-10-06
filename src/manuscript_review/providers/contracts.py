@@ -3,8 +3,9 @@ from ..errors import ReviewError
 from ..rules.catalogue import CHECKS, PATTERNS
 
 
-def obj(properties):
-    return {"type": "object", "properties": properties, "required": list(properties),
+def obj(properties, required=None):
+    return {"type": "object", "properties": properties,
+            "required": list(properties) if required is None else list(required),
             "additionalProperties": False}
 
 
@@ -27,14 +28,14 @@ ACTION = obj({
     "input": NULLABLE, "comparison": NULLABLE, "held_out_unit": NULLABLE,
     "metric": NULLABLE, "expected_interpretation": NULLABLE,
     "text_section": NULLABLE, "text_claim": NULLABLE, "recommended_framing": NULLABLE,
-})
+}, required=["kind"])
 FINDING = obj({
     "id": SLUG, "topic": {"type": "string", "enum": TOPICS},
     "issue_key": {"type": "string", "enum": sorted({rule.id for rule in CHECKS + PATTERNS}) + ["other"]},
     "severity": {"type": "string", "enum": ["major", "moderate", "minor", "optional_strengthening"]},
     "category": {"type": "string", "enum": ["design", "statistics", "leakage", "confounding", "circularity",
                           "validation", "interpretation", "positioning", "clinical",
-                          "single_cell", "perturbation", "reproducibility", "reporting", "writing"]},
+                          "single_cell", "perturbation", "reproducibility", "reporting", "writing", "other"]},
     "issue_status": {"type": "string", "enum": ["plausible_issue", "speculative_concern"]},
     "basis": BASIS, "evidence_statement": TEXT, "interpretation": TEXT,
     "support_rationale": TEXT, "why_it_matters": TEXT,
@@ -53,7 +54,7 @@ CLAIM = obj({
 })
 STRENGTH = obj({"text": TEXT, "citations": array(CITATION, 8)})
 REVIEW_SCHEMA = obj({
-    "findings": array(FINDING, 30), "claims": array(CLAIM, 12),
+    "findings": array(FINDING, 10), "claims": array(CLAIM, 6),
     "strengths": array(STRENGTH, 8), "limitations": array(TEXT, 12),
 })
 RESOLUTION_STATUSES = ["resolved", "partially_resolved", "unresolved", "worsened",
@@ -77,5 +78,8 @@ def validate_payload(payload, schema):
         # Do not echo model output or manuscript text in errors/logs.
         error = errors[0]
         path = ".".join(str(p) for p in error.path) or "root"
-        raise ReviewError("LLM output violates JSON Schema at %s (%s)." % (path, error.validator))
+        exc = ReviewError("LLM output violates JSON Schema at %s (%s)." % (path, error.validator))
+        exc.schema_path = path
+        exc.schema_validator = str(error.validator)
+        raise exc
     return payload

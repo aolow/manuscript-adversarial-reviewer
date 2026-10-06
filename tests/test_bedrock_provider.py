@@ -82,7 +82,8 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertIn("maxLength", keys(schema))
         self.assertIn("pattern", keys(schema))
         self.assertIn("maxItems", keys(schema))
-        self.assertEqual(schema["properties"]["findings"]["maxItems"], 30)
+        self.assertEqual(schema["properties"]["findings"]["maxItems"], 10)
+        self.assertEqual(schema["properties"]["claims"]["maxItems"], 6)
         finding_schema = schema["properties"]["findings"]["items"]
         self.assertEqual(finding_schema["properties"]["evidence_statement"]["maxLength"], 4000)
         self.assertEqual(finding_schema["properties"]["evidence_statement"]["minLength"], 1)
@@ -102,6 +103,40 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertNotIn('"maxLength"', system_text)
         self.assertNotIn('"maxItems"', system_text)
         self.assertNotIn('"pattern"', system_text)
+
+    def test_sparse_action_and_enum_drift_are_normalized_safely(self):
+        packet = self.packet()
+        row = finding(self.block(packet))
+        row["action"] = {"kind": "analysis", "input": "Use held-out samples."}
+        row["topic"] = "tumor_ecology"
+        row["issue_key"] = "invented_check"
+        row["category"] = "biology"
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2"),
+            transport=Mock(return_value=self.response(envelope([row]))))
+        result = provider.review("scientific", packet)
+        self.assertEqual(result["findings"][0]["topic"], "other")
+        self.assertEqual(result["findings"][0]["issue_key"], "other")
+        self.assertEqual(result["findings"][0]["category"], "other")
+        call = provider.metadata()["calls"][0]
+        self.assertEqual(call["normalized_enum_paths"], [
+            "findings.0.topic", "findings.0.issue_key", "findings.0.category"])
+        self.assertNotIn("tumor_ecology", str(call))
+        self.assertEqual(call["status"], "schema_accepted")
+
+    def test_schema_rejection_records_only_safe_path_and_validator(self):
+        packet = self.packet()
+        row = finding(self.block(packet))
+        row["id"] = "INVALID ID"
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2"),
+            transport=Mock(return_value=self.response(envelope([row]))))
+        with self.assertRaises(ReviewError):
+            provider.review("scientific", packet)
+        error = provider.metadata()["calls"][0]["schema_error"]
+        self.assertEqual(error["path"], "findings.0.id")
+        self.assertEqual(error["validator"], "pattern")
+        self.assertNotIn("INVALID ID", str(error))
 
     def test_full_local_schema_still_rejects_invalid_bedrock_output(self):
         packet = self.packet()
@@ -141,6 +176,7 @@ class BedrockProviderTests(WorkspaceTest):
             BedrockSettings("test-model", region="us-west-2", reasoning_effort="minimal"),
             BedrockSettings("test-model", region="us-west-2", reasoning_effort="high"),
             BedrockSettings("test-model", region="us-west-2", json_mode="other"),
+            BedrockSettings("test-model", region="us-west-2", timeout_seconds=901),
         ):
             with self.subTest(settings=settings), self.assertRaises(ReviewError):
                 BedrockReviewer(settings, dry_run=True)
