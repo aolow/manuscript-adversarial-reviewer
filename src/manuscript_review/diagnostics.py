@@ -48,6 +48,9 @@ def attach_diagnostics(review):
     headline = set(review.adversarial.get("what_could_kill_this_paper", {}).get("finding_ids", []))
     failures = [c for c in calls if c.get("status") != "schema_accepted"]
     schema_roles = {c["role"] for c in calls if c.get("status") == "schema_accepted"}
+    item_rejections = [item for run in runs for item in run.get("item_rejections", [])]
+    item_normalizations = [item for run in runs for item in run.get("item_normalizations", [])]
+    rejection_counts = Counter(item.get("kind", "unknown") for item in item_rejections)
     failures += [{"role": r["role"], "status": "source_validation_rejected", "reason": r["note"]}
                  for r in runs if r["mode"] == "failed" and r["role"] in schema_roles]
     if comparison.get("failed") and "comparison" in schema_roles:
@@ -72,7 +75,12 @@ def attach_diagnostics(review):
         "quarantined_findings": counts["needs_review"],
         "merged_duplicates": counts["duplicate"],
         "dismissed_findings": counts["dismissed"],
-        "rejected_findings_known": max(0, sum(known) - len(rows)),
+        "rejected_findings_known": max(
+            max(0, sum(known) - len(rows)), rejection_counts["finding"]),
+        "rejected_claims_known": rejection_counts["claim"],
+        "rejected_strengths_known": rejection_counts["strength"],
+        "item_rejections": item_rejections,
+        "item_normalizations": item_normalizations,
         "deterministic_findings": sum(f.origin == "deterministic" for f in review.findings),
         "headline_findings": len(headline),
         "provider_headline_findings": sum(f.id in headline for f in rows),
