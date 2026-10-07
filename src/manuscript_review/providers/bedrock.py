@@ -314,8 +314,8 @@ class BedrockReviewer:
                 if isinstance(item, dict) and isinstance(item.get("toolUse"), dict)
                 and isinstance(item["toolUse"].get("input"), dict)
             ]
-            if not tool_inputs:
-                raise ReviewError("Bedrock response contained no tool output.")
+            if len(tool_inputs) != 1:
+                raise ReviewError("Bedrock response must contain exactly one structured tool output.")
             payload = tool_inputs[0]
         else:
             texts = [item.get("text", "") for item in content
