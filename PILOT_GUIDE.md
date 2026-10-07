@@ -52,7 +52,11 @@ For OpenAI, substitute `--provider openai --model MODEL_NAME`.
 
 Start with the revision brief in `report.md`. Keep `report.json`, it is the structured record used by comparison and evaluation workflows.
 
-If the command exits with status 3, some LLM roles failed or were rejected. The deterministic review is still valid, but the assisted review is incomplete.
+Also inspect the provider diagnostics before interpreting role coverage. A `schema_accepted` role may still lose individual claims, findings, claim links, or strengths during local grounding. Those failures are isolated after schema acceptance so valid role output can survive. By contrast, `schema_rejected` is a whole-role failure because the current response schema gate is atomic; one malformed required field or invalid ID can reject the response before grounding begins.
+
+If the command exits with status 3, some LLM roles failed or were rejected. The deterministic review is still valid, but the assisted review is incomplete. Do not treat missing findings from a failed role as evidence that the manuscript has no issue in that area.
+
+For full-length PDFs, extracted text can be noisier than clean Markdown, especially with two-column order, line annotations, whitespace, or Unicode normalization. Exact quote validation remains strict, but once a role has passed schema validation, a bad claim citation, individual finding citation, dangling claim reference, or strength citation is isolated rather than allowed to erase unrelated grounded output.
 
 ## 4. Revise the manuscript
 
