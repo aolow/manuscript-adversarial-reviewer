@@ -43,10 +43,11 @@ class SchemaTests(unittest.TestCase):
         from .llm_helpers import envelope
         payload = envelope([{"id": "INVALID ID"}])
         self.assertIs(validate_payload(payload, REVIEW_ENVELOPE_SCHEMA), payload)
-        with self.assertRaises(Exception):
+        from manuscript_review.errors import ReviewError
+        with self.assertRaises(ReviewError):
             validate_payload(payload, REVIEW_SCHEMA)
         malformed_container = {"findings": [], "claims": [], "strengths": []}
-        with self.assertRaises(Exception):
+        with self.assertRaises(ReviewError):
             validate_payload(malformed_container, REVIEW_ENVELOPE_SCHEMA)
 
     def test_review_contract_is_bounded_for_live_generation(self):
