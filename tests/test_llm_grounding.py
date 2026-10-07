@@ -221,3 +221,16 @@ class GroundingTests(WorkspaceTest):
                     "citations": [{"block_id": self.block["id"], "quote": self.block["text"]}]}
         _, _, strengths = self.normalize(envelope(strengths=[strength]))
         self.assertEqual(strengths[0]["grounding_status"], "needs_semantic_review")
+
+
+    def test_bad_strength_citation_does_not_discard_role_outputs(self):
+        bad = {"text": "The study design is a clear strength.",
+               "citations": [{"block_id": self.block["id"],
+                              "quote": "A fabricated strength excerpt not in the manuscript."}]}
+        good = {"text": "The methods are described in the manuscript.",
+                "citations": [{"block_id": self.block["id"], "quote": self.block["text"]}]}
+        findings, _, strengths = self.normalize(
+            envelope([finding(self.block)], strengths=[bad, good]))
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(len(strengths), 1)
+        self.assertEqual(strengths[0]["text"], good["text"])
