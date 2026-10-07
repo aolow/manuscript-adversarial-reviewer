@@ -101,7 +101,7 @@ manuscript-review review manuscript.pdf \
   --out reviews/bedrock-review
 ```
 
-Bedrock uses the Converse API with a forced schema tool by default. The tool arguments are the structured review payload, which is then validated against the full local schema. Review responses are bounded to 10 findings and 6 claims; Bedrock defaults to 24,000 output tokens and a 600-second read timeout for full manuscripts. If a model does not support forced tool choice, use `--bedrock-json-mode prompt`; that fallback asks for JSON in the prompt and still rejects malformed or schema-invalid output without retrying.
+Bedrock uses the Converse API with a forced schema tool by default. The provider still receives the full item schema, but local acceptance is two-stage: the response container is validated first, then each finding, claim, and strength is validated and grounded independently. Review responses are bounded to 10 findings and 6 claims; Bedrock defaults to 24,000 output tokens and a 600-second read timeout for full manuscripts. If a model does not support forced tool choice, use `--bedrock-json-mode prompt`; that fallback asks for JSON in the prompt and uses the same local validation without retrying.
 
 ### Common settings
 
@@ -158,21 +158,21 @@ manuscript-review review manuscript.md \
 
 A provider response does **not** enter the report just because the model returned JSON. Validation happens in a strict order:
 
-1. **Whole-response schema validation.** The complete response must match the structured review contract before grounding begins. A normal review is bounded to at most 10 findings and 6 claim analyses per role. This gate is currently atomic: one malformed required field or invalid ID can reject the whole role. Diagnostics record only the safe schema path and validator, not the rejected model text.
-2. **Claim grounding.** Claim evidence must resolve to real manuscript excerpts. Reviewer-written claim summaries may be paraphrases. A bad claim is dropped without discarding independently grounded findings from the role.
-3. **Finding grounding.** Model citations are checked against the supplied source blocks one citation at a time. Invalid citations are filtered individually. A finding survives if at least one supplied citation resolves; a finding whose supplied citations all fail is dropped without aborting the role.
-4. **Claim-link isolation.** Finding-to-claim references are resolved after claim grounding. Links to rejected claims are removed, and truly unknown claim IDs are dropped with a `dangling_claim_ref_dropped` quality flag rather than aborting the finding.
-5. **Strength grounding.** Strength citations must resolve to manuscript evidence. An invalid or empty strength is skipped by itself and cannot erase the role's findings, claims, or other valid strengths.
-6. **Support audit.** Exact quotation proves only that text exists in the manuscript. It does not prove the reviewer's interpretation. Weakly supported, externally dependent, overly certain, or otherwise questionable interpretations are marked for semantic/human review and given conservative confidence.
-7. **Action audit.** Major concerns are expected to propose a concrete analysis, experiment, text change, or reporting action. Vague, incomplete, or apparently infeasible actions are flagged.
-8. **Reconciliation.** Similar concerns from different reviewers can be grouped as duplicates. Multiple reviewers making the same criticism does not convert that criticism into verified scientific truth.
+1. **Container validation.** The top-level response must contain the expected bounded arrays (`findings`, `claims`, `strengths`, and `limitations`). A malformed container still rejects the role, but malformed children do not.
+2. **Per-item schema validation.** Each finding, claim, and strength is validated independently. Cosmetic finding/claim IDs are normalized locally, and safe classification drift can fall back to `other`. A malformed child is recorded in diagnostics and skipped while valid siblings continue.
+3. **Claim grounding.** Claim evidence must resolve to real manuscript excerpts. Reviewer-written claim summaries may be paraphrases. A bad claim is dropped without discarding independently grounded findings from the role.
+4. **Finding grounding.** Model citations are checked against supplied source blocks one citation at a time. Exact matches are preferred; harmless Unicode and whitespace drift can be mapped conservatively back to a unique original source span. A finding survives if at least one supplied citation resolves.
+5. **Claim-link isolation.** Finding-to-claim references are resolved after claim grounding. Links to rejected claims are removed, and truly unknown claim IDs are dropped with a `dangling_claim_ref_dropped` quality flag rather than aborting the finding.
+6. **Strength grounding.** Invalid or empty strengths are skipped individually and cannot erase findings, claims, or other valid strengths.
+7. **Support and action audit.** Source matching establishes provenance, not scientific truth. Weakly supported interpretations, unsupported certainty, vague actions, or actions requiring unavailable data are quarantined or flagged.
+8. **Reconciliation and overrides.** Similar provider concerns can be grouped as duplicates. Version-bound human overrides apply after reconciliation and remain authoritative.
 9. **Prioritization and report assembly.** The final adversarial summary emphasizes a small number of consequential, source-grounded concerns. The headline section is capped at seven rather than padding the report with weak issues.
 
 ### Reading the output
 
 Provider findings have several possible outcomes. **Active/confirmed** findings passed the local grounding gates and are eligible for the main report, but their scientific interpretation still requires human judgment. **Needs review** findings are retained but quarantined because grounding, semantics, action quality, or confidence is insufficient. **Duplicate** findings remain auditable but are grouped under another concern. Findings with unusable supplied citations may be dropped at grounding rather than contaminating the rest of the role.
 
-This distinction is important: `schema_accepted` means the provider returned a structurally valid response. It does **not** mean every returned claim, finding, or strength survived grounding. Conversely, `schema_rejected` means the role never reached the per-item isolation layer, so one malformed element can still zero that role. `llm-run.json` and the pilot diagnostics show provider-call status, safe schema-error metadata, raw finding counts, accepted/quarantined counts, and known rejections.
+This distinction is important: `schema_accepted` means the provider returned a valid **container**, not that every child item was accepted. Child schema/source failures appear as per-item rejections and do not fail the role. `schema_rejected` now means the top-level response itself was unusable. `llm-run.json` and the pilot diagnostics show provider-call status, safe schema-error metadata, child normalizations/rejections, raw finding counts, accepted/quarantined counts, and known rejections.
 
 The deterministic review always remains the baseline. If an LLM role fails, its generated output is not substituted with guesses, and the deterministic findings are preserved.
 
@@ -231,7 +231,7 @@ The tool does not currently:
 - Search the scientific literature or current journal policies.
 - Establish semantic truth merely because a quote exists.
 - Treat multiple LLM reviewers as independent scientific confirmation.
-- Partially salvage a provider response that fails the top-level JSON Schema gate; per-item isolation begins only after schema acceptance.
+- Salvage a response whose top-level container itself is missing or malformed. Individual malformed children are isolated, but an unusable container cannot be interpreted safely.
 
 Provider output is schema-checked and source-grounded locally, but scientific conclusions still require human judgment.
 
