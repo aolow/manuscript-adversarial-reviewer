@@ -25,7 +25,7 @@ case's expected list is a false positive. A missing expected family is a false
 negative. Duplicate instances within a family count once for detection.
 The remaining findings are explicitly unscored, not presumed correct.
 
-The checked-in [result](../examples/benchmark.json) for version 0.2.0 is:
+The checked-in [result](../examples/benchmark.json) was generated from the synthetic deterministic suite and remains a regression reference for the current 0.3.x line:
 
 | Measure | Result |
 | --- | ---: |
@@ -52,12 +52,12 @@ example, after inspecting a dry run:
 
 ```bash
 manuscript-review review benchmarks/fixtures/leakage.md \
-  --llm --model MODEL_NAME --dry-run \
+  --llm --provider openai --model MODEL_NAME --dry-run \
   --out reviews/benchmark-preview/leakage
 
 # This command sends the synthetic manuscript and may incur API charges.
 manuscript-review review benchmarks/fixtures/leakage.md \
-  --llm --model MODEL_NAME \
+  --llm --provider openai --model MODEL_NAME \
   --out reviews/benchmark-runs/leakage
 ```
 
@@ -79,6 +79,11 @@ validation. Quarantined, dismissed, and duplicate records are excluded from
 active detection scores. LLM findings identify their family through `issue_key`;
 manually adjudicate these labels before interpreting scores. The benchmark does
 not establish that an uploaded report came from a real model call.
+
+Provider coverage must also be interpreted explicitly. A schema-rejected role contributes no
+findings because schema validation is still whole-response atomic. After schema acceptance,
+bad claim evidence, individual finding citations, dangling claim links, and strengths are
+fault-isolated, so raw provider finding counts can exceed the locally retained count.
 
 ## Extend the benchmark
 
