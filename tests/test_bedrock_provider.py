@@ -208,6 +208,19 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertNotIn("toolConfig", body)
         self.assertNotIn("temperature", body["inferenceConfig"])
 
+    def test_tool_mode_rejects_multiple_structured_outputs(self):
+        packet = self.packet()
+        raw = self.response(envelope())
+        raw["output"]["message"]["content"].append({
+            "toolUse": {"toolUseId": "tool-2", "name": "manuscript_scientific",
+                        "input": envelope()}
+        })
+        provider = BedrockReviewer(
+            BedrockSettings("test-model", region="us-west-2"),
+            transport=Mock(return_value=raw))
+        with self.assertRaisesRegex(ReviewError, "exactly one"):
+            provider.review("scientific", packet)
+
     def test_tool_mode_requires_tool_output(self):
         provider = BedrockReviewer(
             BedrockSettings("test-model", region="us-west-2"),
