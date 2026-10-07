@@ -52,12 +52,12 @@ Deterministic rules are inspectable and reproducible, but deliberately narrow. A
 
 LLM roles receive the same static manuscript context independently. One role's output does not become another role's input.
 
-Provider findings must pass local validation before they can enter the report:
+Provider output must pass local validation before it can enter the report:
 
-1. The response must satisfy the local schema.
-2. Citations must point to supplied source blocks.
-3. Quotes must match exact manuscript text.
-4. Unsupported or external claims are quarantined or marked for review.
+1. The complete response must satisfy the local schema. This gate is currently atomic.
+2. Claims, findings, claim links, and strengths are then grounded separately.
+3. Citations must point to supplied source blocks and quotes must match exact manuscript text.
+4. Unsupported or external interpretations are quarantined or marked for review.
 5. Duplicate concerns are grouped without treating agreement as independent confirmation.
 
 Human scientific judgment remains the final authority.
@@ -82,17 +82,20 @@ Provider output then passes through three distinct layers that should not be con
 
 ```text
 provider response
+  -> whole-response schema gate
   -> schema accepted
-  -> source grounding / per-item fault isolation
+  -> per-item grounding / fault isolation
   -> support + action audit
-  -> Finding objects and claim analyses
+  -> Finding objects, claim analyses, and grounded strengths
   -> cross-role duplicate reconciliation
   -> adversarial prioritization and report
 ```
 
 A provider call can therefore be successful while some of its individual findings are rejected or quarantined. Schema acceptance is a transport/contract result, not a scientific-quality verdict. Grounding establishes provenance of quoted text, not semantic truth. The support audit deliberately leaves scientific entailment unverified for human adjudication.
 
-Finding and claim failures are fault-isolated. Bad claim evidence drops that claim without discarding independent findings. Finding citations are resolved independently; bad citations are filtered, a finding with at least one valid supplied citation can continue, and an all-invalid cited finding is dropped. This is intentional because one malformed model citation should not erase unrelated valid output from the same expensive reviewer call.
+After schema acceptance, failures are fault-isolated at the smallest useful unit. Bad claim evidence drops that claim without discarding independent findings. Finding citations are resolved independently; bad citations are filtered, a finding with at least one valid supplied citation can continue, and an all-invalid cited finding is dropped. Finding links to rejected claims are removed, while truly unknown claim IDs are dropped with a quality flag. Strengths are also isolated: an invalid or empty strength is skipped without affecting findings, claims, or other strengths.
+
+The boundary is deliberate but not complete. `validate_payload(response, REVIEW_SCHEMA)` still validates the provider response atomically before grounding. A malformed finding ID, missing required finding field, or other schema violation can therefore reject the whole role before any per-item salvage occurs. Safe diagnostics retain the schema path and validator but not the rejected model value or manuscript text.
 
 ## Providers
 
@@ -110,7 +113,9 @@ The default Bedrock path defines one Converse tool whose `inputSchema.json` is a
 
 Bedrock review payloads are deliberately bounded to 10 findings and 6 claims. ACTION objects require `kind`; the remaining typed fields are optional because tool-use models commonly omit nonapplicable nullable fields. Unknown Bedrock finding classifications are mapped only to the explicit `other` fallback for topic, issue key, or category, and diagnostics record the coerced field paths without retaining the original model values.
 
-Provider grounding is fault-isolated at the claim and finding level. An invalid model citation cannot abort an otherwise usable reviewer role: invalid finding citations are filtered individually, findings survive when at least one supplied citation resolves, and findings whose supplied citations all fail are dropped. Exact quote and block validation itself remains strict.
+Provider grounding is fault-isolated after schema acceptance. Invalid claim evidence drops only that claim. Invalid finding citations are filtered individually, findings survive when at least one supplied citation resolves, and findings whose supplied citations all fail are dropped. Dangling claim links are removed instead of aborting findings. Invalid strengths are skipped individually. Exact quote and block validation itself remains strict.
+
+Schema rejection is different from grounding rejection: the local `REVIEW_SCHEMA` currently validates the whole provider payload at once, so one malformed element can still reject the role before the grounding layer runs. No automatic provider retry is performed.
 
 Provider choice does not change the scientific review pipeline.
 
@@ -144,6 +149,6 @@ Real manuscripts and request packets may contain confidential text. Keep them ou
 
 The repository uses `unittest` plus GitHub Actions on Python 3.10 and 3.12.
 
-Provider tests use mocked responses. They verify request construction, schema validation, grounding behavior, failure handling, and dry-run behavior without making live model calls.
+Provider tests use mocked responses. They verify request construction, atomic schema validation, claim/finding/link/strength fault isolation after schema acceptance, failure handling, and dry-run behavior without making live model calls.
 
 The synthetic benchmark is a regression suite, not evidence of general scientific-review quality.
