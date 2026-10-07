@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
-  "tool_version": "0.3.0",
-  "run_id": "example-flawed-v0.3.0",
+  "tool_version": "0.4.0",
+  "run_id": "example-flawed-v0.4.0",
   "created_at": "2026-10-04T00:00:00+00:00",
   "target_journal": null,
   "documents": [
