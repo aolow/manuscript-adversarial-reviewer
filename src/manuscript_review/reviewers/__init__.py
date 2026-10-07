@@ -55,7 +55,7 @@ def llm_packet(role, documents, extraction, findings, journal):
     mandate = resources.files(__package__).joinpath("prompts/" + role + ".txt").read_text(encoding="utf-8")
     return {
         "role": role, "instructions": base + "\n\n" + mandate, "target_journal": journal,
-        "source_blocks": [asdict(b) for d in documents for b in d.blocks],
+        "source_blocks": [asdict(b) for b in substantive_blocks(documents)],
         "candidate_claims": extraction["claims"],
         "deterministic_context": [{"id": f.id, "category": f.category, "issue": f.issue,
                                    "evidence": [asdict(e) for e in f.evidence],
