@@ -156,21 +156,23 @@ manuscript-review review manuscript.md \
 
 ### What happens to a reviewer response
 
-A provider response does **not** enter the report just because the model returned valid JSON. The application applies several local gates:
+A provider response does **not** enter the report just because the model returned JSON. Validation happens in a strict order:
 
-1. **Schema validation.** The response must match the structured review contract. A normal review is bounded to at most 10 findings and 6 claim analyses per role.
-2. **Claim grounding.** Claim evidence must resolve to real manuscript excerpts. Reviewer-written claim summaries may be paraphrases. A bad claim is isolated rather than discarding the whole role.
-3. **Finding grounding.** Model citations are checked against the supplied source blocks. Invalid citations are filtered individually. A finding survives if at least one supplied citation resolves; a finding whose supplied citations all fail is dropped without aborting the role.
-4. **Support audit.** Exact quotation proves only that text exists in the manuscript. It does not prove the reviewer's interpretation. Weakly supported, externally dependent, overly certain, or otherwise questionable interpretations are marked for semantic/human review and given conservative confidence.
-5. **Action audit.** Major concerns are expected to propose a concrete analysis, experiment, text change, or reporting action. Vague, incomplete, or apparently infeasible actions are flagged.
-6. **Reconciliation.** Similar concerns from different reviewers can be grouped as duplicates. Multiple reviewers making the same criticism does not convert that criticism into verified scientific truth.
-7. **Prioritization and report assembly.** The final adversarial summary emphasizes a small number of consequential, source-grounded concerns. The headline section is capped at seven rather than padding the report with weak issues.
+1. **Whole-response schema validation.** The complete response must match the structured review contract before grounding begins. A normal review is bounded to at most 10 findings and 6 claim analyses per role. This gate is currently atomic: one malformed required field or invalid ID can reject the whole role. Diagnostics record only the safe schema path and validator, not the rejected model text.
+2. **Claim grounding.** Claim evidence must resolve to real manuscript excerpts. Reviewer-written claim summaries may be paraphrases. A bad claim is dropped without discarding independently grounded findings from the role.
+3. **Finding grounding.** Model citations are checked against the supplied source blocks one citation at a time. Invalid citations are filtered individually. A finding survives if at least one supplied citation resolves; a finding whose supplied citations all fail is dropped without aborting the role.
+4. **Claim-link isolation.** Finding-to-claim references are resolved after claim grounding. Links to rejected claims are removed, and truly unknown claim IDs are dropped with a `dangling_claim_ref_dropped` quality flag rather than aborting the finding.
+5. **Strength grounding.** Strength citations must resolve to manuscript evidence. An invalid or empty strength is skipped by itself and cannot erase the role's findings, claims, or other valid strengths.
+6. **Support audit.** Exact quotation proves only that text exists in the manuscript. It does not prove the reviewer's interpretation. Weakly supported, externally dependent, overly certain, or otherwise questionable interpretations are marked for semantic/human review and given conservative confidence.
+7. **Action audit.** Major concerns are expected to propose a concrete analysis, experiment, text change, or reporting action. Vague, incomplete, or apparently infeasible actions are flagged.
+8. **Reconciliation.** Similar concerns from different reviewers can be grouped as duplicates. Multiple reviewers making the same criticism does not convert that criticism into verified scientific truth.
+9. **Prioritization and report assembly.** The final adversarial summary emphasizes a small number of consequential, source-grounded concerns. The headline section is capped at seven rather than padding the report with weak issues.
 
 ### Reading the output
 
 Provider findings have several possible outcomes. **Active/confirmed** findings passed the local grounding gates and are eligible for the main report, but their scientific interpretation still requires human judgment. **Needs review** findings are retained but quarantined because grounding, semantics, action quality, or confidence is insufficient. **Duplicate** findings remain auditable but are grouped under another concern. Findings with unusable supplied citations may be dropped at grounding rather than contaminating the rest of the role.
 
-This distinction is important: `schema_accepted` means the provider returned a structurally valid response. It does **not** mean every returned finding was accepted into the scientific review. `llm-run.json` and the pilot diagnostics show provider-call status, raw finding counts, accepted/quarantined counts, and known rejections.
+This distinction is important: `schema_accepted` means the provider returned a structurally valid response. It does **not** mean every returned claim, finding, or strength survived grounding. Conversely, `schema_rejected` means the role never reached the per-item isolation layer, so one malformed element can still zero that role. `llm-run.json` and the pilot diagnostics show provider-call status, safe schema-error metadata, raw finding counts, accepted/quarantined counts, and known rejections.
 
 The deterministic review always remains the baseline. If an LLM role fails, its generated output is not substituted with guesses, and the deterministic findings are preserved.
 
@@ -229,6 +231,7 @@ The tool does not currently:
 - Search the scientific literature or current journal policies.
 - Establish semantic truth merely because a quote exists.
 - Treat multiple LLM reviewers as independent scientific confirmation.
+- Partially salvage a provider response that fails the top-level JSON Schema gate; per-item isolation begins only after schema acceptance.
 
 Provider output is schema-checked and source-grounded locally, but scientific conclusions still require human judgment.
 
