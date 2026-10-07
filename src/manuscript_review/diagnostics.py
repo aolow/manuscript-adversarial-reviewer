@@ -59,6 +59,11 @@ def attach_diagnostics(review):
     if comparison.get("failed") and "comparison" in schema_roles:
         failures.append({"role": "comparison", "status": "source_validation_rejected",
                          "reason": comparison.get("error", "Comparison validation failed.")})
+    elif comparison.get("incomplete"):
+        failures.append({
+            "role": "comparison", "status": "item_rejections",
+            "reason": "Some prior issues were not accepted from the semantic comparison; deterministic assessments were retained.",
+        })
     diagnostics = {
         "model": review.llm.get("settings", {}).get("model"),
         "reasoning_effort": review.llm.get("settings", {}).get("reasoning_effort"),
