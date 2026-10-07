@@ -13,6 +13,7 @@ import unicodedata
 from .errors import ReviewError
 from .models import Finding, evidence, stable_id, SEVERITIES
 from .prioritization import prioritize
+from .extraction import substantive_blocks
 from .providers.contracts import (REVIEW_ENVELOPE_SCHEMA, FINDING, CLAIM, STRENGTH,
                                   validate_payload)
 
@@ -170,7 +171,7 @@ def action_flags(action, severity="major"):
 
 
 def action_context_flags(action, documents):
-    blocks = [b for d in documents for b in d.blocks if b.kind != "heading"]
+    blocks = substantive_blocks(documents)
     if action.get("kind") in ("analysis", "experiment"):
         flags = ["feasibility_not_verified"]
         if action["kind"] == "experiment":
