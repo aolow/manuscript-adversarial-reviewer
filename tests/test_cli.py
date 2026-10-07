@@ -90,6 +90,13 @@ class CliTests(WorkspaceTest):
         self.assertFalse((output / "llm-run.json").exists())
         self.assertFalse((output / "diagnostics.json").exists())
 
+    def test_request_size_setting_requires_llm_opt_in(self):
+        result = self.cli(
+            "review", FIXTURES / "flawed_manuscript.md",
+            "--max-request-chars", "1000", "--out", self.root / "bad-request-size")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("require explicit --llm", result.stderr)
+
     def test_openai_rejects_bedrock_only_options(self):
         result = self.cli(
             "review", FIXTURES / "flawed_manuscript.md",
