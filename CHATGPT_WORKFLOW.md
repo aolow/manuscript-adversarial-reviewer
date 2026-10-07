@@ -62,3 +62,5 @@ manuscript-review import-chatgpt \
 `--accept-grounded` does not override fabricated citations, unsupported external claims, or failed local checks.
 
 Manual ChatGPT feedback is still scientific judgment, not verified fact.
+
+This handoff/import path is separate from live provider-role execution. For the current Bedrock/OpenAI schema gate, per-item grounding isolation, and role-failure semantics, see the "What happens to a reviewer response" section in [README.md](README.md) and the trust-boundary discussion in [ARCHITECTURE.md](ARCHITECTURE.md).
