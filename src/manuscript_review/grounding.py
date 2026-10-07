@@ -50,7 +50,7 @@ def _canonical_with_map(text):
     """Normalize harmless Unicode/whitespace drift while retaining source offsets."""
     chars, positions = [], []
     for index, char in enumerate(text):
-        expanded = unicodedata.normalize("NFKC", char).translate(_CANONICAL_CHARS)
+        expanded = unicodedata.normalize("NFC", char).translate(_CANONICAL_CHARS)
         for unit in expanded:
             if unit.isspace():
                 if chars and chars[-1] != " ":
@@ -116,8 +116,11 @@ def _validate_review_item(row, schema, kind, index, rejections, normalizations):
 
 
 def _provider_finding_id(role, row, citations):
-    anchors = "|".join(sorted("%s:%d:%d" % (ev.block_id, ev.start, ev.end) for ev in citations))
-    seed = "|".join((role, row["issue_key"], row["basis"], anchors, row["evidence_statement"]))
+    # Block-level anchors remain stable when a model quotes a longer or shorter
+    # unique excerpt from the same source passage on a later run.
+    anchors = "|".join(sorted({ev.block_id for ev in citations}))
+    fallback = row["evidence_statement"] if not anchors else ""
+    seed = "|".join((role, row["issue_key"], row["topic"], row["basis"], anchors, fallback))
     return "reviewer." + role + "." + stable_id("finding", seed).split("-", 1)[1]
 
 
