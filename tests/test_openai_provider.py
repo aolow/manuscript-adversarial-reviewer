@@ -75,12 +75,17 @@ class OpenAIProviderTests(WorkspaceTest):
         self.assertEqual(body["reasoning"], {"effort": "high"})
         self.assertNotIn("temperature", body)
 
-    def test_large_context_refused_without_silent_truncation(self):
+    def test_large_context_failure_is_isolated_to_role_without_network_call(self):
         transport = Mock()
-        provider = OpenAIReviewer(OpenAISettings("test-model", max_request_chars=1000), transport=transport)
-        with self.assertRaisesRegex(ReviewError, "silently truncated"):
-            review_manuscript(self.write(PAPER), provider=provider)
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model", max_request_chars=1000),
+            roles=["scientific"], transport=transport)
+        report, _ = review_manuscript(self.write(PAPER), provider=provider)
         transport.assert_not_called()
+        self.assertEqual(report.quality["failed_roles"], ["scientific"])
+        failure = report.quality["pilot_diagnostics"]["failures"][0]
+        self.assertEqual(failure["status"], "request_preparation_rejected")
+        self.assertIn("silently truncated", failure["reason"])
 
     def test_refusal_and_incomplete_outputs_are_rejected(self):
         cases = [
@@ -99,6 +104,27 @@ class OpenAIProviderTests(WorkspaceTest):
         ):
             with self.subTest(raw=raw), self.assertRaises(ReviewError):
                 OpenAIReviewer(OpenAISettings("test-model"), transport=Mock(return_value=raw)).review("scientific", self.packet())
+
+    def test_openai_envelope_schema_error_metadata_matches_bedrock_shape(self):
+        payload = envelope()
+        payload["findings"] = "wrong"
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model"), transport=Mock(return_value=response(payload)))
+        with self.assertRaises(ReviewError):
+            provider.review("scientific", self.packet())
+        error = provider.metadata()["calls"][0]["schema_error"]
+        self.assertEqual(error, {"path": "findings", "validator": "type"})
+
+    def test_explicit_clinical_role_runs_even_without_biomarker_domain(self):
+        transport = Mock(return_value=response(envelope()))
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model"), roles=["clinical"], transport=transport)
+        report, _ = review_manuscript(
+            self.write("Methods\n\nWe used 12 samples for a descriptive experiment."),
+            provider=provider)
+        self.assertEqual(transport.call_count, 1)
+        run = next(r for r in report.reviewer_runs if r["role"] == "clinical")
+        self.assertEqual(run["mode"], "provider")
 
     def test_role_failure_preserves_deterministic_findings(self):
         provider = OpenAIReviewer(OpenAISettings("test-model"), roles=["scientific"],
