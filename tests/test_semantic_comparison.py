@@ -148,10 +148,20 @@ class SemanticComparisonTests(WorkspaceTest):
 
     def test_cross_version_provenance_tampering_is_rejected(self):
         old, new = self.versions()
-        comparison = compare_reviews(old, new)
-        comparison["issue_assessments"][0]["old_evidence"][0]["section"] = "Invented"
-        with self.assertRaisesRegex(ReviewError, "specified manuscript version"):
-            validate_comparison(comparison, old.to_dict(), new.to_dict())
+        for field, value in (("section", "Invented"), ("line_start", 999), ("paragraph", 999)):
+            comparison = compare_reviews(old, new)
+            comparison["issue_assessments"][0]["old_evidence"][0][field] = value
+            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "specified manuscript version"):
+                validate_comparison(comparison, old.to_dict(), new.to_dict())
+
+    def test_comparison_hash_or_run_provenance_tampering_is_rejected(self):
+        old, new = self.versions()
+        for field, value in (("old_run_id", "forged-run"),
+                             ("new_document_hashes", {"manuscript": "forged"})):
+            comparison = compare_reviews(old, new)
+            comparison[field] = value
+            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "provenance"):
+                validate_comparison(comparison, old.to_dict(), new.to_dict())
 
     def test_severity_increase_is_worsened(self):
         old, new = self.versions()
