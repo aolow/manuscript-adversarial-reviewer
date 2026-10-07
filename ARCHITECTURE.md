@@ -54,11 +54,11 @@ LLM roles receive the same static manuscript context independently. One role's o
 
 Provider output must pass local validation before it can enter the report:
 
-1. The complete response must satisfy the local schema. This gate is currently atomic.
-2. Claims, findings, claim links, and strengths are then grounded separately.
-3. Citations must point to supplied source blocks and quotes must match exact manuscript text.
+1. The top-level response container must have the expected bounded arrays.
+2. Claims, findings, strengths, and comparison assessments are schema-validated independently.
+3. Citations must resolve uniquely to supplied substantive source blocks; exact matching is preferred, with conservative Unicode/whitespace normalization as a fallback.
 4. Unsupported or external interpretations are quarantined or marked for review.
-5. Duplicate concerns are grouped without treating agreement as independent confirmation.
+5. Duplicate concerns are grouped without treating agreement as independent confirmation, and explicit human overrides remain authoritative.
 
 Human scientific judgment remains the final authority.
 
@@ -82,20 +82,21 @@ Provider output then passes through three distinct layers that should not be con
 
 ```text
 provider response
-  -> whole-response schema gate
-  -> schema accepted
-  -> per-item grounding / fault isolation
+  -> bounded container validation
+  -> per-item schema validation / safe normalization
+  -> per-item source grounding / fault isolation
   -> support + action audit
   -> Finding objects, claim analyses, and grounded strengths
   -> cross-role duplicate reconciliation
+  -> version-bound human overrides
   -> adversarial prioritization and report
 ```
 
-A provider call can therefore be successful while some of its individual findings are rejected or quarantined. Schema acceptance is a transport/contract result, not a scientific-quality verdict. Grounding establishes provenance of quoted text, not semantic truth. The support audit deliberately leaves scientific entailment unverified for human adjudication.
+A provider call can therefore be successful while some of its individual findings, claims, strengths, or limitations are rejected or quarantined. Container acceptance is a transport/contract result, not a scientific-quality verdict. Grounding establishes provenance of quoted text, not semantic truth. The support audit deliberately leaves scientific entailment unverified for human adjudication.
 
-After schema acceptance, failures are fault-isolated at the smallest useful unit. Bad claim evidence drops that claim without discarding independent findings. Finding citations are resolved independently; bad citations are filtered, a finding with at least one valid supplied citation can continue, and an all-invalid cited finding is dropped. Finding links to rejected claims are removed, while truly unknown claim IDs are dropped with a quality flag. Strengths are also isolated: an invalid or empty strength is skipped without affecting findings, claims, or other strengths.
+Failures are fault-isolated at the smallest useful unit. Cosmetic model IDs are normalized because report finding IDs are generated locally from role, issue family, basis, and source-block anchors. Missing substantive fields reject only that item. Bad claim evidence drops the claim without discarding independent findings. Finding citations are resolved independently; bad citations are filtered, a finding with at least one valid supplied citation can continue, and an all-invalid cited finding is dropped. Finding links to rejected claims are removed, while truly unknown claim IDs are dropped with a quality flag. Invalid strengths and limitations are skipped individually.
 
-The boundary is deliberate but not complete. `validate_payload(response, REVIEW_SCHEMA)` still validates the provider response atomically before grounding. A malformed finding ID, missing required finding field, or other schema violation can therefore reject the whole role before any per-item salvage occurs. Safe diagnostics retain the schema path and validator but not the rejected model value or manuscript text.
+Only a malformed top-level container remains role-fatal. Safe diagnostics retain schema paths, validators, normalizations, and rejection categories without retaining rejected model values.
 
 ## Providers
 
@@ -107,15 +108,15 @@ The boundary is deliberate but not complete. `validate_payload(response, REVIEW_
 
 `providers/bedrock.py` uses the Converse API and the standard AWS credential chain.
 
-The default Bedrock path defines one Converse tool whose `inputSchema.json` is a normalized JSON Schema object and forces that tool when the selected model supports forced tool choice. The returned `toolUse.input` object is validated again against the stricter full local contract. Nullable `anyOf: [X, null]` fields are flattened for the outbound tool schema and removed from its `required` lists. Tool mode otherwise preserves contract bounds such as `maxItems`, `minLength`, `maxLength`, patterns, and numeric limits so the model sees the intended response limits; the original schema remains authoritative locally.
+The default Bedrock path defines one Converse tool whose `inputSchema.json` is a normalized JSON Schema object and forces that tool when the selected model supports forced tool choice. The full item contract is still supplied to the model, but local acceptance first validates the response container and then validates each child independently. Nullable `anyOf: [X, null]` fields are flattened for the outbound tool schema and removed from its `required` lists. Tool mode otherwise preserves contract bounds such as `maxItems`, `minLength`, `maxLength`, patterns, and numeric limits so the model sees the intended response limits.
 
-`--bedrock-json-mode prompt` is the compatibility fallback for models that reject forced tool choice. It places the normalized schema in the system prompt, accepts only JSON text, and still performs the same full local validation. No automatic retry switches modes. Bedrock reasoning effort is only allowed on the prompt path because Anthropic thinking and forced tool choice are incompatible.
+`--bedrock-json-mode prompt` is the compatibility fallback for models that reject forced tool choice. It places the normalized schema in the system prompt, accepts only JSON text, and uses the same two-stage local validation. No automatic retry switches modes. Bedrock reasoning effort is only allowed on the prompt path because Anthropic thinking and forced tool choice are incompatible.
 
 Bedrock review payloads are deliberately bounded to 10 findings and 6 claims. ACTION objects require `kind`; the remaining typed fields are optional because tool-use models commonly omit nonapplicable nullable fields. Unknown Bedrock finding classifications are mapped only to the explicit `other` fallback for topic, issue key, or category, and diagnostics record the coerced field paths without retaining the original model values.
 
-Provider grounding is fault-isolated after schema acceptance. Invalid claim evidence drops only that claim. Invalid finding citations are filtered individually, findings survive when at least one supplied citation resolves, and findings whose supplied citations all fail are dropped. Dangling claim links are removed instead of aborting findings. Invalid strengths are skipped individually. Exact quote and block validation itself remains strict.
+Provider processing is fault-isolated after container acceptance. Invalid child schemas, claim evidence, finding citations, dangling claim links, strengths, and limitations are handled per item. Exact quote/block provenance remains strict; conservative normalization only accepts a unique source match and maps evidence back to the original extracted span.
 
-Schema rejection is different from grounding rejection: the local `REVIEW_SCHEMA` currently validates the whole provider payload at once, so one malformed element can still reject the role before the grounding layer runs. No automatic provider retry is performed.
+Request preparation is also role-isolated. A role that exceeds the local request-size guard is marked failed without sending a network request, while other roles and the deterministic baseline continue. No automatic provider retry is performed.
 
 Provider choice does not change the scientific review pipeline.
 
@@ -123,7 +124,7 @@ Provider choice does not change the scientific review pipeline.
 
 Every input document has a content hash. Parsed text is divided into stable source blocks. Evidence points to exact character spans within those blocks.
 
-The model supplies only a block ID and exact quote. Page, paragraph, line, section, and character locations are derived locally.
+The model supplies only a block ID and quote. Exact quotes are preferred; harmless Unicode/whitespace drift may be normalized only when it maps uniquely back to the original block. Page, paragraph, line, section, and character locations are always derived locally.
 
 Overrides are bound to document hashes so they cannot silently carry over to a changed manuscript.
 
