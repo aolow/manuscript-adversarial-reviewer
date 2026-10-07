@@ -9,6 +9,7 @@ from typing import Dict, List, Protocol
 from ..errors import ReviewError
 from ..models import Finding, SEVERITIES, ISSUE_STATUSES, evidence
 from ..prioritization import prioritize
+from ..extraction import substantive_blocks
 
 MANDATES = {
     "scientific": "Assess claim strength, biological interpretation, alternative explanations, and orthogonal evidence.",
@@ -40,7 +41,7 @@ def prompt_packet(role, documents, extraction, findings, journal):
     mandate = resources.files(__package__).joinpath("prompts/" + role + ".txt").read_text(encoding="utf-8")
     return {"role": role, "instructions": base + "\n\n" + mandate,
             "target_journal": journal,
-            "source_blocks": [asdict(b) for d in documents for b in d.blocks],
+            "source_blocks": [asdict(b) for b in substantive_blocks(documents)],
             "extraction": extraction,
             "existing_findings": [asdict(f) for f in findings if role in f.reviewer_roles],
             "expected_output": {"findings": "List of objects with id, severity, category, issue_status, "
@@ -117,10 +118,9 @@ def orchestrate(documents, extraction, findings, journal=None, provider=None):
     if v2:
         for role in roles:
             packets[role] = llm_packet(role, documents, extraction, baseline, journal)
-            provider.prepare(role, packets[role])
     for role in roles:
         mandate = mandates[role]
-        applicable = role != "clinical" or "biomarker" in extraction["domains"]
+        applicable = True if v2 else role != "clinical" or "biomarker" in extraction["domains"]
         if not v2:
             packets[role] = prompt_packet(role, documents, extraction, baseline, journal)
         selected = [f for f in baseline if f.disposition != "dismissed" and
@@ -141,8 +141,14 @@ def orchestrate(documents, extraction, findings, journal=None, provider=None):
                 if v2:
                     run["raw_findings"] = len(response["findings"])
                     from ..grounding import normalize_response
-                    additions, claims, strengths = normalize_response(role, response, documents, extraction, provider.name)
-                    run.update(claim_analyses=claims, strengths=strengths, limitations=response["limitations"])
+                    rejections, normalizations = [], []
+                    additions, claims, strengths = normalize_response(
+                        role, response, documents, extraction, provider.name,
+                        rejections=rejections, normalizations=normalizations)
+                    limitations = [value for value in response["limitations"]
+                                   if isinstance(value, str) and value.strip() and len(value) <= 4000]
+                    run.update(claim_analyses=claims, strengths=strengths, limitations=limitations,
+                               item_rejections=rejections, item_normalizations=normalizations)
                 else:
                     additions = _validate_provider_findings(role, response, documents, provider.name)
             except ReviewError as exc:
@@ -151,15 +157,9 @@ def orchestrate(documents, extraction, findings, journal=None, provider=None):
                 run.update(mode="failed", note=str(exc))
                 runs.append(run)
                 continue
-            except Exception as exc:
-                if not v2:
-                    raise ReviewError("Reviewer provider failed for " + role) from None
-                run.update(mode="failed", note="Reviewer validation failed; no generated output accepted.")
-                runs.append(run)
-                continue
             findings.extend(additions)
             run.update(mode="dry_run" if getattr(provider, "dry_run", False) else "provider",
                        finding_ids=run["finding_ids"] + [f.id for f in additions],
-                       note="Provider judgments have validated citation offsets, not validated scientific conclusions.")
+                       note="Provider output passed local container validation; surviving items were source-grounded locally, not scientifically verified.")
         runs.append(run)
     return runs, packets
