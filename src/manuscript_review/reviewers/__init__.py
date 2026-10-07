@@ -58,7 +58,7 @@ def llm_packet(role, documents, extraction, findings, journal):
         "source_blocks": [asdict(b) for b in substantive_blocks(documents)],
         "candidate_claims": extraction["claims"],
         "deterministic_context": [{"id": f.id, "category": f.category, "issue": f.issue,
-                                   "evidence": [asdict(e) for e in f.evidence],
+                                   "evidence_block_ids": sorted({e.block_id for e in f.evidence}),
                                    "disposition": f.disposition} for f in findings],
         "external_retrieval": "None. Literature and journal-policy statements require external verification.",
     }
