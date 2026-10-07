@@ -143,9 +143,14 @@ def add_semantic_comparison(old, new, comparison, provider):
                 fallback["quality_flags"].append("not_assessed_by_llm")
         comparison["issue_assessments"] = [
             accepted.get(identifier, row) for identifier, row in by_id.items()]
-        comparison["limitations"].extend(
-            value for value in response["limitations"]
-            if isinstance(value, str) and value.strip() and len(value) <= 4000)
+        for index, value in enumerate(response["limitations"]):
+            if isinstance(value, str) and value.strip() and len(value) <= 4000:
+                comparison["limitations"].append(value)
+            else:
+                rejections.append({
+                    "kind": "limitation", "index": index, "status": "schema_rejected",
+                    "path": "limitations.%d" % index, "validator": "text",
+                })
         comparison["llm"] = provider.metadata()
         comparison["llm"]["coverage"] = {
             "prior_issues": len(by_id), "assessed_by_llm": len(accepted)}
