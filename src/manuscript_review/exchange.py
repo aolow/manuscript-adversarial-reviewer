@@ -188,6 +188,12 @@ def import_feedback(review, package, feedback, accept_grounded=False):
     existing = {c["id"] for c in extraction["claims"]}
     extraction["claims"] += [{"id": c["id"]} for c in package["claims"] if c["id"] not in existing]
     rejections, normalizations = [], []
+    for index, value in enumerate(feedback["review"]["limitations"]):
+        if not (isinstance(value, str) and value.strip() and len(value) <= 4000):
+            rejections.append({
+                "kind": "limitation", "index": index, "status": "schema_rejected",
+                "path": "limitations.%d" % index, "validator": "text",
+            })
     additions, claims, strengths = normalize_response(
         "reviewer2", feedback["review"], review.documents, extraction, "chatgpt_manual",
         rejections=rejections, normalizations=normalizations)
@@ -209,7 +215,9 @@ def import_feedback(review, package, feedback, accept_grounded=False):
            "package_id": package["package_id"], "explicit_acceptance": accept_grounded,
            "item_rejections": rejections, "item_normalizations": normalizations,
            "proposed_claim_analyses": claims, "proposed_strengths": strengths,
-           "claim_analyses": [], "strengths": [], "limitations": feedback["review"]["limitations"]}
+           "claim_analyses": [], "strengths": [],
+           "limitations": [value for value in feedback["review"]["limitations"]
+                           if isinstance(value, str) and value.strip() and len(value) <= 4000]}
     if accept_grounded:
         informational = {"scientific_judgment_unverified", "feasibility_not_verified"}
         run["claim_analyses"] = [c for c in claims if not set(c["quality_flags"]) - informational]
