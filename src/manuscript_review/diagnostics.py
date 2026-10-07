@@ -51,8 +51,11 @@ def attach_diagnostics(review):
     item_rejections = [item for run in runs for item in run.get("item_rejections", [])]
     item_normalizations = [item for run in runs for item in run.get("item_normalizations", [])]
     rejection_counts = Counter(item.get("kind", "unknown") for item in item_rejections)
+    call_roles = {c["role"] for c in calls}
     failures += [{"role": r["role"], "status": "source_validation_rejected", "reason": r["note"]}
                  for r in runs if r["mode"] == "failed" and r["role"] in schema_roles]
+    failures += [{"role": r["role"], "status": "request_preparation_rejected", "reason": r["note"]}
+                 for r in runs if r["mode"] == "failed" and r["role"] not in call_roles]
     if comparison.get("failed") and "comparison" in schema_roles:
         failures.append({"role": "comparison", "status": "source_validation_rejected",
                          "reason": comparison.get("error", "Comparison validation failed.")})
@@ -88,6 +91,7 @@ def attach_diagnostics(review):
         "api_call_scope": ("API calls belong to the original provider review; manual import makes zero API calls."
                            if manual else "Calls attempted in this review operation."),
         "comparison_coverage": comparison.get("coverage"),
+        "comparison_item_rejections": comparison.get("item_rejections", []),
         "note": "Accepted means eligible for display after local checks; scientific correctness is not verified.",
     }
     review.quality["pilot_diagnostics"] = diagnostics
