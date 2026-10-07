@@ -86,5 +86,7 @@ def apply_finding_overrides(findings, data):
                 if override[key] not in choices:
                     raise ReviewError("Invalid override " + key + ": " + str(override[key]))
                 setattr(finding, key, override[key])
+        if "disposition" in override and finding.disposition != "duplicate":
+            finding.duplicate_of = None
         finding.manual_note = override["note"]
         prioritize(finding)
