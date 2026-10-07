@@ -61,6 +61,13 @@ def validate_report(data):
 
 def validate_comparison(comparison, old, new):
     from .providers.contracts import RESOLUTION_STATUSES
+    if (comparison.get("old_run_id") != old.get("run_id")
+            or comparison.get("new_run_id") != new.get("run_id")
+            or comparison.get("old_document_hashes") != {
+                d["id"]: d["sha256"] for d in old["documents"]}
+            or comparison.get("new_document_hashes") != {
+                d["id"]: d["sha256"] for d in new["documents"]}):
+        raise ReviewError("Comparison provenance does not match the supplied review versions.")
     registries = {side: {b["id"]: b for d in data["documents"] for b in d["blocks"]}
                   for side, data in (("old", old), ("new", new))}
     old_ids = {f["id"] for f in old["findings"] if f["disposition"] in ("active", "confirmed")}
@@ -73,8 +80,17 @@ def validate_comparison(comparison, old, new):
         for side in ("old", "new"):
             for ev in row[side + "_evidence"]:
                 block = registries[side].get(ev["block_id"])
-                if (block is None or block["text"][ev["start"]:ev["end"]] != ev["quote"]
-                        or block["section"] != ev["section"] or block["page"] != ev["page"]
-                        or block["document_id"] != ev["document_id"]):
+                start, end = ev.get("start"), ev.get("end")
+                expected_line = (
+                    block["line_start"] + block["text"][:start].count("\n")
+                    if block is not None and block["line_start"] is not None and type(start) is int
+                    else None)
+                if (block is None or type(start) is not int or type(end) is not int
+                        or not 0 <= start < end <= len(block["text"])
+                        or block["text"][start:end] != ev.get("quote")
+                        or block["section"] != ev.get("section") or block["page"] != ev.get("page")
+                        or block["paragraph"] != ev.get("paragraph")
+                        or expected_line != ev.get("line_start")
+                        or block["document_id"] != ev.get("document_id")):
                     raise ReviewError("Comparison evidence does not match the specified manuscript version.")
     return True
