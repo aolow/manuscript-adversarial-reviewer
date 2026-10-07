@@ -83,12 +83,19 @@ class ChatGPTExchangeTests(WorkspaceTest):
         result = import_feedback(review, package, feedback)
         self.assertIn(package["claims"][0]["id"], result.findings[-1].claim_ids)
 
-    def test_fabricated_quote_and_location_are_rejected(self):
-        for change in ("quote", "page"):
-            data = deepcopy(self.feedback)
-            data["review"]["findings"][0]["citations"][0][change] = "Invented source text." if change == "quote" else 9
-            with self.subTest(change=change), self.assertRaises(ReviewError):
-                import_feedback(self.review, self.package, data)
+    def test_fabricated_quote_is_rejected_and_location_field_is_quarantined(self):
+        fabricated = deepcopy(self.feedback)
+        fabricated["review"]["findings"][0]["citations"][0]["quote"] = "Invented source text."
+        with self.assertRaises(ReviewError):
+            import_feedback(self.review, self.package, fabricated)
+
+        located = deepcopy(self.feedback)
+        located["review"]["findings"][0]["citations"][0]["page"] = 9
+        result = import_feedback(self.review, self.package, located)
+        run = result.reviewer_runs[-1]
+        self.assertEqual(run["item_rejections"][0]["kind"], "finding")
+        self.assertEqual(run["item_rejections"][0]["status"], "schema_rejected")
+        self.assertFalse(any(f.origin == "provider:chatgpt_manual" for f in result.findings))
 
     def test_valid_quote_outside_export_scope_is_rejected(self):
         self.package = build_package(self.review, max_findings=1)
