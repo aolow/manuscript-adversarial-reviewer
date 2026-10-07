@@ -150,6 +150,6 @@ Real manuscripts and request packets may contain confidential text. Keep them ou
 
 The repository uses `unittest` plus GitHub Actions on Python 3.10 and 3.12.
 
-Provider tests use mocked responses. They verify request construction, atomic schema validation, claim/finding/link/strength fault isolation after schema acceptance, failure handling, and dry-run behavior without making live model calls.
+Provider tests use mocked responses. They verify request construction, strict container validation, per-item schema/source isolation, stable local IDs, comparison fallbacks, artifact cleanup, failure handling, and dry-run behavior without making live model calls.
 
 The synthetic benchmark is a regression suite, not evidence of general scientific-review quality.
