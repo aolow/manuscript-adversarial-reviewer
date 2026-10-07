@@ -125,29 +125,30 @@ class BedrockProviderTests(WorkspaceTest):
         self.assertNotIn("tumor_ecology", str(call))
         self.assertEqual(call["status"], "schema_accepted")
 
-    def test_schema_rejection_records_only_safe_path_and_validator(self):
+    def test_envelope_schema_rejection_records_only_safe_path_and_validator(self):
         packet = self.packet()
-        row = finding(self.block(packet))
-        row["id"] = "INVALID ID"
+        payload = envelope()
+        payload["findings"] = "wrong"
         provider = BedrockReviewer(
             BedrockSettings("test-model", region="us-west-2"),
-            transport=Mock(return_value=self.response(envelope([row]))))
+            transport=Mock(return_value=self.response(payload)))
         with self.assertRaises(ReviewError):
             provider.review("scientific", packet)
         error = provider.metadata()["calls"][0]["schema_error"]
-        self.assertEqual(error["path"], "findings.0.id")
-        self.assertEqual(error["validator"], "pattern")
-        self.assertNotIn("INVALID ID", str(error))
+        self.assertEqual(error["path"], "findings")
+        self.assertEqual(error["validator"], "type")
+        self.assertNotIn("wrong", str(error))
 
-    def test_full_local_schema_still_rejects_invalid_bedrock_output(self):
+    def test_child_schema_drift_is_deferred_to_item_grounding(self):
         packet = self.packet()
         row = finding(self.block(packet))
         row["id"] = "INVALID ID"
         provider = BedrockReviewer(
             BedrockSettings("test-model", region="us-west-2"),
             transport=Mock(return_value=self.response(envelope([row]))))
-        with self.assertRaises(ReviewError):
-            provider.review("scientific", packet)
+        result = provider.review("scientific", packet)
+        self.assertEqual(result["findings"][0]["id"], "INVALID ID")
+        self.assertEqual(provider.metadata()["calls"][0]["status"], "schema_accepted")
 
     def test_structured_finding_is_schema_validated(self):
         packet = self.packet()
