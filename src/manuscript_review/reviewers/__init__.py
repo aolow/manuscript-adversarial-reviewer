@@ -145,8 +145,15 @@ def orchestrate(documents, extraction, findings, journal=None, provider=None):
                     additions, claims, strengths = normalize_response(
                         role, response, documents, extraction, provider.name,
                         rejections=rejections, normalizations=normalizations)
-                    limitations = [value for value in response["limitations"]
-                                   if isinstance(value, str) and value.strip() and len(value) <= 4000]
+                    limitations = []
+                    for index, value in enumerate(response["limitations"]):
+                        if isinstance(value, str) and value.strip() and len(value) <= 4000:
+                            limitations.append(value)
+                        else:
+                            rejections.append({
+                                "kind": "limitation", "index": index, "status": "schema_rejected",
+                                "path": "limitations.%d" % index, "validator": "text",
+                            })
                     run.update(claim_analyses=claims, strengths=strengths, limitations=limitations,
                                item_rejections=rejections, item_normalizations=normalizations)
                 else:
