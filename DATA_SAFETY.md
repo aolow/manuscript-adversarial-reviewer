@@ -26,4 +26,8 @@ manuscript-review review manuscript.pdf \
 
 Bedrock uses the standard AWS credential chain. OpenAI reads `OPENAI_API_KEY` from the process environment. Credentials are not written into request exports or reports.
 
+Provider validation diagnostics are intentionally narrow. Schema failures record only the failing field path and validator type, not the rejected model value or manuscript text. This does **not** make provider artifacts non-sensitive: request exports, grounded evidence, reports, and other review outputs can still contain manuscript content.
+
+Bedrock transport is configured without automatic retry. A timeout or provider failure therefore does not silently trigger a duplicate long-running manuscript submission from this tool.
+
 Ignore rules reduce accidental commits but cannot recognize every confidential file. Always inspect staged files before pushing.
