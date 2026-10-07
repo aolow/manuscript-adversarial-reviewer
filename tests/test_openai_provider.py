@@ -172,6 +172,33 @@ class OpenAIProviderTests(WorkspaceTest):
         self.assertEqual(updated.disposition, "confirmed")
         self.assertIn("Human adjudication", updated.manual_note)
 
+    def test_manual_override_wins_after_duplicate_reconciliation(self):
+        path = self.write(PAPER)
+        def make_provider():
+            def transport(body, timeout):
+                return response(envelope([finding(packet_block(body))]))
+            return OpenAIReviewer(
+                OpenAISettings("test-model"), roles=["methods", "computational"],
+                transport=transport)
+
+        first, _ = review_manuscript(path, provider=make_provider())
+        duplicate = next(f for f in first.findings if f.disposition == "duplicate")
+        override = {
+            "document_sha256": {"manuscript": first.documents[0].sha256},
+            "findings": [{
+                "id": duplicate.id, "disposition": "confirmed",
+                "note": "Human review keeps this role-specific concern separate.",
+            }],
+        }
+        second, _ = review_manuscript(
+            path, overrides_path=self.write(json.dumps(override), "duplicate-override.json"),
+            provider=make_provider())
+        updated = next(f for f in second.findings if f.id == duplicate.id)
+        self.assertEqual(updated.disposition, "confirmed")
+        self.assertIsNone(updated.duplicate_of)
+        self.assertFalse(any(event["duplicate_id"] == updated.id
+                             for event in second.quality["duplicate_groups"]))
+
     def test_ungrounded_output_does_not_enter_headline(self):
         def transport(body, timeout):
             row = finding(packet_block(body))
