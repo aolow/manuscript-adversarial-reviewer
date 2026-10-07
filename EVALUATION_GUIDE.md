@@ -22,9 +22,9 @@ manuscript-review review manuscript.pdf \
   --out reviews/assisted
 ```
 
-Use the same manuscript, supplements, configuration, and overrides for both arms.
+Use the same manuscript, supplements, configuration, overrides, and tool version for both arms. Evaluation preparation also verifies that the deterministic finding layer is identical between baseline and assisted reviews, so model benefit is not confounded with a changed engine run.
 
-Before blinding, inspect assisted-run diagnostics for incomplete roles. Provider coverage has two distinct failure layers: a schema-rejected response contributes no role output because whole-response schema validation is currently atomic, while a schema-accepted response can still have individual claims, findings, claim links, or strengths dropped during grounding without losing the rest of the role. Record incomplete role coverage as part of the evaluation context rather than silently treating it as a negative scientific result.
+Before blinding, inspect assisted-run diagnostics for incomplete roles and item-level rejections. A schema-rejected response contributes no role output because its top-level container was unusable. A schema-accepted response can still have individual claims, findings, claim links, strengths, or limitations rejected during local validation/grounding without losing the rest of the role. Record coverage limitations rather than treating missing model output as a negative scientific result.
 
 ## 2. Prepare a blinded package
 
@@ -94,7 +94,7 @@ The result reports:
 - Overall usefulness, preference, and blinding notes.
 - Incomplete provider roles.
 
-When interpreting assisted performance, distinguish role-level failures from item-level grounding rejection. A schema-rejected role never reached grounding; a schema-accepted role may legitimately contribute fewer findings than the provider returned because invalid citations, dangling claim links, or ungroundable strengths are locally filtered.
+When interpreting assisted performance, distinguish role-level container failures from item-level rejection. A schema-accepted role may legitimately contribute fewer findings than the provider returned because malformed child objects, invalid citations, dangling claim links, or ungroundable strengths are locally filtered.
 
 It does not produce a single weighted scientific-quality score or claim statistical significance.
 
