@@ -118,6 +118,22 @@ class SemanticComparisonTests(WorkspaceTest):
         self.assertTrue(comparison["claims_weakened"])
         self.assertFalse(leakage["wording_softened_only"])
 
+    def test_comparison_preserves_actual_provider_identity(self):
+        old, new = self.versions()
+        row = self.assessment(old, new, "pattern.feature_selection_before_split", "unresolved")
+        class BedrockStub:
+            name = "bedrock"
+            dry_run = False
+            def compare(self, packet):
+                return {"assessments": [row], "limitations": []}
+            def metadata(self):
+                return {"provider": self.name, "calls": [], "usage": {}}
+        comparison = compare_reviews(old, new)
+        add_semantic_comparison(old, new, comparison, BedrockStub())
+        accepted = next(r for r in comparison["issue_assessments"]
+                        if r["prior_issue_id"] == row["prior_issue_id"])
+        self.assertEqual(accepted["origin"], "provider:bedrock")
+
     def test_explicit_withdrawal_can_be_no_longer_applicable(self):
         old, _ = self.versions()
         new = self.review_text("Discussion\n\nWe no longer claim that our results establish a causal mechanism.")
