@@ -5,6 +5,7 @@ from importlib import resources
 from .errors import ReviewError
 from .grounding import resolve_citations
 from .models import SEVERITIES, evidence
+from .extraction import substantive_blocks
 from .providers.contracts import COMPARISON_ENVELOPE_SCHEMA, ASSESSMENT, validate_payload
 
 
@@ -50,8 +51,8 @@ def comparison_packet(old, new):
     instructions = resources.files("manuscript_review.reviewers").joinpath("prompts/comparison.txt").read_text(encoding="utf-8")
     return {
         "instructions": instructions,
-        "old_source_blocks": [asdict(b) for d in old.documents for b in d.blocks],
-        "new_source_blocks": [asdict(b) for d in new.documents for b in d.blocks],
+        "old_source_blocks": [asdict(b) for b in substantive_blocks(old.documents)],
+        "new_source_blocks": [asdict(b) for b in substantive_blocks(new.documents)],
         "prior_issues": [asdict(f) for f in old.findings if f.disposition in ("active", "confirmed")],
         "new_deterministic_issues": [asdict(f) for f in new.findings if f.disposition in ("active", "confirmed")],
         "old_claim_candidates": old.extraction["claims"], "new_claim_candidates": new.extraction["claims"],
