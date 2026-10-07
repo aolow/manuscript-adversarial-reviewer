@@ -22,6 +22,14 @@
 - Isolated citation failures per finding: invalid citations are filtered, findings with at
   least one valid citation survive with a quality flag, and all-invalid findings are dropped
   without aborting the reviewer role.
+- Isolated unresolved finding-to-claim references so rejected or unknown claim IDs are dropped
+  from the finding instead of aborting the reviewer role; truly unknown links receive a
+  `dangling_claim_ref_dropped` quality flag.
+- Isolated strength grounding failures so an invalid or empty strength is skipped without
+  discarding valid findings, claims, or other strengths from the same reviewer role.
+- Documented the remaining schema-gate limitation: full provider payload validation is still
+  atomic, so one malformed required field or invalid ID can reject a role before per-item
+  grounding isolation begins.
 - Updated repository publication guidance now that the source repository is public.
 
 ## 0.3.0 — 2026-10-04
