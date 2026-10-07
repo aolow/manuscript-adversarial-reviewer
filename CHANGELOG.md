@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-10-07
 
 - Simplified the documentation around a concise README and focused workflow,
   architecture, rubric, schema, evaluation, ChatGPT, and data-safety guides.
@@ -27,9 +27,22 @@
   `dangling_claim_ref_dropped` quality flag.
 - Isolated strength grounding failures so an invalid or empty strength is skipped without
   discarding valid findings, claims, or other strengths from the same reviewer role.
-- Documented the remaining schema-gate limitation: full provider payload validation is still
-  atomic, so one malformed required field or invalid ID can reject a role before per-item
-  grounding isolation begins.
+- Replaced atomic child validation with two-stage provider validation: strict bounded
+  top-level containers plus independent schema/source validation for claims, findings,
+  strengths, limitations, and semantic-comparison assessments.
+- Normalized cosmetic model IDs and safe classification drift without trusting model IDs as
+  report identity; provider finding IDs are now generated locally from role/issue/source anchors.
+- Added conservative unique Unicode/whitespace citation normalization for noisy extracted text
+  while retaining original source spans and exact provenance in reports.
+- Isolated request-preparation failures per role, reduced duplicated evidence text in provider
+  packets, and excluded headings/reference lists from live reviewer source context.
+- Made version-bound human overrides authoritative after duplicate reconciliation and made
+  forced reruns remove stale comparison, request, prompt, and provider-diagnostic artifacts.
+- Fixed semantic-comparison provider provenance, confidence preservation, per-assessment
+  isolation, and the previous global wording-softening inference.
+- Added provider-parity schema diagnostics, item rejection/normalization diagnostics, stricter
+  comparison provenance validation, and engine-version parity checks for evaluation/benchmarks.
+- Bumped the tool to 0.4.0 and expanded the regression suite around cross-stage invariants.
 - Updated repository publication guidance now that the source repository is public.
 
 ## 0.3.0 — 2026-10-04

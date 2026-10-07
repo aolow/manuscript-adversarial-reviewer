@@ -33,14 +33,16 @@ class GroundingTests(WorkspaceTest):
         bad["citations"][0]["quote"] = "We performed a randomized trial in 900 patients."
         good = finding(self.block, "good-citation")
         items, _, _ = self.normalize(envelope([bad, good]))
-        self.assertEqual([item.id for item in items], ["reviewer.scientific.good-citation"])
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].evidence[0].quote, self.block["text"])
 
     def test_finding_with_nonexistent_block_is_dropped_not_role_aborted(self):
         bad = finding(self.block, "bad-block")
         bad["citations"][0]["block_id"] = "invented-block"
         good = finding(self.block, "good-block")
         items, _, _ = self.normalize(envelope([bad, good]))
-        self.assertEqual([item.id for item in items], ["reviewer.scientific.good-block"])
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].evidence[0].block_id, self.block["id"])
 
     def test_invalid_citation_is_filtered_when_another_citation_is_valid(self):
         row = finding(self.block)
@@ -57,8 +59,14 @@ class GroundingTests(WorkspaceTest):
         for field, value in (("page", 999), ("section", "Imaginary Methods"), ("start", 19)):
             row = finding(self.block)
             row["citations"][0][field] = value
-            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "JSON Schema"):
-                self.normalize(envelope([row]))
+            rejections = []
+            items, _, _ = normalize_response(
+                "scientific", envelope([row]), self.report.documents, self.report.extraction,
+                "test", rejections=rejections)
+            with self.subTest(field=field):
+                self.assertEqual(items, [])
+                self.assertEqual(rejections[0]["kind"], "finding")
+                self.assertEqual(rejections[0]["status"], "schema_rejected")
 
     def test_wrong_topic_chunk_is_quarantined(self):
         code = source_block(self.report.documents, "Code is available")
@@ -125,8 +133,13 @@ class GroundingTests(WorkspaceTest):
         for field, value in (("severity", "fatal_flaw"), ("issue_status", "established_issue")):
             row = finding(self.block)
             row[field] = value
-            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "JSON Schema"):
-                self.normalize(envelope([row]))
+            rejections = []
+            items, _, _ = normalize_response(
+                "scientific", envelope([row]), self.report.documents, self.report.extraction,
+                "test", rejections=rejections)
+            with self.subTest(field=field):
+                self.assertEqual(items, [])
+                self.assertEqual(rejections[0]["status"], "schema_rejected")
 
     def test_incomplete_analysis_action_flagged(self):
         row = finding(self.block)
@@ -135,13 +148,49 @@ class GroundingTests(WorkspaceTest):
         self.assertIn("incomplete_action", items[0].quality_flags)
         self.assertEqual(items[0].disposition, "needs_review")
 
-    def test_schema_rejects_unknown_missing_or_wrong_typed_fields(self):
+    def test_schema_rejects_only_malformed_item_and_keeps_sibling(self):
         for mutate in (lambda r: r.update(invented="x"), lambda r: r.pop("why_it_matters"),
                        lambda r: r.update(confidence=0.99)):
-            row = finding(self.block)
-            mutate(row)
-            with self.assertRaisesRegex(ReviewError, "JSON Schema"):
-                self.normalize(envelope([row]))
+            bad = finding(self.block, "bad")
+            mutate(bad)
+            good = finding(self.block, "good")
+            rejections = []
+            items, _, _ = normalize_response(
+                "scientific", envelope([bad, good]), self.report.documents, self.report.extraction,
+                "test", rejections=rejections)
+            with self.subTest(mutate=mutate):
+                self.assertEqual(len(items), 1)
+                self.assertEqual(len(rejections), 1)
+                self.assertEqual(rejections[0]["kind"], "finding")
+                self.assertEqual(rejections[0]["status"], "schema_rejected")
+
+    def test_cosmetic_model_id_is_normalized_not_rejected(self):
+        row = finding(self.block)
+        row["id"] = "Finding 4 INVALID"
+        normalizations = []
+        items, _, _ = normalize_response(
+            "scientific", envelope([row]), self.report.documents, self.report.extraction,
+            "test", normalizations=normalizations)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(normalizations, [{"kind": "finding", "index": 0, "field": "id"}])
+
+    def test_provider_finding_id_does_not_depend_on_model_slug(self):
+        first = finding(self.block, "first-model-id")
+        second = finding(self.block, "different-model-id")
+        a, _, _ = self.normalize(envelope([first]))
+        b, _, _ = self.normalize(envelope([second]))
+        self.assertEqual(a[0].id, b[0].id)
+
+    def test_harmless_whitespace_and_unicode_quote_drift_is_resolved(self):
+        self.report = self.review_text("Methods\n\nWe used 12 patients — across two cohorts.")
+        block = source_block(self.report.documents, "We used")
+        row = finding(block)
+        row["citations"][0]["quote"] = "We used 12 patients - across  two cohorts."
+        row["evidence_statement"] = block["text"]
+        items, _, _ = self.normalize(envelope([row]))
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].evidence[0].quote, block["text"])
+        self.assertIn("normalized_citation_match", items[0].quality_flags)
 
     def test_duplicate_and_conflicting_ratings_preserved(self):
         first, _, _ = self.normalize(envelope([finding(self.block)]), role="methods")
@@ -156,6 +205,19 @@ class GroundingTests(WorkspaceTest):
         self.assertEqual(merged[0].severity, "moderate")
         self.assertEqual(len(merged[0].reviewer_assessments), 2)
         self.assertIn("severity_disagreement", merged[0].quality_flags)
+
+    def test_overlapping_quote_boundaries_can_still_reconcile_duplicates(self):
+        first, _, _ = self.normalize(envelope([finding(self.block)]), role="methods")
+        shorter = finding(self.block)
+        shorter_quote = self.block["text"][3:-3]
+        shorter["citations"][0]["quote"] = shorter_quote
+        shorter["evidence_statement"] = shorter_quote
+        shorter["support_rationale"] = shorter_quote
+        second, _, _ = self.normalize(envelope([shorter]), role="computational")
+        merged = first + second
+        events = reconcile(merged)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(merged[1].disposition, "duplicate")
 
     def test_different_evidence_not_silently_merged(self):
         first, _, _ = self.normalize(envelope([finding(self.block)]), role="methods")

@@ -2,7 +2,7 @@
 
 # Manuscript adversarial review
 
-**Run:** example-flawed-v0.3.0  
+**Run:** example-flawed-v0.4.0  
 **Schema:** 1.1.0  
 **Mode:** offline deterministic audit
 

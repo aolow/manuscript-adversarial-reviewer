@@ -25,7 +25,7 @@ case's expected list is a false positive. A missing expected family is a false
 negative. Duplicate instances within a family count once for detection.
 The remaining findings are explicitly unscored, not presumed correct.
 
-The checked-in [result](../examples/benchmark.json) was generated from the synthetic deterministic suite and remains a regression reference for the current 0.3.x line:
+The checked-in [result](../examples/benchmark.json) was generated from the synthetic deterministic suite and remains a regression reference for the current 0.4.x line:
 
 | Measure | Result |
 | --- | ---: |
@@ -73,7 +73,7 @@ manuscript-review benchmark --manifest benchmarks/manifest.json \
   --reports reviews/benchmark-runs --layer combined
 ```
 
-Saved reports must use the current report contract, match each fixture's
+Saved reports must use the current tool version and report contract, match each fixture's
 document hashes and freshly extracted source blocks, and pass local provenance
 validation. Quarantined, dismissed, and duplicate records are excluded from
 active detection scores. LLM findings identify their family through `issue_key`;
@@ -81,9 +81,9 @@ manually adjudicate these labels before interpreting scores. The benchmark does
 not establish that an uploaded report came from a real model call.
 
 Provider coverage must also be interpreted explicitly. A schema-rejected role contributes no
-findings because schema validation is still whole-response atomic. After schema acceptance,
-bad claim evidence, individual finding citations, dangling claim links, and strengths are
-fault-isolated, so raw provider finding counts can exceed the locally retained count.
+findings because its top-level container was unusable. After container acceptance, malformed
+child objects, bad claim evidence, individual finding citations, dangling claim links, strengths,
+and limitations are fault-isolated, so raw provider finding counts can exceed the locally retained count.
 
 ## Extend the benchmark
 

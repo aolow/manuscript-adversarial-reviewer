@@ -62,14 +62,16 @@ Agreement across multiple model roles is not treated as independent scientific c
 
 ## Provider evidence handling
 
-Provider output has to pass the response schema before any scientific grounding occurs. That schema gate is currently atomic, so one malformed required field or invalid ID can reject the entire role.
+Provider output first passes a strict top-level container check. Findings, claims, strengths, and comparison assessments are then schema-validated independently, so one malformed child cannot erase unrelated output from the role.
 
-After schema acceptance, grounding is intentionally more granular:
+Grounding is likewise granular:
 
+- Cosmetic model IDs and safe classification drift can be normalized locally; missing substantive fields reject only that item.
 - Invalid claim evidence drops that claim without erasing unrelated findings.
 - Invalid finding citations are removed individually; an all-invalid cited finding is dropped.
 - Finding links to rejected or unknown claims are removed instead of aborting the finding.
-- Invalid or empty strengths are skipped individually and do not offset, rescue, or erase findings.
+- Invalid or empty strengths and limitations are skipped individually and do not offset, rescue, or erase findings.
+- Human/version-bound overrides apply after automatic duplicate reconciliation.
 
 A grounded strength is still reviewer judgment, not proof that the corresponding design or conclusion is strong.
 

@@ -8,7 +8,8 @@ import math
 from time import perf_counter
 
 from ..errors import ReviewError
-from .contracts import REVIEW_SCHEMA, COMPARISON_SCHEMA, validate_payload
+from .contracts import (REVIEW_SCHEMA, COMPARISON_SCHEMA, REVIEW_ENVELOPE_SCHEMA,
+                        COMPARISON_ENVELOPE_SCHEMA, validate_payload)
 
 ENDPOINT = "bedrock-runtime:Converse"
 DEFAULT_ROLES = ("scientific", "methods", "computational", "novelty", "reviewer2", "reproducibility")
@@ -315,6 +316,8 @@ class BedrockReviewer:
             ]
             if not tool_inputs:
                 raise ReviewError("Bedrock response contained no tool output.")
+            if len(tool_inputs) != 1:
+                raise ReviewError("Bedrock response must contain exactly one structured tool output.")
             payload = tool_inputs[0]
         else:
             texts = [item.get("text", "") for item in content
@@ -335,8 +338,10 @@ class BedrockReviewer:
         elif schema is COMPARISON_SCHEMA:
             call["raw_findings"] = 0
         call["status"] = "schema_rejected"
+        local_schema = (REVIEW_ENVELOPE_SCHEMA if schema is REVIEW_SCHEMA
+                        else COMPARISON_ENVELOPE_SCHEMA if schema is COMPARISON_SCHEMA else schema)
         try:
-            validate_payload(payload, schema)
+            validate_payload(payload, local_schema)
         except ReviewError as exc:
             path = getattr(exc, "schema_path", None)
             validator = getattr(exc, "schema_validator", None)

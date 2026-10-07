@@ -83,6 +83,19 @@ def _json(data):
     return json.dumps(data, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
 
 
+def _deterministic_signature(review):
+    rows = []
+    for finding in review.findings:
+        if finding.origin != "deterministic":
+            continue
+        rows.append({
+            "id": finding.id, "rule_id": finding.rule_id, "severity": finding.severity,
+            "issue_status": finding.issue_status, "disposition": finding.disposition,
+            "evidence": [(ev.block_id, ev.start, ev.end, ev.quote) for ev in finding.evidence],
+        })
+    return canonical_hash(sorted(rows, key=lambda row: row["id"]))
+
+
 def _neutral_findings(review):
     return [{"original_id": f.id, "issue": f.issue, "why_it_matters": f.why_it_matters,
              "severity": f.severity, "evidence": [asdict(e) for e in f.evidence],
@@ -116,6 +129,10 @@ def prepare_evaluation(baseline, assisted, expert=None):
     verify_same_sources(baseline, assisted)
     if baseline.configuration != assisted.configuration:
         raise ReviewError("Blinded comparison requires the same deterministic configuration and overrides.")
+    if baseline.tool_version != assisted.tool_version:
+        raise ReviewError("Blinded comparison requires baseline and assisted reviews from the same tool version.")
+    if _deterministic_signature(baseline) != _deterministic_signature(assisted):
+        raise ReviewError("Baseline and assisted deterministic findings differ; regenerate both arms before evaluation.")
     if any(r["mode"] in ("provider", "manual_import") for r in baseline.reviewer_runs):
         raise ReviewError("Baseline must be deterministic-only.")
     if assisted.llm.get("dry_run") or not any(r["mode"] in ("provider", "manual_import") for r in assisted.reviewer_runs):

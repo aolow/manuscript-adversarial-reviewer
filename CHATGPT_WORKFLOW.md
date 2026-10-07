@@ -41,7 +41,8 @@ The import checks:
 
 - The original document hashes.
 - The exact exported package identity.
-- The response schema.
+- The top-level feedback/package identity and bounded response container.
+- Each returned finding, claim, strength, and limitation independently.
 - Citations against excerpts that were actually shared.
 - The same local grounding and action checks used for provider output.
 
@@ -63,4 +64,4 @@ manuscript-review import-chatgpt \
 
 Manual ChatGPT feedback is still scientific judgment, not verified fact.
 
-This handoff/import path is separate from live provider-role execution. For the current Bedrock/OpenAI schema gate, per-item grounding isolation, and role-failure semantics, see the "What happens to a reviewer response" section in [README.md](README.md) and the trust-boundary discussion in [ARCHITECTURE.md](ARCHITECTURE.md).
+A malformed feedback child is quarantined with diagnostics rather than erasing valid siblings; an invalid package identity or top-level container still rejects the import. This handoff/import path remains separate from live provider-role execution. See the "What happens to a reviewer response" section in [README.md](README.md) and [ARCHITECTURE.md](ARCHITECTURE.md).

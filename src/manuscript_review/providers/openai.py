@@ -10,7 +10,8 @@ from time import perf_counter
 from urllib import error, request
 
 from ..errors import ReviewError
-from .contracts import REVIEW_SCHEMA, COMPARISON_SCHEMA, validate_payload
+from .contracts import (REVIEW_SCHEMA, COMPARISON_SCHEMA, REVIEW_ENVELOPE_SCHEMA,
+                        COMPARISON_ENVELOPE_SCHEMA, validate_payload)
 
 ENDPOINT = "https://api.openai.com/v1/responses"
 DEFAULT_ROLES = ("scientific", "methods", "computational", "novelty", "reviewer2", "reproducibility")
@@ -123,7 +124,7 @@ class OpenAIReviewer:
         call = {"role": role, "request_sha256": digest,
                 "input_characters": len(body["input"][0]["content"]),
                 "request_bytes": len(json.dumps(body, ensure_ascii=False).encode("utf-8")),
-                "status": "transport_error", "raw_findings": None}
+                "status": "transport_error", "raw_findings": None, "schema_error": None}
         self.calls.append(call)
         started = perf_counter()
         try:
@@ -169,7 +170,16 @@ class OpenAIReviewer:
         elif schema is COMPARISON_SCHEMA:
             call["raw_findings"] = 0
         call["status"] = "schema_rejected"
-        validate_payload(payload, schema)
+        local_schema = (REVIEW_ENVELOPE_SCHEMA if schema is REVIEW_SCHEMA
+                        else COMPARISON_ENVELOPE_SCHEMA if schema is COMPARISON_SCHEMA else schema)
+        try:
+            validate_payload(payload, local_schema)
+        except ReviewError as exc:
+            path = getattr(exc, "schema_path", None)
+            validator = getattr(exc, "schema_validator", None)
+            if path is not None and validator is not None:
+                call["schema_error"] = {"path": path, "validator": validator}
+            raise
         call["status"] = "schema_accepted"
         return payload
 

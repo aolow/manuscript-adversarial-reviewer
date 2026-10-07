@@ -52,11 +52,11 @@ For OpenAI, substitute `--provider openai --model MODEL_NAME`.
 
 Start with the revision brief in `report.md`. Keep `report.json`, it is the structured record used by comparison and evaluation workflows.
 
-Also inspect the provider diagnostics before interpreting role coverage. A `schema_accepted` role may still lose individual claims, findings, claim links, or strengths during local grounding. Those failures are isolated after schema acceptance so valid role output can survive. By contrast, `schema_rejected` is a whole-role failure because the current response schema gate is atomic; one malformed required field or invalid ID can reject the response before grounding begins.
+Also inspect the provider diagnostics before interpreting role coverage. A `schema_accepted` role means its top-level container was usable; individual claims, findings, strengths, or limitations can still be normalized, rejected, or quarantined independently. `schema_rejected` now indicates a malformed top-level container, not one bad child item.
 
 If the command exits with status 3, some LLM roles failed or were rejected. The deterministic review is still valid, but the assisted review is incomplete. Do not treat missing findings from a failed role as evidence that the manuscript has no issue in that area.
 
-For full-length PDFs, extracted text can be noisier than clean Markdown, especially with two-column order, line annotations, whitespace, or Unicode normalization. Exact quote validation remains strict, but once a role has passed schema validation, a bad claim citation, individual finding citation, dangling claim reference, or strength citation is isolated rather than allowed to erase unrelated grounded output.
+For full-length PDFs, extracted text can be noisier than clean Markdown, especially with two-column order, line annotations, whitespace, or Unicode punctuation. Exact quote matches are preferred; conservative whitespace/Unicode normalization is allowed only when it resolves uniquely back to an original source span. Bad child schemas, claim citations, finding citations, dangling claim references, and strength citations are isolated rather than allowed to erase unrelated grounded output.
 
 ## 4. Revise the manuscript
 

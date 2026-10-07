@@ -75,12 +75,17 @@ class OpenAIProviderTests(WorkspaceTest):
         self.assertEqual(body["reasoning"], {"effort": "high"})
         self.assertNotIn("temperature", body)
 
-    def test_large_context_refused_without_silent_truncation(self):
+    def test_large_context_failure_is_isolated_to_role_without_network_call(self):
         transport = Mock()
-        provider = OpenAIReviewer(OpenAISettings("test-model", max_request_chars=1000), transport=transport)
-        with self.assertRaisesRegex(ReviewError, "silently truncated"):
-            review_manuscript(self.write(PAPER), provider=provider)
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model", max_request_chars=1000),
+            roles=["scientific"], transport=transport)
+        report, _ = review_manuscript(self.write(PAPER), provider=provider)
         transport.assert_not_called()
+        self.assertEqual(report.quality["failed_roles"], ["scientific"])
+        failure = report.quality["pilot_diagnostics"]["failures"][0]
+        self.assertEqual(failure["status"], "request_preparation_rejected")
+        self.assertIn("silently truncated", failure["reason"])
 
     def test_refusal_and_incomplete_outputs_are_rejected(self):
         cases = [
@@ -100,6 +105,27 @@ class OpenAIProviderTests(WorkspaceTest):
             with self.subTest(raw=raw), self.assertRaises(ReviewError):
                 OpenAIReviewer(OpenAISettings("test-model"), transport=Mock(return_value=raw)).review("scientific", self.packet())
 
+    def test_openai_envelope_schema_error_metadata_matches_bedrock_shape(self):
+        payload = envelope()
+        payload["findings"] = "wrong"
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model"), transport=Mock(return_value=response(payload)))
+        with self.assertRaises(ReviewError):
+            provider.review("scientific", self.packet())
+        error = provider.metadata()["calls"][0]["schema_error"]
+        self.assertEqual(error, {"path": "findings", "validator": "type"})
+
+    def test_explicit_clinical_role_runs_even_without_biomarker_domain(self):
+        transport = Mock(return_value=response(envelope()))
+        provider = OpenAIReviewer(
+            OpenAISettings("test-model"), roles=["clinical"], transport=transport)
+        report, _ = review_manuscript(
+            self.write("Methods\n\nWe used 12 samples for a descriptive experiment."),
+            provider=provider)
+        self.assertEqual(transport.call_count, 1)
+        run = next(r for r in report.reviewer_runs if r["role"] == "clinical")
+        self.assertEqual(run["mode"], "provider")
+
     def test_role_failure_preserves_deterministic_findings(self):
         provider = OpenAIReviewer(OpenAISettings("test-model"), roles=["scientific"],
                                   transport=Mock(return_value=response({"invalid": True})))
@@ -118,6 +144,60 @@ class OpenAIProviderTests(WorkspaceTest):
         self.assertIn("HTTP 401", str(caught.exception))
         self.assertNotIn("SECRET", str(caught.exception))
         self.assertNotIn("test-secret", str(caught.exception))
+
+    def test_provider_override_survives_model_slug_drift(self):
+        path = self.write(PAPER)
+        def make_provider(identifier):
+            def transport(body, timeout):
+                row = finding(packet_block(body), identifier)
+                return response(envelope([row]))
+            return OpenAIReviewer(
+                OpenAISettings("test-model"), roles=["scientific"], transport=transport)
+
+        first, _ = review_manuscript(path, provider=make_provider("first-model-id"))
+        provider_finding = next(f for f in first.findings if f.origin.startswith("provider:"))
+        override = {
+            "document_sha256": {"manuscript": first.documents[0].sha256},
+            "findings": [{
+                "id": provider_finding.id, "severity": "minor", "disposition": "confirmed",
+                "note": "Human adjudication should survive cosmetic model ID drift.",
+            }],
+        }
+        override_path = self.write(json.dumps(override), "provider-overrides.json")
+        second, _ = review_manuscript(
+            path, overrides_path=override_path, provider=make_provider("different-model-id"))
+        updated = next(f for f in second.findings if f.origin.startswith("provider:"))
+        self.assertEqual(updated.id, provider_finding.id)
+        self.assertEqual(updated.severity, "minor")
+        self.assertEqual(updated.disposition, "confirmed")
+        self.assertIn("Human adjudication", updated.manual_note)
+
+    def test_manual_override_wins_after_duplicate_reconciliation(self):
+        path = self.write(PAPER)
+        def make_provider():
+            def transport(body, timeout):
+                return response(envelope([finding(packet_block(body))]))
+            return OpenAIReviewer(
+                OpenAISettings("test-model"), roles=["methods", "computational"],
+                transport=transport)
+
+        first, _ = review_manuscript(path, provider=make_provider())
+        duplicate = next(f for f in first.findings if f.disposition == "duplicate")
+        override = {
+            "document_sha256": {"manuscript": first.documents[0].sha256},
+            "findings": [{
+                "id": duplicate.id, "disposition": "confirmed",
+                "note": "Human review keeps this role-specific concern separate.",
+            }],
+        }
+        second, _ = review_manuscript(
+            path, overrides_path=self.write(json.dumps(override), "duplicate-override.json"),
+            provider=make_provider())
+        updated = next(f for f in second.findings if f.id == duplicate.id)
+        self.assertEqual(updated.disposition, "confirmed")
+        self.assertIsNone(updated.duplicate_of)
+        self.assertFalse(any(event["duplicate_id"] == updated.id
+                             for event in second.quality["duplicate_groups"]))
 
     def test_ungrounded_output_does_not_enter_headline(self):
         def transport(body, timeout):

@@ -57,6 +57,15 @@ REVIEW_SCHEMA = obj({
     "findings": array(FINDING, 10), "claims": array(CLAIM, 6),
     "strengths": array(STRENGTH, 8), "limitations": array(TEXT, 12),
 })
+# Provider payloads are accepted at the container level first. Individual
+# findings/claims/strengths are validated independently during grounding so one
+# malformed element cannot discard unrelated output from the same reviewer call.
+REVIEW_ENVELOPE_SCHEMA = obj({
+    "findings": {"type": "array", "maxItems": 10},
+    "claims": {"type": "array", "maxItems": 6},
+    "strengths": {"type": "array", "maxItems": 8},
+    "limitations": {"type": "array", "maxItems": 12},
+})
 RESOLUTION_STATUSES = ["resolved", "partially_resolved", "unresolved", "worsened",
                        "no_longer_applicable", "cannot_determine"]
 ASSESSMENT = obj({
@@ -66,6 +75,10 @@ ASSESSMENT = obj({
     "remaining_action": TEXT, "confidence": CONFIDENCE,
 })
 COMPARISON_SCHEMA = obj({"assessments": array(ASSESSMENT, 200), "limitations": array(TEXT, 12)})
+COMPARISON_ENVELOPE_SCHEMA = obj({
+    "assessments": {"type": "array", "maxItems": 200},
+    "limitations": {"type": "array", "maxItems": 12},
+})
 
 
 def validate_payload(payload, schema):

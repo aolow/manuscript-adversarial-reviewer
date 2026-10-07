@@ -35,8 +35,17 @@ def review_manuscript(path, supplements=(), journal=None, config=None, overrides
                                                   if not f.get("id", "").startswith("reviewer.")]}
     apply_finding_overrides(findings, baseline_overrides)
     reviewer_runs, packets = orchestrate(documents, extraction, findings, journal, provider)
-    apply_finding_overrides(findings, overrides)
     reconciliation = reconcile(findings)
+    # Human/version-bound overrides are authoritative and therefore apply after
+    # provider duplicate reconciliation, which must not overwrite them.
+    apply_finding_overrides(findings, overrides)
+    by_id = {finding.id: finding for finding in findings}
+    reconciliation = [
+        event for event in reconciliation
+        if by_id.get(event["duplicate_id"]) is not None
+        and by_id[event["duplicate_id"]].disposition == "duplicate"
+        and by_id[event["duplicate_id"]].duplicate_of == event["canonical_id"]
+    ]
     findings.sort(key=lambda f: (f.priority, f.id))
     warnings = [d.id + ": " + warning for d in documents for warning in d.warnings]
     warnings.append("No underlying data, analysis code, figure images, or external literature were verified.")

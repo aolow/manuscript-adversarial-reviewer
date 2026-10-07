@@ -4,6 +4,14 @@ from .helpers import WorkspaceTest, FIXTURES
 
 
 class ComparisonTests(WorkspaceTest):
+    def test_different_tool_versions_are_explicitly_flagged(self):
+        old = self.review_text("Methods\n\nWe used 12 patients.")
+        new = self.review_text("Methods\n\nWe used 12 patients.")
+        old.tool_version = "0.3.0"
+        comparison = compare_reviews(old, new)
+        self.assertTrue(any("different tool versions" in value
+                            for value in comparison["limitations"]))
+
     def test_identical_manuscripts_have_no_changes(self):
         old, _ = review_manuscript(FIXTURES / "flawed_manuscript.md")
         new, _ = review_manuscript(FIXTURES / "flawed_manuscript.md")

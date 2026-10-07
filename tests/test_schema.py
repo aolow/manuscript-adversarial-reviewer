@@ -37,6 +37,19 @@ class SchemaTests(unittest.TestCase):
             shipped.pop("$schema")
             self.assertEqual(shipped, contract)
 
+    def test_provider_envelope_is_strict_at_top_level_but_defers_child_validation(self):
+        from manuscript_review.providers.contracts import (
+            REVIEW_SCHEMA, REVIEW_ENVELOPE_SCHEMA, validate_payload)
+        from .llm_helpers import envelope
+        payload = envelope([{"id": "INVALID ID"}])
+        self.assertIs(validate_payload(payload, REVIEW_ENVELOPE_SCHEMA), payload)
+        from manuscript_review.errors import ReviewError
+        with self.assertRaises(ReviewError):
+            validate_payload(payload, REVIEW_SCHEMA)
+        malformed_container = {"findings": [], "claims": [], "strengths": []}
+        with self.assertRaises(ReviewError):
+            validate_payload(malformed_container, REVIEW_ENVELOPE_SCHEMA)
+
     def test_review_contract_is_bounded_for_live_generation(self):
         from manuscript_review.providers.contracts import REVIEW_SCHEMA
         self.assertEqual(REVIEW_SCHEMA["properties"]["findings"]["maxItems"], 10)

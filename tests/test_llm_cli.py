@@ -127,13 +127,14 @@ class LlmCliTests(WorkspaceTest):
         provider = OpenAIReviewer(OpenAISettings("test-model"), roles=["scientific"],
                                   transport=lambda b, t: response(envelope([finding(packet_block(b))])))
         prior, _ = review_manuscript(paper, provider=provider)
+        provider_id = next(f.id for f in prior.findings if f.origin.startswith("provider:"))
         saved = self.write(json.dumps(prior.to_dict()), "prior.json")
         code, _, err = self.call("compare", paper, paper, "--prior-review", saved,
                                  "--llm", "--model", "test-model", "--dry-run", "--out", self.root / "saved")
         self.assertEqual(code, 0, err)
         request = json.loads((self.root / "saved/requests/comparison.json").read_text())
         payload = json.loads(request["body"]["input"][0]["content"])
-        self.assertIn("reviewer.scientific.leakage", {f["id"] for f in payload["prior_issues"]})
+        self.assertIn(provider_id, {f["id"] for f in payload["prior_issues"]})
 
     def test_stale_saved_prior_review_refused_without_upload(self):
         from manuscript_review.pipeline import review_manuscript

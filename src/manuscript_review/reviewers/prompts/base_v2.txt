@@ -36,7 +36,7 @@ the actual source section, claim to change, and recommended framing.
 Optional action fields may be omitted or set to null when nonapplicable. If no concrete action is possible,
 state why in suggested_fix and use kind=none; the application flags it.
 
-Scientific reviewer: extract up to 12 central/supporting claims directly from
+Scientific reviewer: extract up to 6 central/supporting claims directly from
 the manuscript, even if absent from candidate_claims, rank them by importance,
 and fill every claim-analysis field. Other reviewers may return claims=[] or
 add distinct source-anchored claims within their mandate. claim_ids in findings

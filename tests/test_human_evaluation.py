@@ -133,6 +133,19 @@ class HumanEvaluationTests(WorkspaceTest):
         with self.assertRaisesRegex(ReviewError, "same manuscript"):
             prepare_evaluation(self.baseline, changed)
 
+    def test_evaluation_requires_same_tool_version(self):
+        changed = deepcopy(self.assisted)
+        changed.tool_version = "0.3.0"
+        with self.assertRaisesRegex(ReviewError, "same tool version"):
+            prepare_evaluation(self.baseline, changed)
+
+    def test_evaluation_requires_identical_deterministic_layer(self):
+        changed = deepcopy(self.assisted)
+        deterministic = next(f for f in changed.findings if f.origin == "deterministic")
+        deterministic.severity = "minor" if deterministic.severity != "minor" else "moderate"
+        with self.assertRaisesRegex(ReviewError, "deterministic findings differ"):
+            prepare_evaluation(self.baseline, changed)
+
     def test_dry_run_cannot_stand_in_for_llm_review(self):
         dry = deepcopy(self.assisted)
         dry.llm["dry_run"] = True

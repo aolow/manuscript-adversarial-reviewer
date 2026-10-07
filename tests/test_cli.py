@@ -59,6 +59,52 @@ class CliTests(WorkspaceTest):
         self.assertEqual((output / "report.md").read_text(), "Keep me")
         self.assertFalse((output / "report.json").exists())
 
+    def test_force_replaces_artifact_set_without_stale_comparison_files(self):
+        output = self.root / "reuse"
+        first = self.cli("compare", FIXTURES / "flawed_manuscript.md",
+                         FIXTURES / "revised_manuscript.md", "--out", output)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertTrue((output / "comparison.json").exists())
+        second = self.cli("review", FIXTURES / "revised_manuscript.md",
+                          "--out", output, "--force")
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertTrue((output / "report.json").exists())
+        self.assertFalse((output / "comparison.json").exists())
+        self.assertFalse((output / "comparison.md").exists())
+        self.assertFalse((output / "prior-report.json").exists())
+
+    def test_force_removes_stale_request_and_prompt_directories(self):
+        output = self.root / "reuse-provider"
+        first = self.cli(
+            "review", FIXTURES / "flawed_manuscript.md",
+            "--llm", "--provider", "bedrock", "--model", "test-model",
+            "--region", "us-west-2", "--dry-run", "--export-prompts", "--out", output)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertTrue((output / "requests").is_dir())
+        self.assertTrue((output / "prompts").is_dir())
+        second = self.cli("review", FIXTURES / "flawed_manuscript.md",
+                          "--out", output, "--force")
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertFalse((output / "requests").exists())
+        self.assertFalse((output / "prompts").exists())
+        self.assertFalse((output / "llm-run.json").exists())
+        self.assertFalse((output / "diagnostics.json").exists())
+
+    def test_request_size_setting_requires_llm_opt_in(self):
+        result = self.cli(
+            "review", FIXTURES / "flawed_manuscript.md",
+            "--max-request-chars", "1000", "--out", self.root / "bad-request-size")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("require explicit --llm", result.stderr)
+
+    def test_openai_rejects_bedrock_only_options(self):
+        result = self.cli(
+            "review", FIXTURES / "flawed_manuscript.md",
+            "--llm", "--provider", "openai", "--model", "test-model",
+            "--region", "us-west-2", "--dry-run", "--out", self.root / "bad-options")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("require --provider bedrock", result.stderr)
+
     def test_input_protected_even_with_force(self):
         paper = self.write("Methods\n\nWe used 12 patients.", "report.md")
         result = self.cli("review", paper, "--out", self.root, "--force")

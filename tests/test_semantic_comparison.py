@@ -75,16 +75,64 @@ class SemanticComparisonTests(WorkspaceTest):
         found = next(r for r in comparison["issue_assessments"] if r["prior_issue_id"] == row["prior_issue_id"])
         self.assertEqual(found["status"], "cannot_determine")
 
-    def test_fabricated_comparison_citation_rejects_provider_assessment(self):
+    def test_fabricated_comparison_citation_rejects_only_that_assessment(self):
         old, new = self.versions()
-        row = self.assessment(old, new, "pattern.causal_overclaim", "resolved")
-        row["new_citations"][0]["quote"] = "A fabricated intervention proved the mechanism."
+        bad = self.assessment(old, new, "pattern.causal_overclaim", "resolved")
+        bad["new_citations"][0]["quote"] = "A fabricated intervention proved the mechanism."
+        good = self.assessment(old, new, "pattern.feature_selection_before_split", "unresolved")
         comparison = compare_reviews(old, new)
         provider = OpenAIReviewer(OpenAISettings("test-model"), transport=Mock(return_value=response(
-            {"assessments": [row], "limitations": []})))
+            {"assessments": [bad, good], "limitations": []})))
         add_semantic_comparison(old, new, comparison, provider)
-        self.assertTrue(comparison["llm"]["failed"])
-        self.assertTrue(all(r["origin"] == "deterministic" for r in comparison["issue_assessments"]))
+        self.assertFalse(comparison["llm"].get("failed", False))
+        self.assertTrue(comparison["llm"]["incomplete"])
+        self.assertEqual(comparison["llm"]["coverage"]["assessed_by_llm"], 1)
+        accepted = next(r for r in comparison["issue_assessments"]
+                        if r["prior_issue_id"] == good["prior_issue_id"])
+        rejected = next(r for r in comparison["issue_assessments"]
+                        if r["prior_issue_id"] == bad["prior_issue_id"])
+        self.assertEqual(accepted["origin"], "provider:openai")
+        self.assertEqual(rejected["origin"], "deterministic")
+        self.assertEqual(comparison["llm"]["item_rejections"][0]["status"], "source_rejected")
+
+    def test_malformed_assessment_isolated_and_low_confidence_not_promoted(self):
+        old, new = self.versions()
+        malformed = self.assessment(old, new, "pattern.causal_overclaim", "resolved")
+        malformed.pop("remaining_action")
+        good = self.assessment(old, new, "pattern.feature_selection_before_split", "unresolved")
+        good["confidence"] = "low"
+        comparison = compare_reviews(old, new)
+        provider = OpenAIReviewer(OpenAISettings("test-model"), transport=Mock(return_value=response(
+            {"assessments": [malformed, good], "limitations": []})))
+        add_semantic_comparison(old, new, comparison, provider)
+        accepted = next(r for r in comparison["issue_assessments"]
+                        if r["prior_issue_id"] == good["prior_issue_id"])
+        self.assertEqual(accepted["confidence"], "low")
+        self.assertEqual(comparison["llm"]["item_rejections"][0]["status"], "schema_rejected")
+
+    def test_deterministic_wording_softening_is_not_applied_globally(self):
+        old, new = self.versions()
+        comparison = compare_reviews(old, new)
+        leakage = next(r for r in comparison["issue_assessments"]
+                       if r["prior_issue_id"] == "pattern.feature_selection_before_split")
+        self.assertTrue(comparison["claims_weakened"])
+        self.assertFalse(leakage["wording_softened_only"])
+
+    def test_comparison_preserves_actual_provider_identity(self):
+        old, new = self.versions()
+        row = self.assessment(old, new, "pattern.feature_selection_before_split", "unresolved")
+        class BedrockStub:
+            name = "bedrock"
+            dry_run = False
+            def compare(self, packet):
+                return {"assessments": [row], "limitations": []}
+            def metadata(self):
+                return {"provider": self.name, "calls": [], "usage": {}}
+        comparison = compare_reviews(old, new)
+        add_semantic_comparison(old, new, comparison, BedrockStub())
+        accepted = next(r for r in comparison["issue_assessments"]
+                        if r["prior_issue_id"] == row["prior_issue_id"])
+        self.assertEqual(accepted["origin"], "provider:bedrock")
 
     def test_explicit_withdrawal_can_be_no_longer_applicable(self):
         old, _ = self.versions()
@@ -100,10 +148,20 @@ class SemanticComparisonTests(WorkspaceTest):
 
     def test_cross_version_provenance_tampering_is_rejected(self):
         old, new = self.versions()
-        comparison = compare_reviews(old, new)
-        comparison["issue_assessments"][0]["old_evidence"][0]["section"] = "Invented"
-        with self.assertRaisesRegex(ReviewError, "specified manuscript version"):
-            validate_comparison(comparison, old.to_dict(), new.to_dict())
+        for field, value in (("section", "Invented"), ("line_start", 999), ("paragraph", 999)):
+            comparison = compare_reviews(old, new)
+            comparison["issue_assessments"][0]["old_evidence"][0][field] = value
+            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "specified manuscript version"):
+                validate_comparison(comparison, old.to_dict(), new.to_dict())
+
+    def test_comparison_hash_or_run_provenance_tampering_is_rejected(self):
+        old, new = self.versions()
+        for field, value in (("old_run_id", "forged-run"),
+                             ("new_document_hashes", {"manuscript": "forged"})):
+            comparison = compare_reviews(old, new)
+            comparison[field] = value
+            with self.subTest(field=field), self.assertRaisesRegex(ReviewError, "provenance"):
+                validate_comparison(comparison, old.to_dict(), new.to_dict())
 
     def test_severity_increase_is_worsened(self):
         old, new = self.versions()

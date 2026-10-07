@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 import logging
 import os
+import shutil
 from pathlib import Path
 import tempfile
 from .providers.openai import OpenAIReviewer, OpenAISettings
@@ -53,7 +54,7 @@ def parser():
         command.add_argument("--temperature", type=float)
         command.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high", "xhigh"])
         command.add_argument("--max-output-tokens", type=int)
-        command.add_argument("--max-request-chars", type=int, default=240000)
+        command.add_argument("--max-request-chars", type=int)
         command.add_argument("--timeout", type=float, help="Provider timeout in seconds; defaults to 60 for OpenAI and 600 for Bedrock.")
         command.add_argument("--force", action="store_true", help="Replace generated output files if they already exist.")
         command.add_argument("--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -98,6 +99,23 @@ def _json(data):
 def _save(directory, outputs, input_paths, force=False):
     directory = directory.expanduser().resolve()
     inputs = {Path(p).expanduser().resolve() for p in input_paths if p}
+    if force and directory.exists():
+        generated_files = {
+            "report.md", "report.json", "comparison.json", "comparison.md",
+            "prior-report.json", "diagnostics.json", "llm-run.json",
+        }
+        for name in generated_files - set(outputs):
+            target = directory / name
+            if target.is_symlink() or target.is_file():
+                target.unlink()
+        # These directories are tool-owned. Recreate them from the current run
+        # so a forced rerun cannot retain stale role requests or prompts.
+        for name in ("requests", "prompts"):
+            target = directory / name
+            if target.is_symlink() or target.is_file():
+                target.unlink()
+            elif target.is_dir():
+                shutil.rmtree(target)
     for relative in outputs:
         target = (directory / relative).resolve()
         if target in inputs:
@@ -131,7 +149,8 @@ def _save(directory, outputs, input_paths, force=False):
 def _provider(args):
     if not args.llm:
         if any(value is not None for value in (args.provider, args.model, args.region, args.bedrock_json_mode,
-                                               args.roles, args.temperature, args.reasoning_effort, args.timeout)) or args.dry_run:
+                                               args.roles, args.temperature, args.reasoning_effort, args.timeout,
+                                               args.max_output_tokens, args.max_request_chars)) or args.dry_run:
             raise ReviewError("Provider/model/role settings and --dry-run require explicit --llm opt-in.")
         return None
     temperature = args.temperature
@@ -144,6 +163,8 @@ def _provider(args):
     effort = args.reasoning_effort or os.environ.get("MANUSCRIPT_REVIEW_REASONING_EFFORT") or None
     roles = [r.strip() for r in args.roles.split(",")] if args.roles else None
     provider_name = args.provider or "openai"
+    if provider_name != "bedrock" and (args.region is not None or args.bedrock_json_mode is not None):
+        raise ReviewError("--region and --bedrock-json-mode require --provider bedrock.")
     if provider_name == "bedrock":
         settings = BedrockSettings(
             model=model,
@@ -154,7 +175,7 @@ def _provider(args):
             json_mode=(args.bedrock_json_mode
                        or os.environ.get("MANUSCRIPT_REVIEW_BEDROCK_JSON_MODE") or "tool"),
             max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 24000,
-            max_request_chars=args.max_request_chars,
+            max_request_chars=args.max_request_chars if args.max_request_chars is not None else 240000,
             timeout_seconds=args.timeout if args.timeout is not None else 600)
         return BedrockReviewer(settings, dry_run=args.dry_run, roles=roles)
     settings = OpenAISettings(
@@ -162,7 +183,7 @@ def _provider(args):
         temperature=temperature,
         reasoning_effort=effort,
         max_output_tokens=args.max_output_tokens if args.max_output_tokens is not None else 6000,
-        max_request_chars=args.max_request_chars,
+        max_request_chars=args.max_request_chars if args.max_request_chars is not None else 240000,
         timeout_seconds=args.timeout if args.timeout is not None else 60)
     return OpenAIReviewer(settings, dry_run=args.dry_run, roles=roles)
 

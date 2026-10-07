@@ -112,9 +112,16 @@ def build_sections(review):
         "Fit is not established from a journal name alone. Assess audience, contribution type, "
         "validation depth, reporting requirements, and the journal's current aims."
         % (review.target_journal or "not supplied"))
+    reviewer_limitations = [
+        {"text": run["role"] + " reviewer limitation: " + limitation}
+        for run in review.reviewer_runs
+        for limitation in run.get("limitations", [])
+        if isinstance(limitation, str) and limitation.strip()
+    ]
     sections["uncertainty"].update(
         summary="Confidence describes the text match, not the probability that a scientific conclusion is wrong.",
-        items=[{"text": warning} for warning in review.warnings + review.extraction["limitations"]] + [
+        items=[{"text": warning} for warning in review.warnings + review.extraction["limitations"]]
+        + reviewer_limitations + [
             {"text": "Absence means not established from the supplied text. Reported cues do not establish method adequacy."},
             {"text": "Established issues identify an explicitly described design or wording; they do not verify execution or effect on results."},
             {"text": "Manual overrides are version-bound and retained with reasons. Dismissed findings remain in JSON."}])

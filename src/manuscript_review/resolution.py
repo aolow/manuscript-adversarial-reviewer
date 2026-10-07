@@ -5,7 +5,8 @@ from importlib import resources
 from .errors import ReviewError
 from .grounding import resolve_citations
 from .models import SEVERITIES, evidence
-from .providers.contracts import COMPARISON_SCHEMA, validate_payload
+from .extraction import substantive_blocks
+from .providers.contracts import COMPARISON_ENVELOPE_SCHEMA, ASSESSMENT, validate_payload
 
 
 def deterministic_assessments(old, new, comparison):
@@ -40,8 +41,7 @@ def deterministic_assessments(old, new, comparison):
                      "prior_severity": finding.severity, "issue": finding.issue,
                      "old_evidence": [asdict(e) for e in finding.evidence], "new_evidence": new_evidence,
                      "resolution_scope": scope, "execution_verified": False,
-                     "wording_softened_only": bool(current and comparison["claims_weakened"]
-                                                   and finding.category in ("leakage", "confounding", "circularity", "single_cell")),
+                     "wording_softened_only": False,
                      "remaining_action": current.suggested_fix if current else finding.suggested_fix,
                      "confidence": "low", "origin": "deterministic", "quality_flags": []})
     return rows
@@ -51,8 +51,8 @@ def comparison_packet(old, new):
     instructions = resources.files("manuscript_review.reviewers").joinpath("prompts/comparison.txt").read_text(encoding="utf-8")
     return {
         "instructions": instructions,
-        "old_source_blocks": [asdict(b) for d in old.documents for b in d.blocks],
-        "new_source_blocks": [asdict(b) for d in new.documents for b in d.blocks],
+        "old_source_blocks": [asdict(b) for b in substantive_blocks(old.documents)],
+        "new_source_blocks": [asdict(b) for b in substantive_blocks(new.documents)],
         "prior_issues": [asdict(f) for f in old.findings if f.disposition in ("active", "confirmed")],
         "new_deterministic_issues": [asdict(f) for f in new.findings if f.disposition in ("active", "confirmed")],
         "old_claim_candidates": old.extraction["claims"], "new_claim_candidates": new.extraction["claims"],
@@ -63,28 +63,53 @@ def add_semantic_comparison(old, new, comparison, provider):
     packet = comparison_packet(old, new)
     try:
         response = provider.compare(packet)
-        validate_payload(response, COMPARISON_SCHEMA)
+        validate_payload(response, COMPARISON_ENVELOPE_SCHEMA)
         if provider.dry_run:
             comparison["llm"] = provider.metadata()
             return
         by_id = {r["prior_issue_id"]: r for r in comparison["issue_assessments"]}
         original_findings = {f.id: f for f in old.findings}
         new_active = {f.id: f for f in new.findings if f.disposition in ("active", "confirmed")}
-        accepted, seen = {}, set()
-        for row in response["assessments"]:
+        accepted, seen, rejections = {}, set(), []
+        for index, raw_row in enumerate(response["assessments"]):
+            try:
+                validate_payload(raw_row, ASSESSMENT)
+            except ReviewError as exc:
+                path = getattr(exc, "schema_path", None)
+                rejections.append({
+                    "kind": "assessment", "index": index, "status": "schema_rejected",
+                    "path": "assessments.%d" % index if path in (None, "root")
+                            else "assessments.%d.%s" % (index, path),
+                    "validator": getattr(exc, "schema_validator", None) or "unknown",
+                })
+                continue
+            row = raw_row
             identifier = row["prior_issue_id"]
             if identifier not in by_id or identifier in seen:
-                raise ReviewError("Comparison returned unknown or duplicate prior issue IDs.")
+                rejections.append({
+                    "kind": "assessment", "index": index,
+                    "status": "unknown_or_duplicate_issue",
+                    "path": "assessments.%d.prior_issue_id" % index,
+                    "validator": "reference",
+                })
+                continue
             seen.add(identifier)
-            old_ev = resolve_citations(row["old_citations"], old.documents)
-            new_ev = resolve_citations(row["new_citations"], new.documents)
+            try:
+                old_ev = resolve_citations(row["old_citations"], old.documents)
+                new_ev = resolve_citations(row["new_citations"], new.documents)
+            except ReviewError:
+                rejections.append({
+                    "kind": "assessment", "index": index, "status": "source_rejected",
+                    "path": "assessments.%d" % index, "validator": "citation",
+                })
+                continue
             flags = []
             status = row["status"]
             if not old_ev or not new_ev:
                 status = "cannot_determine"
                 flags.append("missing_two_version_evidence")
-            # At least one old citation must anchor the actual issue being assessed.
-            if old_ev and not {e.block_id for e in old_ev} & {e.block_id for e in original_findings[identifier].evidence}:
+            if old_ev and not {e.block_id for e in old_ev} & {
+                    e.block_id for e in original_findings[identifier].evidence}:
                 status = "cannot_determine"
                 flags.append("prior_issue_evidence_mismatch")
             if identifier in new_active and status in ("resolved", "no_longer_applicable"):
@@ -99,26 +124,42 @@ def add_semantic_comparison(old, new, comparison, provider):
                                      e.quote, re.I) for e in new_ev):
                     status = "cannot_determine"
                     flags.append("scope_change_not_explicitly_supported")
+            confidence = "low" if flags else (
+                "medium" if row["confidence"] == "high" else row["confidence"])
             accepted[identifier] = {
                 "prior_issue_id": identifier, "status": status, "rationale": row["rationale"],
-                "prior_severity": original_findings[identifier].severity, "issue": original_findings[identifier].issue,
-                "old_evidence": [asdict(e) for e in old_ev], "new_evidence": [asdict(e) for e in new_ev],
+                "prior_severity": original_findings[identifier].severity,
+                "issue": original_findings[identifier].issue,
+                "old_evidence": [asdict(e) for e in old_ev],
+                "new_evidence": [asdict(e) for e in new_ev],
                 "resolution_scope": "manuscript_description_only", "execution_verified": False,
                 "wording_softened_only": row["wording_softened_only"],
-                "remaining_action": row["remaining_action"], "confidence": "low" if flags else "medium",
-                "origin": "provider:openai", "quality_flags": flags + ["semantic_judgment_unverified"],
+                "remaining_action": row["remaining_action"], "confidence": confidence,
+                "origin": "provider:" + provider.name,
+                "quality_flags": flags + ["semantic_judgment_unverified"],
             }
         for identifier, fallback in by_id.items():
             if identifier not in accepted:
                 fallback["quality_flags"].append("not_assessed_by_llm")
-        comparison["issue_assessments"] = [accepted.get(identifier, row) for identifier, row in by_id.items()]
-        comparison["limitations"].extend(response["limitations"])
+        comparison["issue_assessments"] = [
+            accepted.get(identifier, row) for identifier, row in by_id.items()]
+        for index, value in enumerate(response["limitations"]):
+            if isinstance(value, str) and value.strip() and len(value) <= 4000:
+                comparison["limitations"].append(value)
+            else:
+                rejections.append({
+                    "kind": "limitation", "index": index, "status": "schema_rejected",
+                    "path": "limitations.%d" % index, "validator": "text",
+                })
         comparison["llm"] = provider.metadata()
-        comparison["llm"]["coverage"] = {"prior_issues": len(by_id), "assessed_by_llm": len(accepted)}
+        comparison["llm"]["coverage"] = {
+            "prior_issues": len(by_id), "assessed_by_llm": len(accepted)}
+        comparison["llm"]["item_rejections"] = rejections
         comparison["llm"]["incomplete"] = len(accepted) != len(by_id)
     except ReviewError as exc:
         comparison["llm"] = {**provider.metadata(), "failed": True, "error": str(exc)}
-        comparison["limitations"].append("LLM comparison failed; deterministic assessment retained.")
+        comparison["limitations"].append(
+            "LLM comparison failed; deterministic assessment retained.")
 
 
 def major_progress(comparison):
