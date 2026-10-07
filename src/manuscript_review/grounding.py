@@ -267,9 +267,12 @@ def normalize_response(role, response, documents, extraction, provider_name):
             reviewer_assessments=[{"role": role, "severity": row["severity"], "confidence": row["confidence"]}],
             limitation="Exact source text was checked. Reviewer interpretation, external facts, and scientific adequacy are unverified.")))
     for row in response["strengths"]:
-        sources = resolve_citations(row["citations"], documents)
+        try:
+            sources = resolve_citations(row["citations"], documents)
+        except ReviewError:
+            continue
         if not sources:
-            raise ReviewError("A claimed strength needs manuscript evidence.")
+            continue
         status, _, flags = support_audit("reviewer_opinion", row["text"], row["text"],
                                          row["text"], sources, "other", "low")
         strengths.append({"text": row["text"], "evidence": [asdict(e) for e in sources],
