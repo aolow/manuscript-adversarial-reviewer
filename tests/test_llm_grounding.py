@@ -206,6 +206,19 @@ class GroundingTests(WorkspaceTest):
         self.assertEqual(len(merged[0].reviewer_assessments), 2)
         self.assertIn("severity_disagreement", merged[0].quality_flags)
 
+    def test_overlapping_quote_boundaries_can_still_reconcile_duplicates(self):
+        first, _, _ = self.normalize(envelope([finding(self.block)]), role="methods")
+        shorter = finding(self.block)
+        shorter_quote = self.block["text"][3:-3]
+        shorter["citations"][0]["quote"] = shorter_quote
+        shorter["evidence_statement"] = shorter_quote
+        shorter["support_rationale"] = shorter_quote
+        second, _, _ = self.normalize(envelope([shorter]), role="computational")
+        merged = first + second
+        events = reconcile(merged)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(merged[1].disposition, "duplicate")
+
     def test_different_evidence_not_silently_merged(self):
         first, _, _ = self.normalize(envelope([finding(self.block)]), role="methods")
         other = deepcopy(first[0])
