@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from .configuration import read_json
 from .errors import ReviewError
 from .models import review_from_dict, stable_id
-from .providers.contracts import REVIEW_SCHEMA, obj, validate_payload
+from .providers.contracts import REVIEW_SCHEMA, REVIEW_ENVELOPE_SCHEMA, obj, validate_payload
 from .grounding import normalize_response, reconcile
 from .validation import validate_report
 
@@ -168,7 +168,10 @@ def import_feedback(review, package, feedback, accept_grounded=False):
     expected = build_package(review, package.get("max_findings"))
     if package != expected:
         raise ReviewError("ChatGPT package is stale or modified; re-export from the original saved review.")
-    validate_payload(feedback, feedback_schema(package["package_id"]))
+    if (not isinstance(feedback, dict) or set(feedback) != {"package_id", "review"}
+            or feedback.get("package_id") != package["package_id"]):
+        raise ReviewError("ChatGPT feedback does not match the exported package.")
+    validate_payload(feedback["review"], REVIEW_ENVELOPE_SCHEMA)
     allowed = package["evidence"]
     def check(value):
         if isinstance(value, dict):
@@ -184,8 +187,10 @@ def import_feedback(review, package, feedback, accept_grounded=False):
     extraction = deepcopy(review.extraction)
     existing = {c["id"] for c in extraction["claims"]}
     extraction["claims"] += [{"id": c["id"]} for c in package["claims"] if c["id"] not in existing]
+    rejections, normalizations = [], []
     additions, claims, strengths = normalize_response(
-        "reviewer2", feedback["review"], review.documents, extraction, "chatgpt_manual")
+        "reviewer2", feedback["review"], review.documents, extraction, "chatgpt_manual",
+        rejections=rejections, normalizations=normalizations)
     result = deepcopy(review)
     batch = canonical_hash(feedback)[:12]
     if any(r.get("feedback_sha256") == canonical_hash(feedback) for r in result.reviewer_runs):
@@ -202,6 +207,7 @@ def import_feedback(review, package, feedback, accept_grounded=False):
            "finding_ids": [f.id for f in additions], "questions": [],
            "raw_findings": len(feedback["review"]["findings"]), "feedback_sha256": canonical_hash(feedback),
            "package_id": package["package_id"], "explicit_acceptance": accept_grounded,
+           "item_rejections": rejections, "item_normalizations": normalizations,
            "proposed_claim_analyses": claims, "proposed_strengths": strengths,
            "claim_analyses": [], "strengths": [], "limitations": feedback["review"]["limitations"]}
     if accept_grounded:
