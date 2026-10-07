@@ -145,6 +145,33 @@ class OpenAIProviderTests(WorkspaceTest):
         self.assertNotIn("SECRET", str(caught.exception))
         self.assertNotIn("test-secret", str(caught.exception))
 
+    def test_provider_override_survives_model_slug_drift(self):
+        path = self.write(PAPER)
+        def make_provider(identifier):
+            def transport(body, timeout):
+                row = finding(packet_block(body), identifier)
+                return response(envelope([row]))
+            return OpenAIReviewer(
+                OpenAISettings("test-model"), roles=["scientific"], transport=transport)
+
+        first, _ = review_manuscript(path, provider=make_provider("first-model-id"))
+        provider_finding = next(f for f in first.findings if f.origin.startswith("provider:"))
+        override = {
+            "document_sha256": {"manuscript": first.documents[0].sha256},
+            "findings": [{
+                "id": provider_finding.id, "severity": "minor", "disposition": "confirmed",
+                "note": "Human adjudication should survive cosmetic model ID drift.",
+            }],
+        }
+        override_path = self.write(json.dumps(override), "provider-overrides.json")
+        second, _ = review_manuscript(
+            path, overrides_path=override_path, provider=make_provider("different-model-id"))
+        updated = next(f for f in second.findings if f.origin.startswith("provider:"))
+        self.assertEqual(updated.id, provider_finding.id)
+        self.assertEqual(updated.severity, "minor")
+        self.assertEqual(updated.disposition, "confirmed")
+        self.assertIn("Human adjudication", updated.manual_note)
+
     def test_ungrounded_output_does_not_enter_headline(self):
         def transport(body, timeout):
             row = finding(packet_block(body))
