@@ -24,6 +24,8 @@ manuscript-review review manuscript.pdf \
 
 Use the same manuscript, supplements, configuration, and overrides for both arms.
 
+Before blinding, inspect assisted-run diagnostics for incomplete roles. Provider coverage has two distinct failure layers: a schema-rejected response contributes no role output because whole-response schema validation is currently atomic, while a schema-accepted response can still have individual claims, findings, claim links, or strengths dropped during grounding without losing the rest of the role. Record incomplete role coverage as part of the evaluation context rather than silently treating it as a negative scientific result.
+
 ## 2. Prepare a blinded package
 
 ```bash
@@ -91,6 +93,8 @@ The result reports:
 - Assisted-minus-baseline differences.
 - Overall usefulness, preference, and blinding notes.
 - Incomplete provider roles.
+
+When interpreting assisted performance, distinguish role-level failures from item-level grounding rejection. A schema-rejected role never reached grounding; a schema-accepted role may legitimately contribute fewer findings than the provider returned because invalid citations, dangling claim links, or ungroundable strengths are locally filtered.
 
 It does not produce a single weighted scientific-quality score or claim statistical significance.
 
