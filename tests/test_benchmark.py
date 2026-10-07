@@ -28,6 +28,13 @@ class BenchmarkTests(WorkspaceTest):
         with self.assertRaisesRegex(ReviewError, "source blocks differ"):
             evaluate(manifest, self.root / "reports")
 
+    def test_saved_report_from_different_engine_version_is_rejected(self):
+        manifest, output, data = self.saved_case()
+        data["tool_version"] = "0.3.0"
+        output.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ReviewError, "different tool version"):
+            evaluate(manifest, self.root / "reports")
+
     def test_malformed_saved_report_is_a_controlled_error(self):
         manifest, output, _ = self.saved_case()
         output.write_text('{"documents": null}')
