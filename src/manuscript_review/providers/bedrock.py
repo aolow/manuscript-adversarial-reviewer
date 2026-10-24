@@ -185,6 +185,9 @@ class BedrockReviewer:
 
     def __init__(self, settings, dry_run=False, roles=None, transport=None):
         settings.validate()
+        if not dry_run:
+            from .contracts import require_validator
+            require_validator()
         self.settings = settings
         self.dry_run = dry_run
         self.roles = tuple(roles or DEFAULT_ROLES)
@@ -302,23 +305,25 @@ class BedrockReviewer:
                 "Bedrock response was not completed (possibly output/context limit); it was not accepted.")
 
         call["status"] = "invalid_response"
-        message = response.get("output", {}).get("message")
+        output = response.get("output")
+        message = output.get("message") if isinstance(output, dict) else None
         content = message.get("content") if isinstance(message, dict) else None
         if not isinstance(content, list):
             raise ReviewError("Bedrock response has no valid message content.")
 
         if self.settings.json_mode == "tool":
-            tool_inputs = [
-                item["toolUse"].get("input")
-                for item in content
-                if isinstance(item, dict) and isinstance(item.get("toolUse"), dict)
-                and isinstance(item["toolUse"].get("input"), dict)
-            ]
-            if not tool_inputs:
+            tool_outputs = [item["toolUse"] for item in content
+                            if isinstance(item, dict) and "toolUse" in item]
+            if not tool_outputs:
                 raise ReviewError("Bedrock response contained no tool output.")
-            if len(tool_inputs) != 1:
+            if len(tool_outputs) != 1:
                 raise ReviewError("Bedrock response must contain exactly one structured tool output.")
-            payload = tool_inputs[0]
+            tool_output = tool_outputs[0]
+            if (not isinstance(tool_output, dict)
+                    or tool_output.get("name") != "manuscript_" + role
+                    or not isinstance(tool_output.get("input"), dict)):
+                raise ReviewError("Bedrock response did not match the requested structured tool.")
+            payload = tool_output["input"]
         else:
             texts = [item.get("text", "") for item in content
                      if isinstance(item, dict) and isinstance(item.get("text"), str)]

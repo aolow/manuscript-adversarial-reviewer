@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — review hardening, 2026-10-24
+
+- Validate output destinations and the full forced-cleanup plan before provider
+  calls or deletions, protecting manuscripts, supplements, prior reports,
+  overrides, and environment-selected configuration from replacement/removal.
+- Restore OpenAI strict-output compatibility using a provider-specific schema
+  copy with all object properties required; local and Bedrock action fields
+  remain omission-friendly and OpenAI nonapplicable values remain nullable.
+- Check the schema-validator dependency before either provider can make a paid
+  call; reject malformed Bedrock envelopes, wrong/multiple tool outputs, and
+  malformed citation identifiers with controlled errors.
+- Show failed roles, validation exclusions, and preview status before the revision
+  brief. State that agreement among roles is not independent evidence.
+- Add boundary regression tests and a research-informed final-triage update in
+  the separate mar-skill checkout. See HARDENING_REVIEW.md for scope and evidence.
+
 ## 0.4.0 — 2026-10-07
 
 - Simplified the documentation around a concise README and focused workflow,

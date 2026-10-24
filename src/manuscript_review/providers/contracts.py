@@ -81,11 +81,17 @@ COMPARISON_ENVELOPE_SCHEMA = obj({
 })
 
 
-def validate_payload(payload, schema):
+def require_validator():
+    """Fail locally before paid calls if response validation is unavailable."""
     try:
         from jsonschema import Draft202012Validator
     except ImportError as exc:
         raise ReviewError('LLM validation needs the optional dependency: pip install ".[llm]"') from exc
+    return Draft202012Validator
+
+
+def validate_payload(payload, schema):
+    Draft202012Validator = require_validator()
     errors = sorted(Draft202012Validator(schema).iter_errors(payload), key=lambda e: str(e.path))
     if errors:
         # Do not echo model output or manuscript text in errors/logs.

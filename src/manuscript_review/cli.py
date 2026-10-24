@@ -96,35 +96,53 @@ def _json(data):
     return json.dumps(data, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
 
 
-def _save(directory, outputs, input_paths, force=False):
+GENERATED_FILES = {
+    "report.md", "report.json", "comparison.json", "comparison.md",
+    "prior-report.json", "diagnostics.json", "llm-run.json",
+}
+
+
+def _output_preflight(directory, outputs, input_paths, force=False):
+    """Validate the complete write/cleanup plan without changing any files."""
     directory = directory.expanduser().resolve()
-    inputs = {Path(p).expanduser().resolve() for p in input_paths if p}
-    if force and directory.exists():
-        generated_files = {
-            "report.md", "report.json", "comparison.json", "comparison.md",
-            "prior-report.json", "diagnostics.json", "llm-run.json",
-        }
-        for name in generated_files - set(outputs):
-            target = directory / name
-            if target.is_symlink() or target.is_file():
-                target.unlink()
-        # These directories are tool-owned. Recreate them from the current run
-        # so a forced rerun cannot retain stale role requests or prompts.
-        for name in ("requests", "prompts"):
-            target = directory / name
-            if target.is_symlink() or target.is_file():
-                target.unlink()
-            elif target.is_dir():
-                shutil.rmtree(target)
-    for relative in outputs:
+    inputs = set()
+    for path in input_paths:
+        if path:
+            source = Path(path).expanduser()
+            # Protect both source bytes and an input symlink inside a cleanup folder.
+            inputs.update((source.resolve(), source.parent.resolve() / source.name))
+    cleanup = ((GENERATED_FILES - set(outputs)) | {"requests", "prompts"}) if force else set()
+    for parent in (directory, *directory.parents):
+        if parent.exists() and not parent.is_dir():
+            raise ReviewError("Output directory has a non-directory component: " + str(parent))
+    for relative in set(outputs) | cleanup:
         target = (directory / relative).resolve()
-        if target in inputs:
+        if any(target == source or target in source.parents for source in inputs):
             raise ReviewError("Refusing to overwrite an input file: " + str(target))
         if directory not in target.parents:
             raise ReviewError("Output symlink escapes the output directory: " + str(target))
-        if target.exists() and not force:
+        if relative in outputs and target.is_dir():
+            raise ReviewError("Output file is an existing directory: " + str(target))
+        for parent in target.parents:
+            if parent == directory:
+                break
+            if parent.exists() and not parent.is_dir():
+                raise ReviewError("Output path has a non-directory component: " + str(parent))
+        if relative in outputs and target.exists() and not force:
             raise ReviewError("Output exists: %s. Choose another --out or use --force." % target)
+    return directory, cleanup
+
+
+def _save(directory, outputs, input_paths, force=False):
+    directory, cleanup = _output_preflight(directory, outputs, input_paths, force)
     try:
+        # Cleanup is permitted only after every destination and input was checked.
+        for relative in sorted(cleanup):
+            target = directory / relative
+            if target.is_symlink() or target.is_file():
+                target.unlink()
+            elif relative in ("requests", "prompts") and target.is_dir():
+                shutil.rmtree(target)
         directory.mkdir(parents=True, exist_ok=True)
         # Each file replaces atomically, so interrupted writes never leave partial JSON.
         for relative, content in outputs.items():
@@ -257,32 +275,50 @@ def main(argv=None):
         return 2
     logging.basicConfig(level=args.log_level, format="%(levelname)s: %(message)s")
     try:
-        config = load_config(args.config or os.environ.get("MANUSCRIPT_REVIEW_CONFIG"))
+        config_path = args.config or os.environ.get("MANUSCRIPT_REVIEW_CONFIG")
+        config = load_config(config_path)
         provider = _provider(args)
         paired = args.command == "compare" or bool(getattr(args, "prior", None))
         if args.prior_review and not paired:
             raise ReviewError("--prior-review requires compare or review --prior.")
         if paired and args.roles:
             raise ReviewError("Paired comparison uses one comparison reviewer; --roles applies to a single-manuscript review.")
-        if args.out and args.out.exists() and not args.force:
-            if any((args.out / name).exists() for name in (
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        destination = (args.out or Path("reviews") / stamp).expanduser()
+        if destination.exists() and not args.force:
+            if any((destination / name).exists() for name in (
                     "report.md", "report.json", "comparison.json", "comparison.md", "prior-report.json",
                     "diagnostics.json", "llm-run.json", "requests", "prompts")):
                 raise ReviewError("Output exists; choose another --out or use --force. No API calls were made.")
+        if args.command == "review":
+            inputs = [args.manuscript, args.prior] + args.supplement + args.prior_supplement
+        else:
+            inputs = [args.old, args.new] + args.old_supplement + args.new_supplement
+        inputs += [config_path, args.prior_review]
+        inputs += [getattr(args, key, None) for key in ("overrides", "old_overrides", "new_overrides")]
+        planned = {"report.md", "report.json"}
+        if paired:
+            planned.update(("prior-report.json", "comparison.json", "comparison.md"))
+        if provider:
+            planned.update(("llm-run.json", "diagnostics.json"))
+            planned.update("requests/" + role + ".json" for role in
+                           (("comparison",) if paired else provider.roles))
+        if args.export_prompts:
+            from .reviewers import MANDATES
+            roles = provider.roles if provider and not paired else MANDATES
+            planned.update("prompts/" + role + ".json" for role in roles)
+        _output_preflight(destination, planned, inputs, args.force)
         if args.command == "review":
             if args.prior_supplement and not args.prior:
                 raise ReviewError("--prior-supplement requires --prior.")
             report, packets = review_manuscript(args.manuscript, args.supplement, args.journal, config,
                                                 args.overrides, provider=None if paired else provider)
-            inputs = [args.manuscript] + args.supplement
             prior = None
             if args.prior:
                 prior, _ = review_manuscript(args.prior, args.prior_supplement, args.journal, config)
-                inputs += [args.prior] + args.prior_supplement
         else:
             prior, _ = review_manuscript(args.old, args.old_supplement, args.journal, config, args.old_overrides)
             report, packets = review_manuscript(args.new, args.new_supplement, args.journal, config, args.new_overrides)
-            inputs = [args.old, args.new] + args.old_supplement + args.new_supplement
         if prior:
             if args.prior_review:
                 from .configuration import read_json
@@ -297,7 +333,6 @@ def main(argv=None):
                 if fresh_sources != saved_sources:
                     raise ReviewError("Saved prior source blocks differ from current extraction. Regenerate the prior review before comparing.")
                 prior = saved
-                inputs.append(args.prior_review)
             report.comparison = compare_reviews(prior, report)
             if provider:
                 from .resolution import add_semantic_comparison
@@ -321,13 +356,7 @@ def main(argv=None):
                 outputs["requests/" + item["role"] + ".json"] = _json(item)
             outputs["llm-run.json"] = _json(provider.metadata())
             outputs["diagnostics.json"] = _json(report.quality["pilot_diagnostics"])
-        if args.config:
-            inputs.append(args.config)
-        for key in ("overrides", "old_overrides", "new_overrides"):
-            if getattr(args, key, None):
-                inputs.append(getattr(args, key))
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-        directory = _save(args.out or Path("reviews") / stamp, outputs, inputs, args.force)
+        directory = _save(destination, outputs, inputs, args.force)
         active = sum(f.disposition in ("active", "confirmed") for f in report.findings)
         print("Review complete: %d active concerns." % active)
         print("Markdown: " + str(directory / "report.md"))

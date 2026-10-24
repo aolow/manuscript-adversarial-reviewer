@@ -50,6 +50,21 @@ class NoRedirect(request.HTTPRedirectHandler):
         raise ReviewError("Provider redirect refused; no credentials were forwarded.")
 
 
+def _strict_schema(value):
+    """OpenAI requires every object property; optional action values are nullable.
+
+    Copy recursively so the local/Bedrock omission-friendly contract is unchanged.
+    """
+    if isinstance(value, list):
+        return [_strict_schema(child) for child in value]
+    if not isinstance(value, dict):
+        return value
+    result = {key: _strict_schema(child) for key, child in value.items()}
+    if result.get("type") == "object":
+        result["required"] = list(result["properties"])
+    return result
+
+
 def _post(body, timeout):
     # Credentials are read only here, from the process environment, and never serialized.
     key = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -80,6 +95,9 @@ class OpenAIReviewer:
 
     def __init__(self, settings, dry_run=False, roles=None, transport=None):
         settings.validate()
+        if not dry_run:
+            from .contracts import require_validator
+            require_validator()
         self.settings = settings
         self.dry_run = dry_run
         self.roles = tuple(roles or DEFAULT_ROLES)
@@ -97,10 +115,12 @@ class OpenAIReviewer:
         source_data = {k: v for k, v in packet.items() if k != "instructions"}
         body = {
             "model": self.settings.model,
-            "instructions": packet["instructions"],
+            "instructions": packet["instructions"] + (
+                "\nFor this response every schema property is required; "
+                "use null for nonapplicable action fields.\n"),
             "input": [{"role": "user", "content": json.dumps(source_data, ensure_ascii=False, sort_keys=True)}],
             "text": {"format": {"type": "json_schema", "name": "manuscript_" + role,
-                                "strict": True, "schema": schema}},
+                                "strict": True, "schema": _strict_schema(schema)}},
             "max_output_tokens": self.settings.max_output_tokens,
             "store": False, "truncation": "disabled",
         }

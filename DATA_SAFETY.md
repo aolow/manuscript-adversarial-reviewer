@@ -12,6 +12,13 @@ Keep the following outside source control:
 
 A normal offline review does not contact an external provider.
 
+Choose a new output directory for each review. If you explicitly use `--force`,
+the CLI checks both replacement targets and stale-artifact cleanup against all
+input paths before changing files. Known path collisions, escaping symlinks, and
+non-directory parents are also checked before provider calls. These checks do
+not guarantee that a later disk or permission failure cannot occur; writes remain
+atomic per file, not per complete run.
+
 A live command using `--llm` sends extracted manuscript content to the provider you selected. Use it only when you are authorized to share that material with that provider and account.
 
 `--dry-run` is the safest way to inspect the exact request before any upload:

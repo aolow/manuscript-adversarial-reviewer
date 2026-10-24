@@ -126,11 +126,15 @@ def _provider_finding_id(role, row, citations):
 
 
 def resolve_citations(citations, documents):
+    if not isinstance(citations, list):
+        raise ReviewError("Citations must be a list of block_id and quote objects.")
     blocks = {b.id: b for d in documents for b in d.blocks}
     resolved = []
     for citation in citations:
         if not isinstance(citation, dict) or set(citation) != {"block_id", "quote"}:
             raise ReviewError("Generated citations may specify only block_id and quote; locations are derived locally.")
+        if not isinstance(citation["block_id"], str):
+            raise ReviewError("Citation block_id must be a source identifier string.")
         block = blocks.get(citation["block_id"])
         quote = citation["quote"]
         if block is None or not isinstance(quote, str) or not quote.strip():

@@ -145,12 +145,28 @@ def citation(ev):
 
 
 def render_markdown(review):
+    assisted = bool(review.llm) or any(r["mode"] in ("provider", "manual_import") for r in review.reviewer_runs)
+    mode = "provider-assisted" if assisted else "offline deterministic audit"
+    if review.llm.get("dry_run"):
+        mode = "request preview; no model judgment performed"
     lines = ["# Manuscript adversarial review", "",
              "**Run:** " + review.run_id + "  ", "**Schema:** " + review.schema_version + "  ",
-             "**Mode:** " + ("provider-assisted" if any(r["mode"] in ("provider", "manual_import") for r in review.reviewer_runs)
-                            else "offline deterministic audit") + "", "",
+             "**Mode:** " + mode, "",
              "This report supports scientific judgment. Findings are traceable review leads; "
              "missing reporting is not proof of missing work.", ""]
+    failed = list(review.quality.get("failed_roles", []))
+    comparison = (review.comparison or {}).get("llm", {})
+    if comparison.get("failed") or comparison.get("incomplete"):
+        failed.append("comparison")
+    if failed:
+        lines.extend(["**Incomplete LLM review:** " + ", ".join(failed)
+                      + ". Deterministic results remain available.", ""])
+    rejected = sum(len(r.get("item_rejections", [])) for r in review.reviewer_runs)
+    rejected += len(comparison.get("item_rejections", []))
+    if rejected:
+        lines.extend(["**Validation exclusions:** %d output item(s) rejected; surviving items do not establish full coverage. See diagnostics.json." % rejected, ""])
+    if assisted and not review.llm.get("dry_run"):
+        lines.extend(["Agreement among reviewer roles is not independent evidence or a confidence increase.", ""])
     lines.extend(render_adversarial(review))
     lines.extend(["<details>", "<summary>Detailed 20-section audit, findings, and deterministic checklist</summary>", ""])
     for number, section in enumerate(review.sections, 1):
@@ -331,11 +347,6 @@ def render_adversarial(review):
             lines.append("No additional item identified in this scope.")
         lines.append("")
     lines.extend(["</details>", ""])
-    if review.quality.get("failed_roles"):
-        lines.extend(["**Incomplete LLM review:** failed roles: " + ", ".join(review.quality["failed_roles"]),
-                      "The independent deterministic audit is preserved.", ""])
-    if review.llm.get("dry_run"):
-        lines.extend(["**Dry run:** exact requests were exported locally; no model judgment was performed.", ""])
     return lines
 
 
