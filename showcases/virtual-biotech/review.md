@@ -1,5 +1,23 @@
 # Virtual Biotech: trace the claim from association to proposed intervention
 
+## Review at a glance
+
+**Assessment:** A substantial computational demonstration with useful therapeutic hypotheses. Mechanistic and treatment-selection claims need careful limits; the precision of trial-level associations remains a verification question. [VB-1](#vb-1) [VB-2](#vb-2) [VB-3](#vb-3)
+
+**Main contribution:** Shows a concrete reviewer critique prompting a new spatial analysis, a useful pattern for scientific follow-up. [VB-5](#vb-5)
+
+**Focus on these first:**
+
+1. Frame B7-H3 findings as spatial and prognostic evidence; causal mechanism requires an intervention. [VB-1](#vb-1)
+2. Keep OSMR-guided enrollment as a hypothesis until treatment-specific benefit is demonstrated. [VB-2](#vb-2)
+3. Verify whether uncertainty accounts for repeated drugs, targets and development programs across trials. [VB-3](#vb-3)
+
+**Best next step:** Align the headline claims with the observational evidence, then inspect the trial–drug–target mapping before escalating the statistical concern. [VB-1](#vb-1) [VB-3](#vb-3)
+
+*Scope: February 2026 preprint v1, not the later journal article. Offline CLI plus model-native synthesis; text, methods and captions reviewed. Supplements, code and data were not inspected; no independent human validation of this review.*
+
+---
+
 > Model-native scientific review with a separately executed offline CLI baseline. No provider panel was run. Not independently human-validated.
 
 Source: [The Virtual Biotech: A Multi-Agent AI Framework for Therapeutic Discovery and Development](https://pmc.ncbi.nlm.nih.gov/articles/PMC12970349/). Harrison G. Zhang, Peter Eckmann, Jiacheng Miao, Andrew B. Mahon, James Zou. bioRxiv preprint v1, 23 February 2026; PMC12970349.1.
@@ -13,6 +31,8 @@ Read: abstract, main text, Extended Methods, five figure captions and data avail
 All decisions below are model-native interpretations, including the decisions to dismiss a concern. Exact source-span checks do not verify those interpretations. Engine dispositions remain unchanged in [baseline.json](baseline.json).
 
 ## Revision priorities
+
+<a id="vb-1"></a>
 
 ### VB-1 — Keep spatial association separate from B7-H3 mechanism
 
@@ -28,6 +48,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 **Origin:** model-native. **Related engine leads:** none; not an engine-generated finding.
 
+<a id="vb-2"></a>
+
 ### VB-2 — Treat OSMR enrichment as a testable trial-design hypothesis
 
 **Decision: narrow.** Baseline OSMR associations with nonresponse to other biologics do not identify a subgroup with greater benefit from vixarelimab. Nor do they establish the reason MOONGLOW stopped. The proposal is scientifically interesting, but predictive treatment benefit and a retrospective failure explanation remain untested.
@@ -41,6 +63,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** Treatment-interaction evidence replicated in an independent cohort could justify predictive language. General association with disease severity or other-therapy nonresponse would not.
 
 **Origin:** model-native. **Related engine leads:** `check.treatment_interaction`, `check.clinical_utility`, `check.clinical_use`.
+
+<a id="vb-4"></a>
 
 ### VB-4 — Bound claims about comparative quality and objectivity
 
@@ -58,6 +82,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Verify before escalating
 
+<a id="vb-3"></a>
+
 ### VB-3 — Verify the independent unit behind trial-level precision
 
 **Decision: verify.** Molecular features are shared across trials testing related drugs or targets. The reported random effects describe modality and disease-area combinations; they do not by themselves establish that dependence from repeated drugs, targets or development programs is handled. Shuffling individual outcomes also does not necessarily preserve that dependence. This is a question about uncertainty and generalization, not proof that the associations disappear.
@@ -71,6 +97,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** Existing adequate dependence handling in code, or stable effect sizes and uncertainty under the appropriate grouped analysis, would close or narrow this concern.
 
 **Origin:** model-native. **Related engine leads:** `check.external_validation`, `check.train_test_split`.
+
+<a id="vb-9"></a>
 
 ### VB-9 — Verify reproducibility and annotation error without inventing absence
 
@@ -88,6 +116,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Strengths worth preserving
 
+<a id="vb-5"></a>
+
 ### VB-5 — Preserve the concrete critique-to-analysis handoff
 
 **Decision: strength.** A reviewer identifies the loss of spatial context, and the workflow responds with a spatial analysis instead of merely rephrasing its answer. That is a useful operational pattern for MAR: attach a critique to a discriminating next check and re-evaluate the claim afterward.
@@ -104,6 +134,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Concerns that did not survive checking
 
+<a id="vb-6"></a>
+
 ### VB-6 — Dismiss a blanket donor-unaware inference complaint
 
 **Decision: dismiss.** The generic pseudobulk contradiction mixes descriptions of different analyses. The methods explicitly aggregate counts by donor and cell type, use patient effects for longitudinal UC data, and include a sample intercept for spatial data. A blanket absence-of-donor-control criticism is unsupported.
@@ -117,6 +149,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** A mismatch between the described and executed analysis could justify a specific issue.
 
 **Origin:** model-native. **Related engine leads:** `check.pseudobulk`.
+
+<a id="vb-7"></a>
 
 ### VB-7 — Dismiss “first trained” as an absolute-novelty claim
 
@@ -132,6 +166,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 **Origin:** model-native. **Related engine leads:** `pattern.novelty_overclaim`.
 
+<a id="vb-8"></a>
+
 ### VB-8 — Separate reported thresholds and endpoints from proposed ones
 
 **Decision: dismiss.** A tau threshold and within-sample spatial quartiles are reported. Trial endpoint failures and successes refer to different studies and are not a contradiction. The future OSMR enrollment cutoff remains to be developed; that is a different object from the existing analytical thresholds.
@@ -146,6 +182,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 **Origin:** model-native. **Related engine leads:** `check.cutoff`, `check.endpoint`.
 
+<a id="vb-10"></a>
+
 ### VB-10 — Dismiss requirements for an original perturbation screen
 
 **Decision: dismiss.** Reusing Tahoe perturbation profiles and describing tool capabilities does not mean this manuscript performed a new pooled screen. Guide, MOI and perturbation-efficiency requirements cannot be inferred from those keywords alone.
@@ -159,6 +197,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** If a new original screen were supplied, the corresponding experimental controls would become applicable.
 
 **Origin:** model-native. **Related engine leads:** `check.guides`, `check.moi`.
+
+<a id="vb-11"></a>
 
 ### VB-11 — Recognize batch handling without assuming it eliminates confounding
 

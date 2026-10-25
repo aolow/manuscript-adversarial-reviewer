@@ -140,6 +140,8 @@ class ShowcaseTests(unittest.TestCase):
             with self.subTest(paper=slug):
                 self.assertEqual((public / "review.md").read_text(encoding="utf-8"),
                                  showcases.render_review(review, manifest))
+                readme = (public / "README.md").read_text(encoding="utf-8")
+                self.assertEqual(readme, showcases.summary_readme(review, readme))
                 self.assertEqual(baseline["manuscript_sha256"], manifest["normalized_sha256"])
                 self.assertEqual(receipt["public_baseline_sha256"],
                                  showcases.digest((public / "baseline.json").read_bytes()))
@@ -154,6 +156,14 @@ class ShowcaseTests(unittest.TestCase):
                 self.assertEqual(set(all_ids), {f["id"] for f in baseline["findings"]})
                 for finding in baseline["findings"]:
                     self.assertNotIn("evidence", finding)
+
+    def test_summary_cannot_promote_dismissed_items_or_invent_references(self):
+        path = ROOT / "showcases" / "single-cell-foundation-models" / "review.json"
+        for item_id in ("SC-6", "SC-5", "invented"):
+            review = showcases.read_json(path)
+            review["at_a_glance"]["priorities"][0]["item_ids"] = [item_id]
+            with self.subTest(item_id=item_id), self.assertRaises(ValueError):
+                showcases.verify_summary(review)
 
 
 if __name__ == "__main__":

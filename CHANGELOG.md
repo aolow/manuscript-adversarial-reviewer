@@ -20,6 +20,9 @@
   leads alongside labeled model-native reviews, counterevidence and complete
   triage; provide pinned source hashes, actual run receipts and reproduction
   checks for 47 evidence anchors. No provider-panel or human-validation claim.
+- Lead both showcases with a short, evidence-linked assessment, contribution,
+  three priorities and next step. Generate landing-page and detailed-review
+  summaries from the same structured source; preserve the full audit underneath.
 
 ## 0.4.0 — 2026-10-07
 

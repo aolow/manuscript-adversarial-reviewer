@@ -5,6 +5,11 @@ evidence-checked scientific review. Each combines an **actual offline MAR run**
 with a **separately authored model-native synthesis** using the
 [MAR skill](https://github.com/aolow/mar-skill/tree/a8406f6eae748f2788349dd524598d62dab23e68).
 
+Start with **Review at a glance**: a short assessment, the main contribution,
+three priorities and the best next step. Every point links to its detailed
+review item. The landing page and full review share the same summary source;
+the audit and evidence remain available underneath.
+
 | Showcase | What it demonstrates | Start here |
 | --- | --- | --- |
 | **Single-cell foundation models** | Respect an explicitly scoped benchmark; distinguish a useful objection from something the authors already address | [Overview](single-cell-foundation-models/README.md) · [Full review](single-cell-foundation-models/review.md) |

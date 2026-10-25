@@ -171,6 +171,8 @@ def verify_review(review, records, report):
         raise ValueError("Every baseline finding must be triaged exactly once")
     if used != set(anchors):
         raise ValueError("Unreferenced anchors")
+    if "at_a_glance" in review:
+        verify_summary(review)
     for key, anchor in anchors.items():
         record = source.get(anchor["source_id"])
         block = blocks.get(anchor["block_id"])
@@ -183,9 +185,55 @@ def verify_review(review, records, report):
             "baseline_findings_triaged": len(triaged), "scientific_validity_verified": False}
 
 
+def verify_summary(review):
+    """Summary links must preserve the detailed review's decision boundaries."""
+    summary = review["at_a_glance"]
+    items = {item["id"]: item for item in review["items"]}
+    if not 1 <= len(summary["priorities"]) <= 3:
+        raise ValueError("Summary needs one to three supported priorities")
+    rows = [summary["assessment"], summary["contribution"], summary["first_step"]] + summary["priorities"]
+    for row in rows:
+        if not row["text"].strip() or not row["item_ids"] or not set(row["item_ids"]).issubset(items):
+            raise ValueError("Summary needs text and existing review item references")
+    if any(items[key]["decision"] != "strength" for key in summary["contribution"]["item_ids"]):
+        raise ValueError("Summary contribution must link to an assessed strength")
+    for row in summary["priorities"] + [summary["first_step"]]:
+        if any(items[key]["decision"] not in ("retain", "narrow", "verify") for key in row["item_ids"]):
+            raise ValueError("Summary cannot promote dismissed concerns or strengths to revision priorities")
+    if not summary["scope"].strip():
+        raise ValueError("Summary must disclose its scope")
+
+
+def render_summary(review, target=""):
+    """One source for the landing-page summary and the detailed review opening."""
+    verify_summary(review)
+    summary = review["at_a_glance"]
+
+    def row(value):
+        links = " ".join("[" + key + "](" + target + "#" + key.lower() + ")" for key in value["item_ids"])
+        return value["text"] + " " + links
+
+    lines = ["## Review at a glance", "", "**Assessment:** " + row(summary["assessment"]), "",
+             "**Main contribution:** " + row(summary["contribution"]), "", "**Focus on these first:**", ""]
+    for number, priority in enumerate(summary["priorities"], 1):
+        lines.append(str(number) + ". " + row(priority))
+    lines.extend(["", "**Best next step:** " + row(summary["first_step"]), "",
+                  "*Scope: " + summary["scope"] + "*", ""])
+    return "\n".join(lines)
+
+
+def summary_readme(review, text):
+    start, end = "<!-- mar:summary:start -->", "<!-- mar:summary:end -->"
+    if text.count(start) != 1 or text.count(end) != 1 or text.index(start) >= text.index(end):
+        raise ValueError("Showcase README must have one ordered summary marker pair")
+    before, rest = text.split(start, 1)
+    _, after = rest.split(end, 1)
+    return before + start + "\n\n" + render_summary(review, "review.md") + "\n" + end + after
+
+
 def render_review(review, manifest):
     """Keep the readable showcase synchronized with the structured audit."""
-    lines = ["# " + review["title"], "",
+    lines = ["# " + review["title"], "", render_summary(review), "---", "",
              "> Model-native scientific review with a separately executed offline CLI baseline. "
              "No provider panel was run. Not independently human-validated.", "",
              "Source: [" + manifest["title"] + "](" + manifest["article_url"] + "). "
@@ -203,7 +251,8 @@ def render_review(review, manifest):
         for item in review["items"]:
             if item["decision"] not in decisions:
                 continue
-            lines.extend(["### " + item["id"] + " — " + item["title"], "",
+            lines.extend(['<a id="' + item["id"].lower() + '"></a>', "",
+                          "### " + item["id"] + " — " + item["title"], "",
                           "**Decision: " + item["decision"] + ".** " + item["assessment"], "",
                           "**Evidence:** " + ", ".join("[" + a + "](#" + a.lower() + ")" for a in item["evidence"]) + ".", "",
                           "**Counterevidence / scope:** " + item["challenge"] + " "
@@ -257,6 +306,9 @@ def reproduce(slug, download=False):
     result = verify_review(review, records, report)
     if (public / "review.md").read_text(encoding="utf-8") != render_review(review, manifest):
         raise ValueError("Readable review is out of sync with review.json")
+    readme = (public / "README.md").read_text(encoding="utf-8")
+    if readme != summary_readme(review, readme):
+        raise ValueError("Landing-page summary is out of sync with review.json")
     result.update({"paper": slug, "source_sha256": digest(raw), "baseline_matches": True,
                    "engine_run_id": report["run_id"], "engine_created_at": report["created_at"],
                    "provider_calls": 0, "command": command})

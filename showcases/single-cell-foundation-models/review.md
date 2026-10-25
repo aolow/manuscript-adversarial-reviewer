@@ -1,5 +1,23 @@
 # Single-cell foundation models: a review that narrows its own objections
 
+## Review at a glance
+
+**Assessment:** A useful, deliberately scoped benchmark. The main revision needs concern interpretation and reporting; the review does not establish that the benchmark is invalid. [SC-1](#sc-1) [SC-2](#sc-2) [SC-3](#sc-3)
+
+**Main contribution:** Demonstrates why frozen single-cell models should be tested against practical, simpler alternatives. [SC-5](#sc-5)
+
+**Focus on these first:**
+
+1. Clarify what the comparison answers: practical performance, with different access to target data and batch labels. [SC-1](#sc-1)
+2. Narrow the scaling claim: changing data size and tissue composition together cannot isolate a general data-volume limit. [SC-2](#sc-2)
+3. Check the ASW explanation against the implemented normalization before changing any reported results. [SC-3](#sc-3)
+
+**Best next step:** Align the comparison and scaling conclusions with the acknowledged design limits; start with wording before requesting new experiments. [SC-1](#sc-1) [SC-2](#sc-2)
+
+*Scope: Published April 2025 article. Offline CLI plus model-native synthesis; text, methods and captions reviewed. Supplements, code and results were not independently checked; no independent human validation of this review.*
+
+---
+
 > Model-native scientific review with a separately executed offline CLI baseline. No provider panel was run. Not independently human-validated.
 
 Source: [Zero-shot evaluation reveals limitations of single-cell foundation models](https://pmc.ncbi.nlm.nih.gov/articles/PMC12007350/). Kasia Z Kedzierska, Lorin Crawford, Ava P Amini, Alex X Lu. Published article, 18 April 2025.
@@ -13,6 +31,8 @@ Read: abstract, article body, methods, figure captions, availability statements 
 All decisions below are model-native interpretations, including the decisions to dismiss a concern. Exact source-span checks do not verify those interpretations. Engine dispositions remain unchanged in [baseline.json](baseline.json).
 
 ## Revision priorities
+
+<a id="sc-1"></a>
 
 ### SC-1 — Keep practical utility separate from a controlled test of pretraining
 
@@ -28,6 +48,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 **Origin:** model-native. **Related engine leads:** `check.batch_platform`.
 
+<a id="sc-2"></a>
+
 ### SC-2 — Do not turn confounded model variants into a scaling limit
 
 **Decision: narrow.** The statement about a limit beyond which more data may not help is stronger than a comparison in which data size and tissue composition change together. The observation supports non-monotonic performance among the tested checkpoints; it does not locate a general scaling threshold.
@@ -41,6 +63,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** A controlled scaling experiment showing the same plateau would support a stronger claim. Narrow wording alone resolves the current interpretation concern.
 
 **Origin:** model-native. **Related engine leads:** none; not an engine-generated finding.
+
+<a id="sc-3"></a>
 
 ### SC-3 — Check the direction of the ASW explanation
 
@@ -58,6 +82,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Verify before escalating
 
+<a id="sc-4"></a>
+
 ### SC-4 — Inspect masked reconstruction sensitivity before escalating
 
 **Decision: verify.** An all-unmasked reconstruction diagnostic differs from the corrupted-input task used during pretraining. Poor performance in that diagnostic alone does not establish that a model failed to learn its training objective. This is an unresolved interpretation check, not a confirmed flaw.
@@ -71,6 +97,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** Equivalent conclusions under the training-like corruption and scoring protocol would substantially weaken this concern.
 
 **Origin:** model-native. **Related engine leads:** none; not an engine-generated finding.
+
+<a id="sc-9"></a>
 
 ### SC-9 — Keep unretrieved methods details in a verification queue
 
@@ -88,6 +116,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Strengths worth preserving
 
+<a id="sc-5"></a>
+
 ### SC-5 — Preserve the benchmark’s useful control structure
 
 **Decision: strength.** Simple baselines, a random-initialization comparison and evaluation of both cell separation and integration make the benchmark informative for practical tool choice. The manuscript also exposes important limits rather than hiding them.
@@ -104,6 +134,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 ## Concerns that did not survive checking
 
+<a id="sc-6"></a>
+
 ### SC-6 — Dismiss the apparent code-availability contradiction
 
 **Decision: dismiss.** The engine combined a statement about other methods not releasing pretraining code with this paper’s own code-release statement. These have different subjects. The resulting contradiction is a contextual false positive.
@@ -117,6 +149,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** Evidence that the cited release lacks the actual analyses would justify a new, more specific reproducibility concern.
 
 **Origin:** model-native. **Related engine leads:** `check.code_availability`.
+
+<a id="sc-7"></a>
 
 ### SC-7 — Dismiss undisclosed pretraining overlap as a headline criticism
 
@@ -132,6 +166,8 @@ All decisions below are model-native interpretations, including the decisions to
 
 **Origin:** model-native. **Related engine leads:** `check.external_validation`, `check.train_test_split`.
 
+<a id="sc-8"></a>
+
 ### SC-8 — Dismiss perturbation-screen requirements for an embedding benchmark
 
 **Decision: dismiss.** The paper evaluates pretrained embeddings and reconstruction. Its discussion of future perturbation experiments does not make this study a CRISPR screen requiring guides, MOI, perturbation efficiency or toxicity controls. Donor-level differential-expression rules likewise do not automatically apply to descriptive embedding comparisons.
@@ -145,6 +181,8 @@ All decisions below are model-native interpretations, including the decisions to
 **What would change this decision:** A newly supplied experimental screen or inferential differential-expression analysis would change applicability.
 
 **Origin:** model-native. **Related engine leads:** `check.guides`, `check.moi`, `check.pseudobulk`.
+
+<a id="sc-10"></a>
 
 ### SC-10 — Dismiss the missing-baseline cue
 

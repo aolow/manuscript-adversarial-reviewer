@@ -504,5 +504,49 @@
         "check.thresholds"
       ]
     }
-  ]
+  ],
+  "at_a_glance": {
+    "assessment": {
+      "text": "A substantial computational demonstration with useful therapeutic hypotheses. Mechanistic and treatment-selection claims need careful limits; the precision of trial-level associations remains a verification question.",
+      "item_ids": [
+        "VB-1",
+        "VB-2",
+        "VB-3"
+      ]
+    },
+    "contribution": {
+      "text": "Shows a concrete reviewer critique prompting a new spatial analysis, a useful pattern for scientific follow-up.",
+      "item_ids": [
+        "VB-5"
+      ]
+    },
+    "priorities": [
+      {
+        "text": "Frame B7-H3 findings as spatial and prognostic evidence; causal mechanism requires an intervention.",
+        "item_ids": [
+          "VB-1"
+        ]
+      },
+      {
+        "text": "Keep OSMR-guided enrollment as a hypothesis until treatment-specific benefit is demonstrated.",
+        "item_ids": [
+          "VB-2"
+        ]
+      },
+      {
+        "text": "Verify whether uncertainty accounts for repeated drugs, targets and development programs across trials.",
+        "item_ids": [
+          "VB-3"
+        ]
+      }
+    ],
+    "first_step": {
+      "text": "Align the headline claims with the observational evidence, then inspect the trial–drug–target mapping before escalating the statistical concern.",
+      "item_ids": [
+        "VB-1",
+        "VB-3"
+      ]
+    },
+    "scope": "February 2026 preprint v1, not the later journal article. Offline CLI plus model-native synthesis; text, methods and captions reviewed. Supplements, code and data were not inspected; no independent human validation of this review."
+  }
 }
