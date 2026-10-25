@@ -36,10 +36,14 @@ class ReviewerProvider(Protocol):
         ...
 
 
+def writing_guidance():
+    return resources.files(__package__).joinpath("prompts/writing.txt").read_text(encoding="utf-8").strip()
+
+
 def prompt_packet(role, documents, extraction, findings, journal):
     base = resources.files(__package__).joinpath("prompts/base.txt").read_text(encoding="utf-8")
     mandate = resources.files(__package__).joinpath("prompts/" + role + ".txt").read_text(encoding="utf-8")
-    return {"role": role, "instructions": base + "\n\n" + mandate,
+    return {"role": role, "instructions": base + "\n\n" + mandate + "\n\n" + writing_guidance(),
             "target_journal": journal,
             "source_blocks": [asdict(b) for b in substantive_blocks(documents)],
             "extraction": extraction,
@@ -54,7 +58,7 @@ def llm_packet(role, documents, extraction, findings, journal):
     base = resources.files(__package__).joinpath("prompts/base_v2.txt").read_text(encoding="utf-8")
     mandate = resources.files(__package__).joinpath("prompts/" + role + ".txt").read_text(encoding="utf-8")
     return {
-        "role": role, "instructions": base + "\n\n" + mandate, "target_journal": journal,
+        "role": role, "instructions": base + "\n\n" + mandate + "\n\n" + writing_guidance(), "target_journal": journal,
         "source_blocks": [asdict(b) for b in substantive_blocks(documents)],
         "candidate_claims": extraction["claims"],
         "deterministic_context": [{"id": f.id, "category": f.category, "issue": f.issue,

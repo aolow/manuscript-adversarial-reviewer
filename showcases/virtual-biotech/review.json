@@ -6,7 +6,7 @@
   "workflow": "MAR skill evidence challenge and synthesis",
   "provider_panel_run": false,
   "independent_human_validation": false,
-  "summary": "The preprint demonstrates a substantial computational workflow and useful hypothesis generation. Four priorities concern the reach of its conclusions: mechanistic language, treatment-selection claims, dependence in trial-level evidence, and comparative claims about agent quality. The review also credits safeguards that the manuscript already implements. This is a review of the February preprint only, not of the later Science article.",
+  "summary": "This review covers the February 2026 preprint. It identifies three revision priorities, two verification questions, one supported strength and five dismissed concerns. The assessments distinguish the reported computational results from mechanistic, treatment-selection and comparative-quality conclusions.",
   "coverage": "Read: abstract, main text, Extended Methods, five figure captions and data availability in the 23 February 2026 preprint v1 (PMC12970349.1). The offline CLI produced 30 leads from 150 source blocks. One model-native synthesis followed the MAR evidence-challenge checklist; no provider panel or independent expert assessment was run. Supplementary PDF, figure images, execution logs, source code and raw datasets were not inspected. The September 2026 Science version is outside this review.",
   "anchors": {
     "VB-A1": {
@@ -202,37 +202,37 @@
   "items": [
     {
       "id": "VB-1",
-      "title": "Keep spatial association separate from B7-H3 mechanism",
+      "title": "B7-H3 association and mechanism",
       "decision": "retain",
-      "assessment": "The spatial analysis adds useful tissue-context evidence, but expression, inferred neighboring cell abundance and observational survival associations do not establish that perturbing B7-H3 causes immune exclusion or reverses it. The phrase “functional evidence” risks overstating what these measurements demonstrate.",
+      "assessment": "The reported evidence links B7-H3 expression with spatial cell patterns and survival. These observational associations do not establish that changing B7-H3 activity causes or reverses immune exclusion. Describing them as “functional evidence” needs qualification.",
       "evidence": [
         "VB-A1"
       ],
-      "challenge": "The methods exclude B7-H3 from deconvolution and adjust for spatial composition and sample effects. These directly answer a simplistic circularity or no-sample-adjustment objection. The discussion also labels the case studies as hypotheses requiring validation.",
+      "challenge": "The methods exclude B7-H3 from cell-abundance estimation and account for spatial composition and sample effects. The discussion also identifies the case studies as hypotheses requiring validation.",
       "counterevidence": [
         "VB-A2",
         "VB-A3",
         "VB-A4"
       ],
-      "next_step": "First align the mechanistic wording with the observational evidence. If a causal claim is essential, propose a new intervention study: perturb B7-H3 in matched fibroblast–immune–tumor systems across independent donors, compare with appropriate controls and measure immune exclusion or function while checking viability. No such experimental result is established by this review.",
-      "decision_change": "Replicated intervention evidence separating B7-H3 activity from correlated fibroblast state would support stronger mechanistic language. An expression association alone would not.",
+      "next_step": "Revise the mechanistic wording to reflect observational evidence. If a causal claim is required, propose a new study perturbing B7-H3 in matched fibroblast, immune-cell and tumor systems across independent donors. Compare appropriate controls and measure immune exclusion or function, with viability checks.",
+      "decision_change": "Replicated interventions separating B7-H3 activity from correlated fibroblast state would support stronger mechanistic language.",
       "engine_finding_ids": []
     },
     {
       "id": "VB-2",
-      "title": "Treat OSMR enrichment as a testable trial-design hypothesis",
+      "title": "OSMR expression and treatment selection",
       "decision": "narrow",
-      "assessment": "Baseline OSMR associations with nonresponse to other biologics do not identify a subgroup with greater benefit from vixarelimab. Nor do they establish the reason MOONGLOW stopped. The proposal is scientifically interesting, but predictive treatment benefit and a retrospective failure explanation remain untested.",
+      "assessment": "Baseline oncostatin M receptor (OSMR) expression is associated with nonresponse to other biologics. This does not establish greater benefit from vixarelimab in a selected subgroup or explain why MOONGLOW stopped.",
       "evidence": [
         "VB-A5",
         "VB-A6"
       ],
-      "challenge": "The authors use conditional language, explicitly call the case studies hypotheses, and identify assay/cutoff decisions still to be made. The proper review action is to preserve that boundary, not accuse the paper of claiming a validated clinical test.",
+      "challenge": "The authors use conditional language, describe the case studies as hypotheses and identify unresolved assay and cutoff choices. The review should retain those qualifications.",
       "counterevidence": [
         "VB-A4",
         "VB-A7"
       ],
-      "next_step": "Check whether baseline biopsies, treatment assignments and outcomes from MOONGLOW are available. If so, estimate an exploratory randomized treatment-by-biomarker interaction with uncertainty; that cannot retrospectively validate a selected cutoff. A prespecified assay, cutoff and independent prospective evaluation are needed before adopting enrichment as a validated selection strategy.",
+      "next_step": "Check whether baseline biopsies, randomized treatment assignments and outcomes from MOONGLOW are available. If available, estimate whether treatment effects vary with the biomarker, including uncertainty. An exploratory result would require a prespecified assay and cutoff plus independent prospective evaluation before supporting a validated selection strategy.",
       "decision_change": "Treatment-interaction evidence replicated in an independent cohort could justify predictive language. General association with disease severity or other-therapy nonresponse would not.",
       "engine_finding_ids": [
         "check.treatment_interaction",
@@ -242,19 +242,19 @@
     },
     {
       "id": "VB-3",
-      "title": "Verify the independent unit behind trial-level precision",
+      "title": "Dependence across trials",
       "decision": "verify",
-      "assessment": "Molecular features are shared across trials testing related drugs or targets. The reported random effects describe modality and disease-area combinations; they do not by themselves establish that dependence from repeated drugs, targets or development programs is handled. Shuffling individual outcomes also does not necessarily preserve that dependence. This is a question about uncertainty and generalization, not proof that the associations disappear.",
+      "assessment": "Related trials can share drugs, targets and molecular features. The reported modality and disease-area random effects do not establish that this dependence is accounted for, and shuffling individual outcomes may not preserve it. The effect on uncertainty remains unverified.",
       "evidence": [
         "VB-A8",
         "VB-A10"
       ],
-      "challenge": "The manuscript includes adjusted mixed models, genetic-evidence adjustment, multiplicity control and an explicit observational limitation. Saying “no confounder adjustment” would ignore these safeguards.",
+      "challenge": "The paper reports adjusted mixed models, adjustment for genetic evidence, correction for multiple comparisons and an observational limitation. These address other sources of bias and uncertainty.",
       "counterevidence": [
         "VB-A9",
         "VB-A26"
       ],
-      "next_step": "Inspect the trial–drug–target mapping and scripts; report unique clusters and overlap first. If repeated-program dependence remains, compare the main intervals with an appropriate drug/program/target-aware resampling or variance model, specifying treatment of multi-target overlap. For prospective prediction claims, add a time- and group-held-out evaluation. Required mappings and code were not audited here.",
+      "next_step": "Inspect the trial–drug–target mapping and scripts; count independent groups and their overlap. If dependence remains, compare uncertainty using a variance model or resampling scheme that accounts for shared drugs, programs or targets, including drugs with multiple targets. Claims about future prediction also need evaluation on later trials and unseen groups. The required mapping and code were not audited.",
       "decision_change": "Existing adequate dependence handling in code, or stable effect sizes and uncertainty under the appropriate grouped analysis, would close or narrow this concern.",
       "engine_finding_ids": [
         "check.external_validation",
@@ -263,19 +263,19 @@
     },
     {
       "id": "VB-4",
-      "title": "Bound claims about comparative quality and objectivity",
+      "title": "Evidence for comparative review quality",
       "decision": "narrow",
-      "assessment": "Illustrative case studies, API expenditure and parallel throughput establish feasibility. They do not by themselves measure superiority to human teams or the incremental scientific benefit of a reviewer agent. Avoid reading inexpensive execution as a validated gain in correctness, unbiased judgment or total project cost.",
+      "assessment": "The case studies, API expenditure and parallel execution demonstrate feasibility. They do not measure improvement over human teams or the contribution of the reviewer agent to scientific accuracy. API expenditure also does not measure total project cost.",
       "evidence": [
         "VB-A11",
         "VB-A12"
       ],
-      "challenge": "The workflow is inspectable and the authors explicitly acknowledge propagated agent errors. Those are meaningful strengths, but not a matched comparison or ablation.",
+      "challenge": "The authors describe an inspectable workflow and acknowledge that agent errors can propagate. These observations do not substitute for a controlled comparison.",
       "counterevidence": [
         "VB-A13",
         "VB-A14"
       ],
-      "next_step": "Narrow unqualified comparative language. To evaluate the architecture, use the same held-out questions, information access and budget across full workflow, no-reviewer and simpler-agent conditions, with blinded expert scoring of correct conclusions, unsupported claims, missing key evidence, time and total cost. This is a proposed validation study, not work performed for this showcase.",
+      "next_step": "Qualify comparative claims. A validation study could compare the full workflow, a version without the reviewer and a simpler agent on the same unseen questions, information and budget. Blinded experts would assess correct conclusions, unsupported claims and missing evidence; record time and total cost. This study was not performed for the showcase.",
       "decision_change": "A controlled assessment showing repeatable quality gains would support a stronger claim about the reviewer loop. Reported case costs alone would not.",
       "engine_finding_ids": [
         "check.baseline_models"
@@ -283,35 +283,35 @@
     },
     {
       "id": "VB-5",
-      "title": "Preserve the concrete critique-to-analysis handoff",
+      "title": "Reviewer feedback leads to a follow-up analysis",
       "decision": "strength",
-      "assessment": "A reviewer identifies the loss of spatial context, and the workflow responds with a spatial analysis instead of merely rephrasing its answer. That is a useful operational pattern for MAR: attach a critique to a discriminating next check and re-evaluate the claim afterward.",
+      "assessment": "The reviewer identifies missing spatial context, and the workflow follows with a spatial analysis. This documents a specific link between a criticism and an analysis addressing it.",
       "evidence": [
         "VB-A14",
         "VB-A15"
       ],
-      "challenge": "Spatial triangulation still shares modeling assumptions and is observational. The case demonstrates the pattern, not a measured improvement in scientific review accuracy.",
+      "challenge": "The case studies remain observational hypotheses requiring validation. The example does not measure improvement in review accuracy.",
       "counterevidence": [
         "VB-A4"
       ],
-      "next_step": "Keep the evidence challenge in the final review and measure its contribution in a future blinded evaluation.",
+      "next_step": "Retain this example as a rationale for linking each MAR concern to a specific next check. Evaluate its effect on review quality in a future blinded comparison.",
       "decision_change": "If logs showed that the follow-up was unrelated to the critique, the claimed workflow example would weaken; execution logs were not audited.",
       "engine_finding_ids": []
     },
     {
       "id": "VB-6",
-      "title": "Dismiss a blanket donor-unaware inference complaint",
+      "title": "Donor and sample effects are reported",
       "decision": "dismiss",
-      "assessment": "The generic pseudobulk contradiction mixes descriptions of different analyses. The methods explicitly aggregate counts by donor and cell type, use patient effects for longitudinal UC data, and include a sample intercept for spatial data. A blanket absence-of-donor-control criticism is unsupported.",
+      "assessment": "The methods aggregate counts by donor and cell type and include patient effects for longitudinal ulcerative colitis data. The generic contradiction combines different analyses; the evidence does not support a blanket concern about absent donor control.",
       "evidence": [
         "VB-A16",
         "VB-A17"
       ],
-      "challenge": "These safeguards do not resolve every possible dependence problem; trial reuse and within-slide spatial autocorrelation are distinct checks.",
+      "challenge": "A sample intercept is also reported for spatial data. Trial reuse and correlation within a slide remain distinct questions.",
       "counterevidence": [
         "VB-A3"
       ],
-      "next_step": "Close the blanket contradiction. Audit a specific model and its biological unit before raising a new pseudoreplication concern.",
+      "next_step": "Close the generic contradiction. Inspect a specific model and its independent biological unit before raising a dependence concern.",
       "decision_change": "A mismatch between the described and executed analysis could justify a specific issue.",
       "engine_finding_ids": [
         "check.pseudobulk"
@@ -319,9 +319,9 @@
     },
     {
       "id": "VB-7",
-      "title": "Dismiss “first trained” as an absolute-novelty claim",
+      "title": "“First trained” describes analysis order",
       "decision": "dismiss",
-      "assessment": "The deterministic pattern matched an ordering word in a methods description. It describes the first stage of model fitting, not the first-ever scientific achievement. This is a contextual false positive.",
+      "assessment": "The engine matched “first” in a methods description of model fitting. It refers to the order of analysis steps, not a claim of scientific priority.",
       "evidence": [
         "VB-A18"
       ],
@@ -337,19 +337,19 @@
     },
     {
       "id": "VB-8",
-      "title": "Separate reported thresholds and endpoints from proposed ones",
+      "title": "Reported thresholds and endpoints",
       "decision": "dismiss",
-      "assessment": "A tau threshold and within-sample spatial quartiles are reported. Trial endpoint failures and successes refer to different studies and are not a contradiction. The future OSMR enrollment cutoff remains to be developed; that is a different object from the existing analytical thresholds.",
+      "assessment": "The paper reports a cell-type specificity (tau) threshold and spatial quartiles within samples. Endpoint failures and successes refer to different trials. The proposed OSMR enrollment cutoff is a separate, unresolved choice.",
       "evidence": [
         "VB-A19",
         "VB-A25",
         "VB-A24"
       ],
-      "challenge": "Reported threshold selection is not the same as demonstrating robustness to that threshold. Multi-arm trial annotation can also remain ambiguous despite a clear ontology.",
+      "challenge": "A reported threshold does not establish robustness to its choice. Trials with multiple treatment groups may also require further annotation checks.",
       "counterevidence": [
         "VB-A7"
       ],
-      "next_step": "Close the generic missing-cutoff and contradictory-endpoint accusations. Keep sensitivity or annotation questions specific to the relevant analysis.",
+      "next_step": "Close the generic missing-cutoff and contradictory-endpoint leads. Tie any sensitivity or annotation question to the analysis it could affect.",
       "decision_change": "An inconsistent definition for the same outcome or an unreported threshold used in a main analysis would reopen a specific reporting concern.",
       "engine_finding_ids": [
         "check.cutoff",
@@ -358,19 +358,19 @@
     },
     {
       "id": "VB-9",
-      "title": "Verify reproducibility and annotation error without inventing absence",
+      "title": "Reproducibility and annotation uncertainty",
       "decision": "verify",
-      "assessment": "The source describes downloadable code/reports and human checks, but this review did not execute a pinned release or inspect the full supplementary protocol. Reported agreement on a reviewed subset is not universal annotation accuracy or proof that residual errors cannot affect downstream associations.",
+      "assessment": "The paper describes downloadable code and reports, plus human annotation checks. This review did not execute a pinned release or inspect the full supplementary protocol. Agreement on the checked subset does not establish accuracy across all annotations or quantify the effect of remaining errors.",
       "evidence": [
         "VB-A20",
         "VB-A21",
         "VB-A22"
       ],
-      "challenge": "The article actually includes two human annotators and a separate comparison with the TDC dataset. A claim that there was no human validation would be false; the question is its scope and error consequences.",
+      "challenge": "The article reports two human annotators and a comparison with the Therapeutic Data Commons (TDC) dataset. Human validation is present; its coverage and the effect of annotation errors require assessment.",
       "counterevidence": [
         "VB-A21"
       ],
-      "next_step": "Locate the exact code/data release and supplementary annotation rules; inspect missingness, disagreement strata, seeds, assay/threshold sensitivity and versioned tool inputs. Recompute key results under plausible annotation-error sensitivity. Keep uninspected details in a verification queue rather than treating them as established missing methods.",
+      "next_step": "Locate the exact code and data release and supplementary annotation rules. Check missing data, disagreement patterns, random seeds, assay and threshold sensitivity, and tool versions. Test whether plausible annotation errors change key results. Treat uninspected details as open checks.",
       "decision_change": "A reproducible release plus an adequate error/missingness sensitivity analysis could close these checks. A confirmed execution or annotation failure would justify a narrower issue.",
       "engine_finding_ids": [
         "check.code_availability",
@@ -379,9 +379,9 @@
     },
     {
       "id": "VB-10",
-      "title": "Dismiss requirements for an original perturbation screen",
+      "title": "Original-screen checks do not apply to reused data",
       "decision": "dismiss",
-      "assessment": "Reusing Tahoe perturbation profiles and describing tool capabilities does not mean this manuscript performed a new pooled screen. Guide, MOI and perturbation-efficiency requirements cannot be inferred from those keywords alone.",
+      "assessment": "The workflow reuses Tahoe perturbation profiles. This does not establish that the study performed a new pooled screen, so screen-specific control requirements cannot be inferred from those terms alone.",
       "evidence": [
         "VB-A23"
       ],
@@ -398,17 +398,17 @@
     },
     {
       "id": "VB-11",
-      "title": "Recognize batch handling without assuming it eliminates confounding",
+      "title": "Batch handling is described",
       "decision": "dismiss",
-      "assessment": "Harmony preprocessing and covariate-adjusted models are described. A generic no-batch-handling lead misses that context. Whether correction is adequate for a specific inference still requires inspecting the data and design.",
+      "assessment": "The manuscript describes Harmony preprocessing. This answers the generic reporting concern about absent batch handling; whether the correction is adequate requires the data and study design.",
       "evidence": [
         "VB-A27"
       ],
-      "challenge": "The authors acknowledge residual confounding in observational trial analysis; a named correction method is not a universal guarantee.",
+      "challenge": "The authors acknowledge residual confounding in the observational trial analysis. Naming a correction method does not establish that all relevant confounding is removed.",
       "counterevidence": [
         "VB-A26"
       ],
-      "next_step": "Close the reporting-absence allegation and examine an actual residual-confounding contrast if needed.",
+      "next_step": "Close the reporting-absence lead. Assess any remaining confounding against a specific comparison and conclusion.",
       "decision_change": "Evidence that a relevant cohort/platform effect is inseparable from the biological contrast would justify a focused concern.",
       "engine_finding_ids": [
         "check.batch_platform"
@@ -507,7 +507,7 @@
   ],
   "at_a_glance": {
     "assessment": {
-      "text": "A substantial computational demonstration with useful therapeutic hypotheses. Mechanistic and treatment-selection claims need careful limits; the precision of trial-level associations remains a verification question.",
+      "text": "The preprint reports computational case studies and observational associations. These generate therapeutic hypotheses; causal mechanisms and treatment-specific benefit remain untested. Trial-level uncertainty requires verification.",
       "item_ids": [
         "VB-1",
         "VB-2",
@@ -515,33 +515,33 @@
       ]
     },
     "contribution": {
-      "text": "Shows a concrete reviewer critique prompting a new spatial analysis, a useful pattern for scientific follow-up.",
+      "text": "Documents a reviewer critique followed by a spatial analysis addressing the missing tissue context.",
       "item_ids": [
         "VB-5"
       ]
     },
     "priorities": [
       {
-        "text": "Frame B7-H3 findings as spatial and prognostic evidence; causal mechanism requires an intervention.",
+        "text": "Describe B7-H3 findings as spatial and survival associations. A causal mechanism requires intervention evidence.",
         "item_ids": [
           "VB-1"
         ]
       },
       {
-        "text": "Keep OSMR-guided enrollment as a hypothesis until treatment-specific benefit is demonstrated.",
+        "text": "Keep enrollment based on oncostatin M receptor (OSMR) expression as a hypothesis: nonresponse to other therapies does not establish benefit from vixarelimab.",
         "item_ids": [
           "VB-2"
         ]
       },
       {
-        "text": "Verify whether uncertainty accounts for repeated drugs, targets and development programs across trials.",
+        "text": "Check whether uncertainty accounts for drugs, targets and development programs represented in multiple trials.",
         "item_ids": [
           "VB-3"
         ]
       }
     ],
     "first_step": {
-      "text": "Align the headline claims with the observational evidence, then inspect the trial–drug–target mapping before escalating the statistical concern.",
+      "text": "Align the claims with the observational evidence, then inspect the trial–drug–target mapping to assess dependence.",
       "item_ids": [
         "VB-1",
         "VB-3"

@@ -19,7 +19,7 @@ SECTION_TITLES = [
     ("leakage_confounding_circularity", "Potential leakage/confounding/circularity"),
     ("missing_controls", "Missing controls or analyses"),
     ("alternative_explanations", "Alternative explanations"),
-    ("reviewer2", "Reviewer-2 style objections"),
+    ("reviewer2", "Critical questions"),
     ("writing_clarity", "Writing/clarity problems"),
     ("innovation_positioning", "Innovation and positioning assessment"),
     ("reproducibility", "Reproducibility/reporting gaps"),
@@ -245,9 +245,11 @@ def render_adversarial(review):
     if not data:
         return []
     by_id = {f.id: f for f in review.findings}
-    lines = ["## Revision brief", "", "**What the paper is trying to claim**", ""]
+    lines = ["## Revision brief", "", "**Main claims**", ""]
     for claim in review.claim_analyses[:3]:
         lines.append("- " + _clean(claim["claim_text"]) + " (" + claim["id"] + ")")
+        for ev in claim["manuscript_evidence"]:
+            lines.append("  - Source: " + _clean(citation(ev)))
     if not review.claim_analyses:
         lines.append("A central claim was not reliably extracted; identify it before interpreting this review.")
     claim_text = " ".join(c["claim_text"] for c in review.claim_analyses).lower()
@@ -260,17 +262,17 @@ def render_adversarial(review):
     ):
         if re.search(pattern, claim_text):
             types.append(label)
-    lines.extend(["", "**Contribution if the claims survive:** " +
+    lines.extend(["", "**Contribution described by the claims:** " +
                   (", ".join(types) if types else "Requires scientific judgment.") +
                   " — inferred from claim wording; novelty and impact remain unverified.", "",
-                  "## What could kill this paper", "", data["what_could_kill_this_paper"]["note"], ""])
+                  "## Main concerns", "", data["what_could_kill_this_paper"]["note"], ""])
     for fid in data["what_could_kill_this_paper"]["finding_ids"]:
         finding = by_id[fid]
         lines.extend(["- **[" + fid + "](#" + fid.replace(".", "") + ")** — " + _clean(finding.issue),
-                      "  - Why central: " + _clean(finding.why_it_matters),
+                      "  - Implication: " + _clean(finding.why_it_matters),
                       "  - " + finding.severity + "; " + finding.issue_status + "; confidence: " + finding.confidence])
     if not data["what_could_kill_this_paper"]["finding_ids"]:
-        lines.append("No sufficiently grounded major threat was identified; this is not evidence of scientific validity.")
+        lines.append("No sufficiently grounded major concern was identified; scientific validity remains unverified.")
     lines.extend(["", "## Major strengths", ""])
     for strength in data["major_strengths"][:3]:
         lines.append("- " + _clean(strength["text"]) + " (" + strength["interpretation_status"] + ")")
@@ -278,29 +280,31 @@ def render_adversarial(review):
             lines.append("  - " + _clean(citation(ev)))
     if not data["major_strengths"]:
         lines.append("Not established by the current review.")
-    lines.extend(["", "## Analyses most likely to change the story", ""])
+    lines.extend(["", "## Analyses to test the conclusions", ""])
     for fid in data["high_priority_analyses"][:3]:
         finding = by_id[fid]
-        lines.append("- **" + fid + "**: " + _clean(finding.suggested_fix))
+        lines.append("- **[" + fid + "](#" + fid.replace(".", "") + ")**: " + _clean(finding.suggested_fix))
         lines.extend(_action_lines(finding.action, "  - "))
     if not data["high_priority_analyses"]:
         lines.append("No decisive feasible analysis was established by this review.")
-    lines.extend(["", "## Text and positioning changes", "",
+    lines.extend(["", "## Wording and scope", "",
                   "These address wording; they do not repair an unsupported experiment or design.", ""])
     for fid in data["writing_framing"][:3]:
         finding = by_id[fid]
-        lines.append("- **" + _clean(finding.manuscript_section) + "**: " + _clean(finding.suggested_fix) + " (" + fid + ")")
+        lines.append("- **" + _clean(finding.manuscript_section) + "**: " + _clean(finding.suggested_fix)
+                     + " ([" + fid + "](#" + fid.replace(".", "") + "))")
     if not data["writing_framing"]:
         lines.append("No source-specific text-only correction was established.")
     attacks = [f for f in review.findings if f.disposition in ("active", "confirmed")
                and "reviewer2" in f.reviewer_roles and f.origin.startswith("provider:")]
     if not attacks:
         attacks = [by_id[fid] for fid in data["what_could_kill_this_paper"]["finding_ids"]]
-    lines.extend(["", "## Likely Reviewer 2 attacks", ""])
+    lines.extend(["", "## Questions for verification", ""])
     for finding in attacks[:3]:
-        lines.append("- " + _clean(finding.issue) + " — " + _clean(finding.suggested_analysis))
+        lines.append("- [" + finding.id + "](#" + finding.id.replace(".", "") + "): "
+                     + _clean(finding.issue) + " — " + _clean(finding.suggested_analysis))
     if not attacks:
-        lines.append("No specific supported attack was identified; this does not establish readiness.")
+        lines.append("No specific evidence-linked question was identified; review coverage remains limited.")
     lines.extend(["", "<details>", "<summary>Full claim analyses and revision plan</summary>", "",
                   "## Central claims and evidence", ""])
     for claim in review.claim_analyses[:7]:

@@ -94,3 +94,33 @@ Sibling `mar-skill` checkout:
 - `references/checklist-template.md`
 - `references/roles.md`
 - `references/synthesis.md`
+
+## Scientific writing update — 2026-10-24
+
+Baseline: engine `184abd292f500ac96b86d34d70323d19716186d5` and skill
+`403a66256a4b0e6650498082b8033b72df13b39b`. The writing convention now requires
+direct scientific prose, neutral assessments, adjacent references, and the study
+context needed to interpret results and conclusions. It applies to review and
+comparison requests, the ChatGPT handoff prompt, and the skill's final checklist.
+The report uses neutral headings and links suggested revisions to their evidence.
+
+Both showcases were edited against the same source snapshots and review decisions.
+Across item titles, assessments, counterevidence, next steps and decision-change
+criteria, the single-cell review decreased from 1,099 to 986 words and the Virtual
+Biotech review from 1,352 to 1,217 words. This measures concision, not scientific
+quality. All 21 decisions, 47 exact anchors, 62 baseline-lead assignments, source
+pins and original run receipts are unchanged. Summary and detailed-review links
+remain generated from the structured reviews.
+
+Validation: 250 tests passed, including routing the shared convention into every
+review role, comparison requests and handoff instructions. Both offline showcase
+reproductions matched their saved baselines and all source spans. Local receipts:
+
+- `reviews/showcases/runs/single-cell-foundation-models-3jixk8ue/verification.json`
+- `reviews/showcases/runs/virtual-biotech-h2mj8htk/verification.json`
+
+The skill structural validator passed. The convention adds 207 words per review
+or comparison request and no additional requests. No live provider call or blinded
+evaluation was performed, so model adherence and effects on scientific review
+quality remain unmeasured. Existing ChatGPT package instructions and hashes were
+preserved; writing guidance is added to the companion handoff prompt.

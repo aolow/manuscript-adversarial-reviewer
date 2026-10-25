@@ -6,7 +6,7 @@
   "workflow": "MAR skill evidence challenge and synthesis",
   "provider_panel_run": false,
   "independent_human_validation": false,
-  "summary": "The central contribution is a useful, explicitly scoped zero-shot benchmark. The strongest revision opportunities concern interpretation and reporting, not evidence that the benchmark is invalid. Preserve the practical comparison; distinguish it from controlled conclusions about pretraining or scaling. Three priorities survive the evidence challenge below, alongside two verification tasks and four rejected leads.",
+  "summary": "The review identifies three revision priorities, two verification questions, one supported strength and four dismissed concerns. The priorities concern the scope of the model comparison, the interpretation of pretraining size, and the metric description. Each assessment below separates the reported evidence from its interpretation.",
   "coverage": "Read: abstract, article body, methods, figure captions, availability statements and supplement descriptions from the published April 2025 article. The actual offline CLI produced 32 leads from 80 source blocks. The scientific synthesis is one model-native review using multiple lenses, not six independent reviewers. Supplement files, figure images, raw data, code execution and published peer-review history were not inspected. Thus neither numerical results nor supplementary sensitivity analyses are independently verified.",
   "anchors": {
     "SC-A1": {
@@ -153,93 +153,93 @@
   "items": [
     {
       "id": "SC-1",
-      "title": "Keep practical utility separate from a controlled test of pretraining",
+      "title": "Scope of the model comparison",
       "decision": "narrow",
-      "assessment": "Comparing frozen foundation models with target-trained, batch-aware scVI and Harmony answers a practical deployment question. It does not isolate architecture or pretraining quality under matched adaptation and information. The defensible request is to maintain that distinction wherever results are generalized, not to remove the baselines.",
+      "assessment": "The study compares frozen foundation models with scVI and Harmony fitted to the evaluation data using batch labels. This estimates practical performance under different fitting conditions; it does not isolate architecture or pretraining quality.",
       "evidence": [
         "SC-A1"
       ],
-      "challenge": "The authors explicitly explain the asymmetry and motivate it by available compute. Their conclusions also restrict coverage to selected models and tasks. This substantially answers an initial fairness objection.",
+      "challenge": "The authors explain these differences in terms of available computing resources and limit their conclusions to selected models and tasks. The review therefore narrows the concern to how the comparison is interpreted.",
       "counterevidence": [
         "SC-A2",
         "SC-A18"
       ],
-      "next_step": "Add a compact comparison table showing target-data fitting, batch-label access, feature selection and computational budget for each method. Only if claiming controlled architectural superiority, add an information- and adaptation-matched comparison; that is additional analysis, not a prerequisite for the practical benchmark.",
-      "decision_change": "If every headline and interpretation is already restricted to this practical estimand, close this as a presentation check without demanding new experiments.",
+      "next_step": "List target-data fitting, batch-label access, feature selection and computing budget for each method. A claim about architecture alone would require a comparison with matched information and adaptation; the practical benchmark does not require that additional analysis.",
+      "decision_change": "Close this as a presentation check if all conclusions already describe performance under the tested conditions.",
       "engine_finding_ids": [
         "check.batch_platform"
       ]
     },
     {
       "id": "SC-2",
-      "title": "Do not turn confounded model variants into a scaling limit",
+      "title": "Pretraining size and tissue composition",
       "decision": "narrow",
-      "assessment": "The statement about a limit beyond which more data may not help is stronger than a comparison in which data size and tissue composition change together. The observation supports non-monotonic performance among the tested checkpoints; it does not locate a general scaling threshold.",
+      "assessment": "Performance does not increase consistently across the tested model versions. Because pretraining size and tissue composition change together, this result does not identify a general limit beyond which more training data stops improving performance.",
       "evidence": [
         "SC-A4"
       ],
-      "challenge": "The paper directly acknowledges the size/composition confound and notes that the larger human collection contains the smaller tissue collections. That makes this a wording issue with a known limitation, not a newly discovered design failure.",
+      "challenge": "The paper acknowledges this confounding and states that the larger human collection includes the smaller tissue collections. The remaining concern is the scope of the scaling conclusion.",
       "counterevidence": [
         "SC-A3"
       ],
-      "next_step": "Describe performance of the tested variants without inferring a data-volume ceiling. To investigate a scaling law later, hold tissue mixture, training recipe and evaluation datasets fixed while varying pretraining size and seeds; those models may need new training.",
+      "next_step": "Describe the performance of the tested variants without inferring a data-volume limit. A later scaling study would need to hold tissue mixture, training procedure and evaluation datasets fixed while varying pretraining size and random seeds; this may require new model training.",
       "decision_change": "A controlled scaling experiment showing the same plateau would support a stronger claim. Narrow wording alone resolves the current interpretation concern.",
       "engine_finding_ids": []
     },
     {
       "id": "SC-3",
-      "title": "Check the direction of the ASW explanation",
+      "title": "Direction of the ASW metric",
       "decision": "retain",
-      "assessment": "The biological-preservation paragraph describes normalized zero as strong within-cluster cohesion, then says higher ASW means better separation. That presentation is internally confusing for readers interpreting model rankings. It warrants a reporting correction, not an allegation that the implementation or rankings are wrong.",
+      "assessment": "The biological-preservation paragraph describes normalized zero as strong within-cluster cohesion, then states that higher average silhouette width (ASW) indicates better separation. These descriptions need reconciliation before readers can interpret the rankings.",
       "evidence": [
         "SC-A5"
       ],
-      "challenge": "The same paragraph clearly gives the intended higher-is-better direction. A prose error could leave every computed result unchanged.",
+      "challenge": "The paragraph states the intended higher-is-better direction. A wording error could leave the computed results unchanged.",
       "counterevidence": [
         "SC-A6"
       ],
-      "next_step": "Verify the actual scib transformation and the negative, zero and positive raw-silhouette cases against the archived implementation; correct the explanation to match it. Inspect code before deciding whether any figure needs recomputation.",
+      "next_step": "Check the scib transformation and the negative, zero and positive raw-silhouette cases against the archived code. Correct the description to match the implementation; determine whether recomputation is needed only after that check.",
       "decision_change": "An explicitly documented alternative normalization consistent with both prose and implementation would remove the concern; a prose-only correction should not be treated as changed scientific results.",
       "engine_finding_ids": []
     },
     {
       "id": "SC-4",
-      "title": "Inspect masked reconstruction sensitivity before escalating",
+      "title": "Masked reconstruction sensitivity",
       "decision": "verify",
-      "assessment": "An all-unmasked reconstruction diagnostic differs from the corrupted-input task used during pretraining. Poor performance in that diagnostic alone does not establish that a model failed to learn its training objective. This is an unresolved interpretation check, not a confirmed flaw.",
+      "assessment": "The reconstruction diagnostic supplies unmasked input, whereas pretraining uses corrupted input. Performance on the diagnostic alone does not establish whether a model learned its training objective.",
       "evidence": [
         "SC-A7"
       ],
-      "challenge": "The supplement description explicitly reports Geneformer results across masking fractions. Those figures were not opened here; claiming that masking sensitivity is absent would be wrong.",
+      "challenge": "The supplement description reports Geneformer results across masking fractions. Those figures were not inspected, so the adequacy of that sensitivity analysis remains unverified.",
       "counterevidence": [
         "SC-A8"
       ],
-      "next_step": "First inspect Supplementary Figures S8–S9 and the code. Check masking ratio, which tokens are scored, and whether the naive comparator uses the same information. Only if not covered, propose matched-corruption evaluation for each model and dataset, reporting repeated-mask uncertainty.",
+      "next_step": "Inspect Supplementary Figures S8–S9 and the code for the masking ratio, scored tokens and information available to the simple comparator. If these do not address the question, evaluate matched masking and scoring conditions for each model and dataset, with uncertainty across repeated masks.",
       "decision_change": "Equivalent conclusions under the training-like corruption and scoring protocol would substantially weaken this concern.",
       "engine_finding_ids": []
     },
     {
       "id": "SC-5",
-      "title": "Preserve the benchmark’s useful control structure",
+      "title": "Baselines and reported evaluation scope",
       "decision": "strength",
-      "assessment": "Simple baselines, a random-initialization comparison and evaluation of both cell separation and integration make the benchmark informative for practical tool choice. The manuscript also exposes important limits rather than hiding them.",
+      "assessment": "The study includes simple baselines, a randomly initialized model, and tests of cell separation and batch integration. These comparisons provide context for interpreting the performance of pretrained models.",
       "evidence": [
         "SC-A15",
         "SC-A19"
       ],
-      "challenge": "This supports the value of the experimental question and reported comparisons. It does not independently validate numerical results, generalize to later model versions, or establish clinical usefulness.",
+      "challenge": "The authors limit coverage to selected models and tasks. The reported comparisons do not independently verify the numerical results or establish performance of later model versions.",
       "counterevidence": [
         "SC-A18"
       ],
-      "next_step": "Keep the scoped takeaway and report per-dataset results alongside aggregate rankings.",
+      "next_step": "Retain these comparisons and the stated scope; report results for each dataset alongside aggregate rankings.",
       "decision_change": "A code or data audit finding materially different computations could change this assessment; none was performed here.",
       "engine_finding_ids": []
     },
     {
       "id": "SC-6",
-      "title": "Dismiss the apparent code-availability contradiction",
+      "title": "Code-availability statements refer to different studies",
       "decision": "dismiss",
-      "assessment": "The engine combined a statement about other methods not releasing pretraining code with this paper’s own code-release statement. These have different subjects. The resulting contradiction is a contextual false positive.",
+      "assessment": "The engine combined a statement about other methods lacking public pretraining code with this paper’s code-release statement. The statements refer to different studies and do not contradict each other.",
       "evidence": [
         "SC-A12"
       ],
@@ -256,18 +256,18 @@
     },
     {
       "id": "SC-7",
-      "title": "Dismiss undisclosed pretraining overlap as a headline criticism",
+      "title": "Pretraining overlap is disclosed",
       "decision": "dismiss",
-      "assessment": "Overlap is explicitly disclosed, and a non-overlapping Pancreas analysis is described. A review should not present this as hidden leakage or claim no sensitivity analysis exists.",
+      "assessment": "The paper discloses pretraining overlap and describes a Pancreas analysis without overlap. The evidence does not support a concern about undisclosed overlap or absent sensitivity analysis.",
       "evidence": [
         "SC-A10",
         "SC-A9"
       ],
-      "challenge": "The authors still acknowledge that the batch-integration advantage on some scGPT datasets cannot be disentangled from exposure. Disclosure limits the claim; it does not make all results an unseen-data benchmark.",
+      "challenge": "The authors acknowledge that some scGPT batch-integration advantages cannot be separated from prior exposure. Disclosure does not establish performance on unseen data for every comparison.",
       "counterevidence": [
         "SC-A20"
       ],
-      "next_step": "Retain the authors’ exposure caveat and check the supplementary per-dataset results before making any generalization claim.",
+      "next_step": "Retain the exposure limitation and inspect the supplementary results for each dataset before assessing generalization.",
       "decision_change": "A headline asserting uniformly unseen evaluation, or a mismatch between the reported subset and actual inputs, would reopen a narrower concern.",
       "engine_finding_ids": [
         "check.external_validation",
@@ -276,17 +276,17 @@
     },
     {
       "id": "SC-8",
-      "title": "Dismiss perturbation-screen requirements for an embedding benchmark",
+      "title": "Perturbation-screen checks are outside the study scope",
       "decision": "dismiss",
-      "assessment": "The paper evaluates pretrained embeddings and reconstruction. Its discussion of future perturbation experiments does not make this study a CRISPR screen requiring guides, MOI, perturbation efficiency or toxicity controls. Donor-level differential-expression rules likewise do not automatically apply to descriptive embedding comparisons.",
+      "assessment": "The study evaluates pretrained embeddings and reconstruction. It does not report a new CRISPR screen, so screen-specific control requirements do not apply to this benchmark. Donor-level differential-expression checks also require an applicable inferential analysis.",
       "evidence": [
         "SC-A13"
       ],
-      "challenge": "The experimental-validation passage is expressly a future-research suggestion.",
+      "challenge": "The experimental-validation passage proposes future research.",
       "counterevidence": [
         "SC-A14"
       ],
-      "next_step": "Mark these leads out of scope for the reported study. Revisit design-specific checks if a later manuscript actually reports those experiments.",
+      "next_step": "Mark these leads out of scope. Apply experiment-specific checks if a later manuscript reports those experiments.",
       "decision_change": "A newly supplied experimental screen or inferential differential-expression analysis would change applicability.",
       "engine_finding_ids": [
         "check.guides",
@@ -296,34 +296,34 @@
     },
     {
       "id": "SC-9",
-      "title": "Keep unretrieved methods details in a verification queue",
+      "title": "Methods details requiring supplementary material",
       "decision": "verify",
-      "assessment": "Donor composition, preprocessing, random seeds, uncertainty and robustness require checking the supplementary tables and archived code. Their absence from a particular text cue is not proof they were omitted from the study. Descriptive benchmark variability should not automatically be turned into a missing-significance-test complaint.",
+      "assessment": "The supplement descriptions identify additional sampling and evaluation details. Donor composition, preprocessing, random seeds, uncertainty and robustness require inspection of those materials and the archived code; a text-search omission does not establish a missing method.",
       "evidence": [
         "SC-A17"
       ],
-      "challenge": "Supplement descriptions report subsampling, and an executable environment is announced. Neither was tested here.",
+      "challenge": "Subsampling is described and an executable environment is announced. Neither was checked here.",
       "counterevidence": [
         "SC-A16"
       ],
-      "next_step": "Inspect Tables S1–S7 and the archived environment first. Record donor/dataset units, seeds and whether resampling captures donor or only cell variability. Escalate only a specific unresolved requirement relevant to the claimed generalization.",
+      "next_step": "Inspect Tables S1–S7 and the archived environment. Record donor and dataset units, random seeds, and whether resampling measures donor or only cell variability. Raise a concern only if a requirement relevant to the stated conclusion remains unmet.",
       "decision_change": "Locating the relevant settings or showing that an inferential claim is not made closes the corresponding lead; reproducibility failure would warrant a specific issue.",
       "engine_finding_ids": []
     },
     {
       "id": "SC-10",
-      "title": "Dismiss the missing-baseline cue",
+      "title": "Baseline comparisons are reported",
       "decision": "dismiss",
-      "assessment": "The engine did not recognize an explicitly described set of baselines. HVG, scVI, Harmony and a randomly initialized scGPT comparison are present; a generic missing-baseline allegation would be misleading.",
+      "assessment": "The paper includes highly variable gene (HVG), scVI and Harmony baselines, plus a randomly initialized scGPT comparison. The generic missing-baseline lead is unsupported.",
       "evidence": [
         "SC-A15",
         "SC-A19"
       ],
-      "challenge": "The fairness and scope of the comparisons remain distinct questions handled in SC-1.",
+      "challenge": "Differences in fitting conditions remain a separate interpretation question in SC-1.",
       "counterevidence": [
         "SC-A2"
       ],
-      "next_step": "Close the missing-baseline and generic absent-null-control leads. Preserve any specifically motivated new comparator as optional strengthening.",
+      "next_step": "Close the missing-baseline and absent-random-control leads. Justify any additional comparator against the specific claim it would test.",
       "decision_change": "A necessary comparator for a stronger, different claim could reopen a narrowly specified request.",
       "engine_finding_ids": [
         "check.baseline_models",
@@ -422,41 +422,40 @@
   ],
   "at_a_glance": {
     "assessment": {
-      "text": "A useful, deliberately scoped benchmark. The main revision needs concern interpretation and reporting; the review does not establish that the benchmark is invalid.",
+      "text": "The benchmark compares frozen single-cell models with methods fitted to the evaluation data. This design assesses practical performance; it does not isolate the effects of architecture or pretraining size.",
       "item_ids": [
         "SC-1",
-        "SC-2",
-        "SC-3"
+        "SC-2"
       ]
     },
     "contribution": {
-      "text": "Demonstrates why frozen single-cell models should be tested against practical, simpler alternatives.",
+      "text": "Includes simple baselines and a randomly initialized model, with tests of cell separation and batch integration.",
       "item_ids": [
         "SC-5"
       ]
     },
     "priorities": [
       {
-        "text": "Clarify what the comparison answers: practical performance, with different access to target data and batch labels.",
+        "text": "State which methods use evaluation data for fitting and which use batch labels when interpreting performance differences.",
         "item_ids": [
           "SC-1"
         ]
       },
       {
-        "text": "Narrow the scaling claim: changing data size and tissue composition together cannot isolate a general data-volume limit.",
+        "text": "Limit the scaling conclusion to the tested models: pretraining size and tissue composition vary together.",
         "item_ids": [
           "SC-2"
         ]
       },
       {
-        "text": "Check the ASW explanation against the implemented normalization before changing any reported results.",
+        "text": "Check the average silhouette width (ASW) description against the implemented normalization.",
         "item_ids": [
           "SC-3"
         ]
       }
     ],
     "first_step": {
-      "text": "Align the comparison and scaling conclusions with the acknowledged design limits; start with wording before requesting new experiments.",
+      "text": "Revise the comparison and scaling conclusions to match the stated design limits. These wording changes do not require new experiments.",
       "item_ids": [
         "SC-1",
         "SC-2"

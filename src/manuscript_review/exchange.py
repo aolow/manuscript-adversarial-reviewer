@@ -12,6 +12,7 @@ from .models import review_from_dict, stable_id
 from .providers.contracts import REVIEW_SCHEMA, REVIEW_ENVELOPE_SCHEMA, obj, validate_payload
 from .grounding import normalize_response, reconcile
 from .validation import validate_report
+from .reviewers import writing_guidance
 
 PACKAGE_VERSION = "1.0"
 
@@ -144,11 +145,17 @@ def export_files(review, max_findings=15):
 Upload only chatgpt-review.json. It contains selected manuscript excerpts:
 upload it only when you intend to share that content with ChatGPT.
 
-Paste: "Use the attached context to help me revise this manuscript. Start with
+Paste the entire block below, including the writing convention:
+
+```text
+Use the attached context to help me revise this manuscript. Start with
 the central claims, the highest-impact unresolved concerns, and analyses feasible
 with the described data. Distinguish text edits from new evidence. Do not assume
 the excerpt package is the full manuscript or that cited interpretations are true.
-If you propose structured feedback, return JSON matching feedback_schema."
+If you propose structured feedback, return JSON matching feedback_schema.
+
+""" + writing_guidance() + """
+```
 
 Save structured output as feedback.json. Import it locally with the original
 manuscript and report. Default import stages candidates for inspection;

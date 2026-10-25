@@ -10,38 +10,41 @@ This report supports scientific judgment. Findings are traceable review leads; m
 
 ## Revision brief
 
-**What the paper is trying to claim**
+**Main claims**
 
 - Our results prove a causal mechanism of treatment resistance across tissues. (claim-009b7a26360c)
+  - Source: manuscript; Abstract; line 6; block manuscript-48a71d89af2c-1
 - We present the first-ever framework for a universal cancer response biomarker. (claim-ecca1ed06169)
+  - Source: manuscript; Abstract; line 5; block manuscript-48a71d89af2c-1
 - Transcriptomic similarity establishes mechanistic conservation across cancers. (claim-659f836b89a9)
+  - Source: manuscript; Abstract; line 7; block manuscript-48a71d89af2c-1
 
-**Contribution if the claims survive:** predictive or biomarker contribution, methodological contribution, biological interpretation — inferred from claim wording; novelty and impact remain unverified.
+**Contribution described by the claims:** predictive or biomarker contribution, methodological contribution, biological interpretation — inferred from claim wording; novelty and impact remain unverified.
 
-## What could kill this paper
+## Main concerns
 
 Up to seven consequential review leads, not fatal-flaw verdicts. Fewer than three are shown when fewer are justified.
 
 - **[pattern.causal_overclaim](#patterncausal_overclaim)** — Causal or mechanistic wording needs support: review the cited passage.
-  - Why central: A strong causal phrase requires a design that identifies the claimed mechanism or causal effect.
+  - Implication: A strong causal phrase requires a design that identifies the claimed mechanism or causal effect.
   - major; plausible_issue; confidence: medium
 - **[pattern.conservation_overclaim](#patternconservation_overclaim)** — Similarity or transferability used to claim conservation: review the cited passage.
-  - Why central: Transcriptomic similarity or transfer alone does not establish a conserved regulatory mechanism.
+  - Implication: Transcriptomic similarity or transfer alone does not establish a conserved regulatory mechanism.
   - major; plausible_issue; confidence: medium
 - **[pattern.cell_pseudoreplication](#patterncell_pseudoreplication)** — Cells treated as independent biological replicates: review the cited passage.
-  - Why central: Within-donor dependence can understate uncertainty when cells replace donors as independent units.
+  - Implication: Within-donor dependence can understate uncertainty when cells replace donors as independent units.
   - major; established_issue; confidence: high
 - **[pattern.cohort_reuse](#patterncohort_reuse)** — Discovery and validation cohort reuse: review the cited passage.
-  - Why central: Reuse does not establish independent validation and can repeat discovery biases.
+  - Implication: Reuse does not establish independent validation and can repeat discovery biases.
   - major; established_issue; confidence: high
 - **[pattern.feature_selection_before_split](#patternfeature_selection_before_split)** — Feature selection before splitting: review the cited passage.
-  - Why central: Data-dependent selection using evaluation samples makes the reported evaluation non-independent.
+  - Implication: Data-dependent selection using evaluation samples makes the reported evaluation non-independent.
   - major; established_issue; confidence: high
 - **[pattern.test_set_tuning](#patterntest_set_tuning)** — Test data used for tuning: review the cited passage.
-  - Why central: Choosing model settings on a test set turns it into development data.
+  - Implication: Choosing model settings on a test set turns it into development data.
   - major; established_issue; confidence: high
 - **[pattern.circular_signature](#patterncircular_signature)** — Signature reused for its own validation: review the cited passage.
-  - Why central: Reusing defining features as evidence of validity may produce a tautological result.
+  - Implication: Reusing defining features as evidence of validity may produce a tautological result.
   - major; plausible_issue; confidence: medium
 
 ## Major strengths
@@ -49,40 +52,40 @@ Up to seven consequential review leads, not fatal-flaw verdicts. Fewer than thre
 - Reported design element; scientific adequacy requires review: Biological replication units (reported_cue_only)
   - manuscript; Methods; line 16; block manuscript-dc3b7f1eb694-1
 
-## Analyses most likely to change the story
+## Analyses to test the conclusions
 
-- **pattern.cell_pseudoreplication**: Report donor nesting and justify the model; distinguish technical observations from biological replicates.
+- **[pattern.cell_pseudoreplication](#patterncell_pseudoreplication)**: Report donor nesting and justify the model; distinguish technical observations from biological replicates.
   - **Input:** Cell-level measurements with donor, condition, and batch labels
   - **Comparison:** Original cell-level result versus a justified donor-aware model or pseudobulk analysis
   - **Held-out / biological unit:** Independent donors; preserve within-donor dependence
   - **Metric:** Donor-level effect estimates, uncertainty, multiplicity-adjusted evidence, and sensitivity to cell counts
   - **Interpretation / failure criterion:** A disappearing or reversed donor-level effect would undermine the pooled-cell conclusion.
-- **pattern.cohort_reuse**: Label the analysis as internal reuse and identify independent validation if it exists.
+- **[pattern.cohort_reuse](#patterncohort_reuse)**: Label the analysis as internal reuse and identify independent validation if it exists.
   - **Input:** Construction features, validation features, independent phenotypes, and cohort membership
   - **Comparison:** Reported validation versus validation excluding construction/annotation information
   - **Held-out / biological unit:** Independent cohort and independent validation features
   - **Metric:** Prespecified association or predictive performance under an appropriate null
   - **Interpretation / failure criterion:** Loss of support when defining information is withheld would indicate circular validation.
-- **pattern.feature_selection_before_split**: Clarify whether selection used outcomes and evaluation samples; fit all learned selection inside training folds.
+- **[pattern.feature_selection_before_split](#patternfeature_selection_before_split)**: Clarify whether selection used outcomes and evaluation samples; fit all learned selection inside training folds.
   - **Input:** Original predictor inputs and participant/cohort labels
   - **Comparison:** Reported pipeline versus all learned steps refit inside nested training folds
   - **Held-out / biological unit:** Patients or donors, grouped by cohort where relevant
   - **Metric:** Held-out discrimination and calibration with biological-unit confidence intervals
   - **Interpretation / failure criterion:** A material loss of performance would weaken the claimed generalization; stability would address this specific concern.
 
-## Text and positioning changes
+## Wording and scope
 
 These address wording; they do not repair an unsupported experiment or design.
 
-- **Abstract**: Connect the wording to identifying evidence; if support is associative, use appropriately limited language. (pattern.causal_overclaim)
-- **Abstract**: Separate shared predictive structure from evidence of shared regulation. (pattern.conservation_overclaim)
-- **Methods**: Explain design, measurement, cohort, and inference limitations in relation to the main claims. (check.limitations)
+- **Abstract**: Connect the wording to identifying evidence; if support is associative, use appropriately limited language. ([pattern.causal_overclaim](#patterncausal_overclaim))
+- **Abstract**: Separate shared predictive structure from evidence of shared regulation. ([pattern.conservation_overclaim](#patternconservation_overclaim))
+- **Methods**: Explain design, measurement, cohort, and inference limitations in relation to the main claims. ([check.limitations](#checklimitations))
 
-## Likely Reviewer 2 attacks
+## Questions for verification
 
-- Causal or mechanistic wording needs support: review the cited passage. — Evaluate perturbation, rescue, temporal ordering, and alternative causal explanations as appropriate.
-- Similarity or transferability used to claim conservation: review the cited passage. — Test specific regulatory predictions with orthogonal perturbations across the relevant tissues or cohorts.
-- Cells treated as independent biological replicates: review the cited passage. — Reanalyze using donor-level pseudobulk or an appropriate hierarchical model.
+- [pattern.causal_overclaim](#patterncausal_overclaim): Causal or mechanistic wording needs support: review the cited passage. — Evaluate perturbation, rescue, temporal ordering, and alternative causal explanations as appropriate.
+- [pattern.conservation_overclaim](#patternconservation_overclaim): Similarity or transferability used to claim conservation: review the cited passage. — Test specific regulatory predictions with orthogonal perturbations across the relevant tissues or cohorts.
+- [pattern.cell_pseudoreplication](#patterncell_pseudoreplication): Cells treated as independent biological replicates: review the cited passage. — Reanalyze using donor-level pseudobulk or an appropriate hierarchical model.
 
 <details>
 <summary>Full claim analyses and revision plan</summary>
@@ -507,7 +510,7 @@ Hypotheses to test, not established explanations.
 - Could construction or annotation choices make the validation result true by definition?
   - Findings: [pattern.cohort_reuse](#patterncohort_reuse), [pattern.circular_signature](#patterncircular_signature)
 
-## 12. Reviewer-2 style objections
+## 12. Critical questions
 
 - What evidence addresses this concern: Cells treated as independent biological replicates: review the cited passage. Report donor nesting and justify the model; distinguish technical observations from biological replicates.
   - Findings: [pattern.cell_pseudoreplication](#patterncell_pseudoreplication)

@@ -7,6 +7,7 @@ from .grounding import resolve_citations
 from .models import SEVERITIES, evidence
 from .extraction import substantive_blocks
 from .providers.contracts import COMPARISON_ENVELOPE_SCHEMA, ASSESSMENT, validate_payload
+from .reviewers import writing_guidance
 
 
 def deterministic_assessments(old, new, comparison):
@@ -50,7 +51,7 @@ def deterministic_assessments(old, new, comparison):
 def comparison_packet(old, new):
     instructions = resources.files("manuscript_review.reviewers").joinpath("prompts/comparison.txt").read_text(encoding="utf-8")
     return {
-        "instructions": instructions,
+        "instructions": instructions + "\n\n" + writing_guidance(),
         "old_source_blocks": [asdict(b) for b in substantive_blocks(old.documents)],
         "new_source_blocks": [asdict(b) for b in substantive_blocks(new.documents)],
         "prior_issues": [asdict(f) for f in old.findings if f.disposition in ("active", "confirmed")],

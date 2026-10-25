@@ -214,10 +214,10 @@ def render_summary(review, target=""):
         return value["text"] + " " + links
 
     lines = ["## Review at a glance", "", "**Assessment:** " + row(summary["assessment"]), "",
-             "**Main contribution:** " + row(summary["contribution"]), "", "**Focus on these first:**", ""]
+             "**Main contribution:** " + row(summary["contribution"]), "", "**Review priorities:**", ""]
     for number, priority in enumerate(summary["priorities"], 1):
         lines.append(str(number) + ". " + row(priority))
-    lines.extend(["", "**Best next step:** " + row(summary["first_step"]), "",
+    lines.extend(["", "**Next step:** " + row(summary["first_step"]), "",
                   "*Scope: " + summary["scope"] + "*", ""])
     return "\n".join(lines)
 
@@ -243,9 +243,9 @@ def render_review(review, manifest):
              "dismiss a concern. Exact source-span checks do not verify those interpretations. "
              "Engine dispositions remain unchanged in [baseline.json](baseline.json).", ""]
     groups = [("Revision priorities", ("retain", "narrow")),
-              ("Verify before escalating", ("verify",)),
-              ("Strengths worth preserving", ("strength",)),
-              ("Concerns that did not survive checking", ("dismiss",))]
+              ("Open verification questions", ("verify",)),
+              ("Supported strengths", ("strength",)),
+              ("Dismissed concerns", ("dismiss",))]
     for title, decisions in groups:
         lines.extend(["## " + title, ""])
         for item in review["items"]:
@@ -253,8 +253,8 @@ def render_review(review, manifest):
                 continue
             lines.extend(['<a id="' + item["id"].lower() + '"></a>', "",
                           "### " + item["id"] + " — " + item["title"], "",
-                          "**Decision: " + item["decision"] + ".** " + item["assessment"], "",
-                          "**Evidence:** " + ", ".join("[" + a + "](#" + a.lower() + ")" for a in item["evidence"]) + ".", "",
+                          "**Decision: " + item["decision"] + ".** " + item["assessment"] + " "
+                          + " ".join("[" + a + "](#" + a.lower() + ")" for a in item["evidence"]), "",
                           "**Counterevidence / scope:** " + item["challenge"] + " "
                           + " ".join("[" + a + "](#" + a.lower() + ")" for a in item["counterevidence"]), "",
                           "**Next step:** " + item["next_step"], "",

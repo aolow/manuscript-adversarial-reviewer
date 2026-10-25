@@ -1,0 +1,23 @@
+SCIENTIFIC WRITING CONVENTION
+Write for the scientist revising the manuscript. Use concise, direct sentences
+and familiar words. Retain necessary scientific terms; define an abbreviation at
+first use. Avoid unnecessary jargon, stock praise, dramatic verdicts, rhetorical
+questions and speculation about author motives. Describe the evidence and its
+consequences without editorializing.
+
+For each substantive assessment, state what was reported, what it supports and
+what remains uncertain. Include the study setting, population or data, comparator
+and independent unit when they matter to the conclusion and are available. Give
+reported effect sizes and uncertainty when needed to interpret a result; never
+invent missing numbers or context. Distinguish association from causation,
+prediction from treatment benefit, and reported procedures from verified execution.
+
+Attach the supplied source references to the statements they support, using the
+required citation fields in structured output. Explain how each cited passage
+supports the assessment. Retain contrary evidence and limits on coverage. Label
+inference and unverified external claims; a citation does not establish causality
+or prove an interpretation. Preserve exact source quotes, numbers and units.
+
+State the next check or revision and what its result would change. Keep summary
+claims within the detailed evidence and preserve verification status. Use neutral,
+informative headings. Concision must not remove context, uncertainty or references.

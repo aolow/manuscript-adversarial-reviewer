@@ -2,17 +2,17 @@
 
 ## Review at a glance
 
-**Assessment:** A substantial computational demonstration with useful therapeutic hypotheses. Mechanistic and treatment-selection claims need careful limits; the precision of trial-level associations remains a verification question. [VB-1](#vb-1) [VB-2](#vb-2) [VB-3](#vb-3)
+**Assessment:** The preprint reports computational case studies and observational associations. These generate therapeutic hypotheses; causal mechanisms and treatment-specific benefit remain untested. Trial-level uncertainty requires verification. [VB-1](#vb-1) [VB-2](#vb-2) [VB-3](#vb-3)
 
-**Main contribution:** Shows a concrete reviewer critique prompting a new spatial analysis, a useful pattern for scientific follow-up. [VB-5](#vb-5)
+**Main contribution:** Documents a reviewer critique followed by a spatial analysis addressing the missing tissue context. [VB-5](#vb-5)
 
-**Focus on these first:**
+**Review priorities:**
 
-1. Frame B7-H3 findings as spatial and prognostic evidence; causal mechanism requires an intervention. [VB-1](#vb-1)
-2. Keep OSMR-guided enrollment as a hypothesis until treatment-specific benefit is demonstrated. [VB-2](#vb-2)
-3. Verify whether uncertainty accounts for repeated drugs, targets and development programs across trials. [VB-3](#vb-3)
+1. Describe B7-H3 findings as spatial and survival associations. A causal mechanism requires intervention evidence. [VB-1](#vb-1)
+2. Keep enrollment based on oncostatin M receptor (OSMR) expression as a hypothesis: nonresponse to other therapies does not establish benefit from vixarelimab. [VB-2](#vb-2)
+3. Check whether uncertainty accounts for drugs, targets and development programs represented in multiple trials. [VB-3](#vb-3)
 
-**Best next step:** Align the headline claims with the observational evidence, then inspect the trial–drug–target mapping before escalating the statistical concern. [VB-1](#vb-1) [VB-3](#vb-3)
+**Next step:** Align the claims with the observational evidence, then inspect the trial–drug–target mapping to assess dependence. [VB-1](#vb-1) [VB-3](#vb-3)
 
 *Scope: February 2026 preprint v1, not the later journal article. Offline CLI plus model-native synthesis; text, methods and captions reviewed. Supplements, code and data were not inspected; no independent human validation of this review.*
 
@@ -22,7 +22,7 @@
 
 Source: [The Virtual Biotech: A Multi-Agent AI Framework for Therapeutic Discovery and Development](https://pmc.ncbi.nlm.nih.gov/articles/PMC12970349/). Harrison G. Zhang, Peter Eckmann, Jiacheng Miao, Andrew B. Mahon, James Zou. bioRxiv preprint v1, 23 February 2026; PMC12970349.1.
 
-The preprint demonstrates a substantial computational workflow and useful hypothesis generation. Four priorities concern the reach of its conclusions: mechanistic language, treatment-selection claims, dependence in trial-level evidence, and comparative claims about agent quality. The review also credits safeguards that the manuscript already implements. This is a review of the February preprint only, not of the later Science article.
+This review covers the February 2026 preprint. It identifies three revision priorities, two verification questions, one supported strength and five dismissed concerns. The assessments distinguish the reported computational results from mechanistic, treatment-selection and comparative-quality conclusions.
 
 ## Coverage
 
@@ -34,31 +34,27 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-1"></a>
 
-### VB-1 — Keep spatial association separate from B7-H3 mechanism
+### VB-1 — B7-H3 association and mechanism
 
-**Decision: retain.** The spatial analysis adds useful tissue-context evidence, but expression, inferred neighboring cell abundance and observational survival associations do not establish that perturbing B7-H3 causes immune exclusion or reverses it. The phrase “functional evidence” risks overstating what these measurements demonstrate.
+**Decision: retain.** The reported evidence links B7-H3 expression with spatial cell patterns and survival. These observational associations do not establish that changing B7-H3 activity causes or reverses immune exclusion. Describing them as “functional evidence” needs qualification. [VB-A1](#vb-a1)
 
-**Evidence:** [VB-A1](#vb-a1).
+**Counterevidence / scope:** The methods exclude B7-H3 from cell-abundance estimation and account for spatial composition and sample effects. The discussion also identifies the case studies as hypotheses requiring validation. [VB-A2](#vb-a2) [VB-A3](#vb-a3) [VB-A4](#vb-a4)
 
-**Counterevidence / scope:** The methods exclude B7-H3 from deconvolution and adjust for spatial composition and sample effects. These directly answer a simplistic circularity or no-sample-adjustment objection. The discussion also labels the case studies as hypotheses requiring validation. [VB-A2](#vb-a2) [VB-A3](#vb-a3) [VB-A4](#vb-a4)
+**Next step:** Revise the mechanistic wording to reflect observational evidence. If a causal claim is required, propose a new study perturbing B7-H3 in matched fibroblast, immune-cell and tumor systems across independent donors. Compare appropriate controls and measure immune exclusion or function, with viability checks.
 
-**Next step:** First align the mechanistic wording with the observational evidence. If a causal claim is essential, propose a new intervention study: perturb B7-H3 in matched fibroblast–immune–tumor systems across independent donors, compare with appropriate controls and measure immune exclusion or function while checking viability. No such experimental result is established by this review.
-
-**What would change this decision:** Replicated intervention evidence separating B7-H3 activity from correlated fibroblast state would support stronger mechanistic language. An expression association alone would not.
+**What would change this decision:** Replicated interventions separating B7-H3 activity from correlated fibroblast state would support stronger mechanistic language.
 
 **Origin:** model-native. **Related engine leads:** none; not an engine-generated finding.
 
 <a id="vb-2"></a>
 
-### VB-2 — Treat OSMR enrichment as a testable trial-design hypothesis
+### VB-2 — OSMR expression and treatment selection
 
-**Decision: narrow.** Baseline OSMR associations with nonresponse to other biologics do not identify a subgroup with greater benefit from vixarelimab. Nor do they establish the reason MOONGLOW stopped. The proposal is scientifically interesting, but predictive treatment benefit and a retrospective failure explanation remain untested.
+**Decision: narrow.** Baseline oncostatin M receptor (OSMR) expression is associated with nonresponse to other biologics. This does not establish greater benefit from vixarelimab in a selected subgroup or explain why MOONGLOW stopped. [VB-A5](#vb-a5) [VB-A6](#vb-a6)
 
-**Evidence:** [VB-A5](#vb-a5), [VB-A6](#vb-a6).
+**Counterevidence / scope:** The authors use conditional language, describe the case studies as hypotheses and identify unresolved assay and cutoff choices. The review should retain those qualifications. [VB-A4](#vb-a4) [VB-A7](#vb-a7)
 
-**Counterevidence / scope:** The authors use conditional language, explicitly call the case studies hypotheses, and identify assay/cutoff decisions still to be made. The proper review action is to preserve that boundary, not accuse the paper of claiming a validated clinical test. [VB-A4](#vb-a4) [VB-A7](#vb-a7)
-
-**Next step:** Check whether baseline biopsies, treatment assignments and outcomes from MOONGLOW are available. If so, estimate an exploratory randomized treatment-by-biomarker interaction with uncertainty; that cannot retrospectively validate a selected cutoff. A prespecified assay, cutoff and independent prospective evaluation are needed before adopting enrichment as a validated selection strategy.
+**Next step:** Check whether baseline biopsies, randomized treatment assignments and outcomes from MOONGLOW are available. If available, estimate whether treatment effects vary with the biomarker, including uncertainty. An exploratory result would require a prespecified assay and cutoff plus independent prospective evaluation before supporting a validated selection strategy.
 
 **What would change this decision:** Treatment-interaction evidence replicated in an independent cohort could justify predictive language. General association with disease severity or other-therapy nonresponse would not.
 
@@ -66,33 +62,29 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-4"></a>
 
-### VB-4 — Bound claims about comparative quality and objectivity
+### VB-4 — Evidence for comparative review quality
 
-**Decision: narrow.** Illustrative case studies, API expenditure and parallel throughput establish feasibility. They do not by themselves measure superiority to human teams or the incremental scientific benefit of a reviewer agent. Avoid reading inexpensive execution as a validated gain in correctness, unbiased judgment or total project cost.
+**Decision: narrow.** The case studies, API expenditure and parallel execution demonstrate feasibility. They do not measure improvement over human teams or the contribution of the reviewer agent to scientific accuracy. API expenditure also does not measure total project cost. [VB-A11](#vb-a11) [VB-A12](#vb-a12)
 
-**Evidence:** [VB-A11](#vb-a11), [VB-A12](#vb-a12).
+**Counterevidence / scope:** The authors describe an inspectable workflow and acknowledge that agent errors can propagate. These observations do not substitute for a controlled comparison. [VB-A13](#vb-a13) [VB-A14](#vb-a14)
 
-**Counterevidence / scope:** The workflow is inspectable and the authors explicitly acknowledge propagated agent errors. Those are meaningful strengths, but not a matched comparison or ablation. [VB-A13](#vb-a13) [VB-A14](#vb-a14)
-
-**Next step:** Narrow unqualified comparative language. To evaluate the architecture, use the same held-out questions, information access and budget across full workflow, no-reviewer and simpler-agent conditions, with blinded expert scoring of correct conclusions, unsupported claims, missing key evidence, time and total cost. This is a proposed validation study, not work performed for this showcase.
+**Next step:** Qualify comparative claims. A validation study could compare the full workflow, a version without the reviewer and a simpler agent on the same unseen questions, information and budget. Blinded experts would assess correct conclusions, unsupported claims and missing evidence; record time and total cost. This study was not performed for the showcase.
 
 **What would change this decision:** A controlled assessment showing repeatable quality gains would support a stronger claim about the reviewer loop. Reported case costs alone would not.
 
 **Origin:** model-native. **Related engine leads:** `check.baseline_models`.
 
-## Verify before escalating
+## Open verification questions
 
 <a id="vb-3"></a>
 
-### VB-3 — Verify the independent unit behind trial-level precision
+### VB-3 — Dependence across trials
 
-**Decision: verify.** Molecular features are shared across trials testing related drugs or targets. The reported random effects describe modality and disease-area combinations; they do not by themselves establish that dependence from repeated drugs, targets or development programs is handled. Shuffling individual outcomes also does not necessarily preserve that dependence. This is a question about uncertainty and generalization, not proof that the associations disappear.
+**Decision: verify.** Related trials can share drugs, targets and molecular features. The reported modality and disease-area random effects do not establish that this dependence is accounted for, and shuffling individual outcomes may not preserve it. The effect on uncertainty remains unverified. [VB-A8](#vb-a8) [VB-A10](#vb-a10)
 
-**Evidence:** [VB-A8](#vb-a8), [VB-A10](#vb-a10).
+**Counterevidence / scope:** The paper reports adjusted mixed models, adjustment for genetic evidence, correction for multiple comparisons and an observational limitation. These address other sources of bias and uncertainty. [VB-A9](#vb-a9) [VB-A26](#vb-a26)
 
-**Counterevidence / scope:** The manuscript includes adjusted mixed models, genetic-evidence adjustment, multiplicity control and an explicit observational limitation. Saying “no confounder adjustment” would ignore these safeguards. [VB-A9](#vb-a9) [VB-A26](#vb-a26)
-
-**Next step:** Inspect the trial–drug–target mapping and scripts; report unique clusters and overlap first. If repeated-program dependence remains, compare the main intervals with an appropriate drug/program/target-aware resampling or variance model, specifying treatment of multi-target overlap. For prospective prediction claims, add a time- and group-held-out evaluation. Required mappings and code were not audited here.
+**Next step:** Inspect the trial–drug–target mapping and scripts; count independent groups and their overlap. If dependence remains, compare uncertainty using a variance model or resampling scheme that accounts for shared drugs, programs or targets, including drugs with multiple targets. Claims about future prediction also need evaluation on later trials and unseen groups. The required mapping and code were not audited.
 
 **What would change this decision:** Existing adequate dependence handling in code, or stable effect sizes and uncertainty under the appropriate grouped analysis, would close or narrow this concern.
 
@@ -100,51 +92,45 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-9"></a>
 
-### VB-9 — Verify reproducibility and annotation error without inventing absence
+### VB-9 — Reproducibility and annotation uncertainty
 
-**Decision: verify.** The source describes downloadable code/reports and human checks, but this review did not execute a pinned release or inspect the full supplementary protocol. Reported agreement on a reviewed subset is not universal annotation accuracy or proof that residual errors cannot affect downstream associations.
+**Decision: verify.** The paper describes downloadable code and reports, plus human annotation checks. This review did not execute a pinned release or inspect the full supplementary protocol. Agreement on the checked subset does not establish accuracy across all annotations or quantify the effect of remaining errors. [VB-A20](#vb-a20) [VB-A21](#vb-a21) [VB-A22](#vb-a22)
 
-**Evidence:** [VB-A20](#vb-a20), [VB-A21](#vb-a21), [VB-A22](#vb-a22).
+**Counterevidence / scope:** The article reports two human annotators and a comparison with the Therapeutic Data Commons (TDC) dataset. Human validation is present; its coverage and the effect of annotation errors require assessment. [VB-A21](#vb-a21)
 
-**Counterevidence / scope:** The article actually includes two human annotators and a separate comparison with the TDC dataset. A claim that there was no human validation would be false; the question is its scope and error consequences. [VB-A21](#vb-a21)
-
-**Next step:** Locate the exact code/data release and supplementary annotation rules; inspect missingness, disagreement strata, seeds, assay/threshold sensitivity and versioned tool inputs. Recompute key results under plausible annotation-error sensitivity. Keep uninspected details in a verification queue rather than treating them as established missing methods.
+**Next step:** Locate the exact code and data release and supplementary annotation rules. Check missing data, disagreement patterns, random seeds, assay and threshold sensitivity, and tool versions. Test whether plausible annotation errors change key results. Treat uninspected details as open checks.
 
 **What would change this decision:** A reproducible release plus an adequate error/missingness sensitivity analysis could close these checks. A confirmed execution or annotation failure would justify a narrower issue.
 
 **Origin:** model-native. **Related engine leads:** `check.code_availability`, `check.missingness`.
 
-## Strengths worth preserving
+## Supported strengths
 
 <a id="vb-5"></a>
 
-### VB-5 — Preserve the concrete critique-to-analysis handoff
+### VB-5 — Reviewer feedback leads to a follow-up analysis
 
-**Decision: strength.** A reviewer identifies the loss of spatial context, and the workflow responds with a spatial analysis instead of merely rephrasing its answer. That is a useful operational pattern for MAR: attach a critique to a discriminating next check and re-evaluate the claim afterward.
+**Decision: strength.** The reviewer identifies missing spatial context, and the workflow follows with a spatial analysis. This documents a specific link between a criticism and an analysis addressing it. [VB-A14](#vb-a14) [VB-A15](#vb-a15)
 
-**Evidence:** [VB-A14](#vb-a14), [VB-A15](#vb-a15).
+**Counterevidence / scope:** The case studies remain observational hypotheses requiring validation. The example does not measure improvement in review accuracy. [VB-A4](#vb-a4)
 
-**Counterevidence / scope:** Spatial triangulation still shares modeling assumptions and is observational. The case demonstrates the pattern, not a measured improvement in scientific review accuracy. [VB-A4](#vb-a4)
-
-**Next step:** Keep the evidence challenge in the final review and measure its contribution in a future blinded evaluation.
+**Next step:** Retain this example as a rationale for linking each MAR concern to a specific next check. Evaluate its effect on review quality in a future blinded comparison.
 
 **What would change this decision:** If logs showed that the follow-up was unrelated to the critique, the claimed workflow example would weaken; execution logs were not audited.
 
 **Origin:** model-native. **Related engine leads:** none; not an engine-generated finding.
 
-## Concerns that did not survive checking
+## Dismissed concerns
 
 <a id="vb-6"></a>
 
-### VB-6 — Dismiss a blanket donor-unaware inference complaint
+### VB-6 — Donor and sample effects are reported
 
-**Decision: dismiss.** The generic pseudobulk contradiction mixes descriptions of different analyses. The methods explicitly aggregate counts by donor and cell type, use patient effects for longitudinal UC data, and include a sample intercept for spatial data. A blanket absence-of-donor-control criticism is unsupported.
+**Decision: dismiss.** The methods aggregate counts by donor and cell type and include patient effects for longitudinal ulcerative colitis data. The generic contradiction combines different analyses; the evidence does not support a blanket concern about absent donor control. [VB-A16](#vb-a16) [VB-A17](#vb-a17)
 
-**Evidence:** [VB-A16](#vb-a16), [VB-A17](#vb-a17).
+**Counterevidence / scope:** A sample intercept is also reported for spatial data. Trial reuse and correlation within a slide remain distinct questions. [VB-A3](#vb-a3)
 
-**Counterevidence / scope:** These safeguards do not resolve every possible dependence problem; trial reuse and within-slide spatial autocorrelation are distinct checks. [VB-A3](#vb-a3)
-
-**Next step:** Close the blanket contradiction. Audit a specific model and its biological unit before raising a new pseudoreplication concern.
+**Next step:** Close the generic contradiction. Inspect a specific model and its independent biological unit before raising a dependence concern.
 
 **What would change this decision:** A mismatch between the described and executed analysis could justify a specific issue.
 
@@ -152,11 +138,9 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-7"></a>
 
-### VB-7 — Dismiss “first trained” as an absolute-novelty claim
+### VB-7 — “First trained” describes analysis order
 
-**Decision: dismiss.** The deterministic pattern matched an ordering word in a methods description. It describes the first stage of model fitting, not the first-ever scientific achievement. This is a contextual false positive.
-
-**Evidence:** [VB-A18](#vb-a18).
+**Decision: dismiss.** The engine matched “first” in a methods description of model fitting. It refers to the order of analysis steps, not a claim of scientific priority. [VB-A18](#vb-a18)
 
 **Counterevidence / scope:** The surrounding paragraph describes reference fitting followed by spatial mapping; there is no novelty assertion in this evidence span. [VB-A2](#vb-a2)
 
@@ -168,15 +152,13 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-8"></a>
 
-### VB-8 — Separate reported thresholds and endpoints from proposed ones
+### VB-8 — Reported thresholds and endpoints
 
-**Decision: dismiss.** A tau threshold and within-sample spatial quartiles are reported. Trial endpoint failures and successes refer to different studies and are not a contradiction. The future OSMR enrollment cutoff remains to be developed; that is a different object from the existing analytical thresholds.
+**Decision: dismiss.** The paper reports a cell-type specificity (tau) threshold and spatial quartiles within samples. Endpoint failures and successes refer to different trials. The proposed OSMR enrollment cutoff is a separate, unresolved choice. [VB-A19](#vb-a19) [VB-A25](#vb-a25) [VB-A24](#vb-a24)
 
-**Evidence:** [VB-A19](#vb-a19), [VB-A25](#vb-a25), [VB-A24](#vb-a24).
+**Counterevidence / scope:** A reported threshold does not establish robustness to its choice. Trials with multiple treatment groups may also require further annotation checks. [VB-A7](#vb-a7)
 
-**Counterevidence / scope:** Reported threshold selection is not the same as demonstrating robustness to that threshold. Multi-arm trial annotation can also remain ambiguous despite a clear ontology. [VB-A7](#vb-a7)
-
-**Next step:** Close the generic missing-cutoff and contradictory-endpoint accusations. Keep sensitivity or annotation questions specific to the relevant analysis.
+**Next step:** Close the generic missing-cutoff and contradictory-endpoint leads. Tie any sensitivity or annotation question to the analysis it could affect.
 
 **What would change this decision:** An inconsistent definition for the same outcome or an unreported threshold used in a main analysis would reopen a specific reporting concern.
 
@@ -184,11 +166,9 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-10"></a>
 
-### VB-10 — Dismiss requirements for an original perturbation screen
+### VB-10 — Original-screen checks do not apply to reused data
 
-**Decision: dismiss.** Reusing Tahoe perturbation profiles and describing tool capabilities does not mean this manuscript performed a new pooled screen. Guide, MOI and perturbation-efficiency requirements cannot be inferred from those keywords alone.
-
-**Evidence:** [VB-A23](#vb-a23).
+**Decision: dismiss.** The workflow reuses Tahoe perturbation profiles. This does not establish that the study performed a new pooled screen, so screen-specific control requirements cannot be inferred from those terms alone. [VB-A23](#vb-a23)
 
 **Counterevidence / scope:** Dataset provenance and the validity of the reused signatures remain relevant, but must be checked against the original data and the actual analysis. [VB-A23](#vb-a23)
 
@@ -200,15 +180,13 @@ All decisions below are model-native interpretations, including the decisions to
 
 <a id="vb-11"></a>
 
-### VB-11 — Recognize batch handling without assuming it eliminates confounding
+### VB-11 — Batch handling is described
 
-**Decision: dismiss.** Harmony preprocessing and covariate-adjusted models are described. A generic no-batch-handling lead misses that context. Whether correction is adequate for a specific inference still requires inspecting the data and design.
+**Decision: dismiss.** The manuscript describes Harmony preprocessing. This answers the generic reporting concern about absent batch handling; whether the correction is adequate requires the data and study design. [VB-A27](#vb-a27)
 
-**Evidence:** [VB-A27](#vb-a27).
+**Counterevidence / scope:** The authors acknowledge residual confounding in the observational trial analysis. Naming a correction method does not establish that all relevant confounding is removed. [VB-A26](#vb-a26)
 
-**Counterevidence / scope:** The authors acknowledge residual confounding in observational trial analysis; a named correction method is not a universal guarantee. [VB-A26](#vb-a26)
-
-**Next step:** Close the reporting-absence allegation and examine an actual residual-confounding contrast if needed.
+**Next step:** Close the reporting-absence lead. Assess any remaining confounding against a specific comparison and conclusion.
 
 **What would change this decision:** Evidence that a relevant cohort/platform effect is inseparable from the biological contrast would justify a focused concern.
 

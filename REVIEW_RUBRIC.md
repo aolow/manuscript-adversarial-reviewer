@@ -2,6 +2,31 @@
 
 The rubric separates severity, confidence, evidence quality, and priority. These are related, but they are not interchangeable.
 
+## Writing convention
+
+Use concise, direct scientific language. State the reported result, the inference
+it supports, and the limit on that inference. Include the study setting, data,
+comparator and independent unit when they affect interpretation. Retain reported
+effect sizes and uncertainty when needed; identify missing context rather than
+inventing it. Define necessary abbreviations and avoid unnecessary jargon.
+
+Keep references beside the statements they support. Preserve exact quotations,
+numbers and units, and acknowledge relevant counterevidence. Distinguish reported
+procedures from verified execution and observations from interpretations. Summaries
+must retain the evidence boundaries and verification status of the detailed review.
+
+Use neutral headings and specific assessments. Avoid stock praise, dramatic
+verdicts, rhetorical questions and speculation about author motives. For example,
+replace “The scaling story is unconvincing” with “Training size and tissue
+composition vary together, so this comparison does not isolate the effect of
+training size,” followed by the relevant source reference. State the next check
+and what its result would change.
+
+The [shared prompt convention](src/manuscript_review/reviewers/prompts/writing.txt)
+is included in review requests, revision-comparison requests and the ChatGPT
+handoff prompt. It guides prose; it does not rewrite source evidence or establish
+the accuracy of a model's conclusions.
+
 ## Severity
 
 | Severity | Meaning |

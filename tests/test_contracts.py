@@ -7,10 +7,29 @@ from manuscript_review.errors import ReviewError
 from manuscript_review.pipeline import review_manuscript
 from manuscript_review.reporting import render_markdown
 from manuscript_review.validation import validate_report
+from manuscript_review.exchange import export_files
+from manuscript_review.resolution import comparison_packet
+from manuscript_review.reviewers import ADDITIONAL_MANDATES, MANDATES, llm_packet, writing_guidance
 from .helpers import WorkspaceTest, FIXTURES
 
 
 class ContractTests(WorkspaceTest):
+    def test_writing_convention_reaches_review_comparison_and_handoff(self):
+        report, packets = review_manuscript(FIXTURES / "flawed_manuscript.md")
+        guidance = writing_guidance()
+        self.assertTrue(guidance.strip())
+        instructions = [p["instructions"] for p in packets.values()]
+        instructions.extend(llm_packet(role, report.documents, report.extraction,
+                                       report.findings, None)["instructions"]
+                            for role in dict(MANDATES, **ADDITIONAL_MANDATES))
+        instructions.append(comparison_packet(report, report)["instructions"])
+        handoff = export_files(report)["CHATGPT_PROMPT.md"]
+        # The convention must reach what the user pastes, not just local notes.
+        instructions.append(handoff.split("```text\n", 1)[1].split("```", 1)[0])
+        for text in instructions:
+            with self.subTest(instructions=text[:80]):
+                self.assertEqual(text.count(guidance), 1)
+
     def test_report_has_twenty_sections_and_valid_exact_citations(self):
         report, packets = review_manuscript(FIXTURES / "flawed_manuscript.md")
         data = json.loads(json.dumps(report.to_dict()))

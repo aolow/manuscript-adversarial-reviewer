@@ -84,7 +84,7 @@ class LlmCliTests(WorkspaceTest):
         data = json.loads((self.root / "fake/report.json").read_text())
         self.assertTrue(any(f["origin"] == "provider:openai" for f in data["findings"]))
         self.assertTrue(data["quality"]["duplicate_groups"])
-        self.assertIn("What could kill this paper", (self.root / "fake/report.md").read_text())
+        self.assertIn("Main concerns", (self.root / "fake/report.md").read_text())
 
     def test_cli_provider_failure_returns_partial_status_and_preserves_report(self):
         with patch.dict(os.environ, {"OPENAI_API_KEY": "dummy"}), patch(

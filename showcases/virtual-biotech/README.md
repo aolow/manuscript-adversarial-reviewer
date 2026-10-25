@@ -9,17 +9,17 @@ discovery and development*](https://doi.org/10.64898/2026.02.23.707551), bioRxiv
 
 ## Review at a glance
 
-**Assessment:** A substantial computational demonstration with useful therapeutic hypotheses. Mechanistic and treatment-selection claims need careful limits; the precision of trial-level associations remains a verification question. [VB-1](review.md#vb-1) [VB-2](review.md#vb-2) [VB-3](review.md#vb-3)
+**Assessment:** The preprint reports computational case studies and observational associations. These generate therapeutic hypotheses; causal mechanisms and treatment-specific benefit remain untested. Trial-level uncertainty requires verification. [VB-1](review.md#vb-1) [VB-2](review.md#vb-2) [VB-3](review.md#vb-3)
 
-**Main contribution:** Shows a concrete reviewer critique prompting a new spatial analysis, a useful pattern for scientific follow-up. [VB-5](review.md#vb-5)
+**Main contribution:** Documents a reviewer critique followed by a spatial analysis addressing the missing tissue context. [VB-5](review.md#vb-5)
 
-**Focus on these first:**
+**Review priorities:**
 
-1. Frame B7-H3 findings as spatial and prognostic evidence; causal mechanism requires an intervention. [VB-1](review.md#vb-1)
-2. Keep OSMR-guided enrollment as a hypothesis until treatment-specific benefit is demonstrated. [VB-2](review.md#vb-2)
-3. Verify whether uncertainty accounts for repeated drugs, targets and development programs across trials. [VB-3](review.md#vb-3)
+1. Describe B7-H3 findings as spatial and survival associations. A causal mechanism requires intervention evidence. [VB-1](review.md#vb-1)
+2. Keep enrollment based on oncostatin M receptor (OSMR) expression as a hypothesis: nonresponse to other therapies does not establish benefit from vixarelimab. [VB-2](review.md#vb-2)
+3. Check whether uncertainty accounts for drugs, targets and development programs represented in multiple trials. [VB-3](review.md#vb-3)
 
-**Best next step:** Align the headline claims with the observational evidence, then inspect the trial–drug–target mapping before escalating the statistical concern. [VB-1](review.md#vb-1) [VB-3](review.md#vb-3)
+**Next step:** Align the claims with the observational evidence, then inspect the trial–drug–target mapping to assess dependence. [VB-1](review.md#vb-1) [VB-3](review.md#vb-3)
 
 *Scope: February 2026 preprint v1, not the later journal article. Offline CLI plus model-native synthesis; text, methods and captions reviewed. Supplements, code and data were not inspected; no independent human validation of this review.*
 
@@ -32,17 +32,17 @@ each recommendation, counterevidence and exact source locations.
 
 The preprint integrates trial annotations, transcriptomic analyses and therapeutic
 hypotheses through a team of agents. MAR's offline run produced 30 leads. A
-separate model-native synthesis examines the reach of the conclusions and
-explicitly credits the manuscript's safeguards.
+separate model-native review assesses the conclusions in the context of the
+reported methods and limitations.
 
-| Proposed concern | After checking the manuscript |
+| Review question | Assessment after source checking |
 | --- | --- |
-| Spatial association establishes B7-H3 mechanism | Retain the inference boundary; tissue context adds evidence but does not substitute for intervention. |
-| OSMR predicts benefit from vixarelimab | Preserve this as a hypothesis. Nonresponse to other therapies does not establish treatment-specific benefit. |
-| Many trials guarantee independent evidence | Verify drug/target/program dependence before interpreting precision or prospective generalization. |
-| A reviewer agent guarantees better scientific judgments | The critique-to-spatial-analysis handoff is useful; comparative quality needs controlled evaluation. |
-| Donor-aware methods are missing | Dismiss the blanket allegation: donor aggregation and patient/sample effects are described. |
-| “First trained” is a novelty overclaim | Dismiss: this is an ordering word in the methods, a clear heuristic false positive. |
+| What do the B7-H3 associations establish? | Spatial and survival associations support an observational hypothesis; intervention evidence is needed for a causal conclusion. [VB-1](review.md#vb-1) |
+| Does OSMR identify benefit from vixarelimab? | Nonresponse to other therapies does not establish treatment-specific benefit. [VB-2](review.md#vb-2) |
+| How independent are the trials? | Check shared drugs, targets and programs before interpreting uncertainty or generalization. [VB-3](review.md#vb-3) |
+| Does the reviewer improve scientific accuracy? | A critique prompted spatial analysis; comparative accuracy requires controlled evaluation. [VB-4](review.md#vb-4) [VB-5](review.md#vb-5) |
+| Are donor effects accounted for? | Donor aggregation and patient/sample effects are described. [VB-6](review.md#vb-6) |
+| Does “first trained” assert novelty? | It describes the order of analysis steps. [VB-7](review.md#vb-7) |
 
 The [structured review](review.json) retains all eleven review items, including
 strengths and rejected leads, plus the complete triage of all 30 engine leads.

@@ -2,6 +2,10 @@
 
 ## Unreleased — review hardening, 2026-10-24
 
+- Apply a shared scientific writing convention to review/comparison requests and
+  ChatGPT handoffs: direct prose, neutral assessments, adjacent references and
+  study context. Replace editorial report headings and revise both showcases;
+  preserve exact evidence quotes, source pins and review decisions.
 - Validate output destinations and the full forced-cleanup plan before provider
   calls or deletions, protecting manuscripts, supplements, prior reports,
   overrides, and environment-selected configuration from replacement/removal.

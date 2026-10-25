@@ -6,7 +6,7 @@ from unittest.mock import patch
 from manuscript_review.cli import main
 from manuscript_review.comparison import compare_reviews
 from manuscript_review.pipeline import review_manuscript
-from manuscript_review.reporting import render_markdown, render_comparison
+from manuscript_review.reporting import citation, render_markdown, render_comparison
 from manuscript_review.resolution import major_progress
 from .helpers import WorkspaceTest, FIXTURES
 from .llm_helpers import envelope, response, finding, packet_block
@@ -17,10 +17,16 @@ class PilotWorkflowTests(WorkspaceTest):
         review, _ = review_manuscript(FIXTURES / "flawed_manuscript.md")
         text = render_markdown(review)
         opening = text.split("<details>", 1)[0]
-        for label in ("What the paper is trying to claim", "Contribution if the claims survive",
-                      "What could kill this paper", "Major strengths", "Analyses most likely",
-                      "Text and positioning", "Likely Reviewer 2"):
+        for label in ("Main claims", "Contribution described by the claims",
+                      "Main concerns", "Major strengths", "Analyses to test the conclusions",
+                      "Wording and scope", "Questions for verification"):
             self.assertIn(label, opening)
+        for claim in review.claim_analyses[:3]:
+            for source in claim["manuscript_evidence"]:
+                self.assertIn(citation(source), opening)
+        for key in ("high_priority_analyses", "writing_framing"):
+            for fid in review.adversarial[key][:3]:
+                self.assertIn("[" + fid + "](#" + fid.replace(".", "") + ")", opening)
         self.assertLess(len(opening.split()), 1300)
         self.assertEqual(len(review.sections), 20)
         self.assertIn("Detailed 20-section audit", text)
