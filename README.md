@@ -6,6 +6,20 @@ The default workflow is fully offline. It extracts manuscript structure, runs de
 
 This tool supports scientific judgment. It does not verify that a manuscript is correct, execute analyses, inspect raw data, or replace expert review.
 
+## Real-paper showcases
+
+See MAR applied to two public scientific papers, with reproducible offline runs,
+exact evidence anchors, and a separately labeled model-native scientific review:
+
+- **[Single-cell foundation models](showcases/single-cell-foundation-models/README.md):**
+  preserve a useful benchmark while withdrawing objections the authors already address.
+- **[Virtual Biotech](showcases/virtual-biotech/README.md):** trace the boundary between
+  observational evidence, mechanistic claims and proposed treatment selection.
+
+Both retain every automated lead, including false positives, and show how the final
+triage was reached. [Reproduce both showcases](showcases/README.md). These are annotated
+examples, not a validated performance benchmark or independently human-reviewed results.
+
 ## What it does
 
 - Reads PDF, DOCX, Markdown, and UTF-8 text, with optional supplements.

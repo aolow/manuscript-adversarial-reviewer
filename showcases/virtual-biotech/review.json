@@ -1,0 +1,508 @@
+{
+  "title": "Virtual Biotech: trace the claim from association to proposed intervention",
+  "origin": "model_native",
+  "authored_on": "2026-10-24",
+  "author": "Codex conversation; exact model identifier not recorded",
+  "workflow": "MAR skill evidence challenge and synthesis",
+  "provider_panel_run": false,
+  "independent_human_validation": false,
+  "summary": "The preprint demonstrates a substantial computational workflow and useful hypothesis generation. Four priorities concern the reach of its conclusions: mechanistic language, treatment-selection claims, dependence in trial-level evidence, and comparative claims about agent quality. The review also credits safeguards that the manuscript already implements. This is a review of the February preprint only, not of the later Science article.",
+  "coverage": "Read: abstract, main text, Extended Methods, five figure captions and data availability in the 23 February 2026 preprint v1 (PMC12970349.1). The offline CLI produced 30 leads from 150 source blocks. One model-native synthesis followed the MAR evidence-challenge checklist; no provider panel or independent expert assessment was run. Supplementary PDF, figure images, execution logs, source code and raw datasets were not inspected. The September 2026 Science version is outside this review.",
+  "anchors": {
+    "VB-A1": {
+      "source_id": "P38",
+      "block_id": "manuscript-7c86fffbddab-1",
+      "quote": "providing functional evidence supporting B7-H3 as an checkpoint target in lung cancer",
+      "start": 1879,
+      "end": 1964
+    },
+    "VB-A2": {
+      "source_id": "P90",
+      "block_id": "manuscript-dc00773fbd2e-1",
+      "quote": "We excluded the gene of interest (B7-H3) from this workflow to avoid circularity",
+      "start": 448,
+      "end": 528
+    },
+    "VB-A3": {
+      "source_id": "P91",
+      "block_id": "manuscript-985e136e11cd-1",
+      "quote": "a sample-level random intercept to account for slide-to-slide variation",
+      "start": 972,
+      "end": 1043
+    },
+    "VB-A4": {
+      "source_id": "P56",
+      "block_id": "manuscript-030e33e92c3a-1",
+      "quote": "the Virtual Biotech generated data-driven hypotheses, which must be tested and further validated",
+      "start": 533,
+      "end": 629
+    },
+    "VB-A5": {
+      "source_id": "P48",
+      "block_id": "manuscript-3f49928fdcd7-1",
+      "quote": "vixarelimab may be particularly effective in targeting",
+      "start": 1150,
+      "end": 1204
+    },
+    "VB-A6": {
+      "source_id": "P46",
+      "block_id": "manuscript-772910310be9-1",
+      "quote": "across all five trials spanning three therapeutic mechanisms",
+      "start": 684,
+      "end": 744
+    },
+    "VB-A7": {
+      "source_id": "P49",
+      "block_id": "manuscript-ede44b6af644-1",
+      "quote": "defining clinically meaningful OSMR expression cutoff levels",
+      "start": 1166,
+      "end": 1226
+    },
+    "VB-A8": {
+      "source_id": "P79",
+      "block_id": "manuscript-57e6d16ba5c7-1",
+      "quote": "Clinical trial outcomes (phase progression, trial termination, endpoint success) were analyzed with univariate logistic regression",
+      "start": 127,
+      "end": 257
+    },
+    "VB-A9": {
+      "source_id": "P81",
+      "block_id": "manuscript-0c8b95338330-1",
+      "quote": "crossed random intercepts for drug-type combination and therapeutic area combination",
+      "start": 234,
+      "end": 318
+    },
+    "VB-A10": {
+      "source_id": "P80",
+      "block_id": "manuscript-8edae0406531-1",
+      "quote": "the outcome vector was randomly shuffled while retaining the original feature values",
+      "start": 265,
+      "end": 349
+    },
+    "VB-A11": {
+      "source_id": "P52",
+      "block_id": "manuscript-1def73c14ee9-1",
+      "quote": "recommendations unbiased by sociological influences",
+      "start": 434,
+      "end": 485
+    },
+    "VB-A12": {
+      "source_id": "P53",
+      "block_id": "manuscript-ebcd3aead4b8-1",
+      "quote": "took less than one day and cost $46.00 in API fees",
+      "start": 272,
+      "end": 322
+    },
+    "VB-A13": {
+      "source_id": "P55",
+      "block_id": "manuscript-a53770b0f7bf-1",
+      "quote": "a single mistake can propagate through the virtual organization",
+      "start": 137,
+      "end": 200
+    },
+    "VB-A14": {
+      "source_id": "P17",
+      "block_id": "manuscript-92f39200ef5f-1",
+      "quote": "If gaps or unsubstantiated claims are identified by the scientific reviewer agent",
+      "start": 322,
+      "end": 403
+    },
+    "VB-A15": {
+      "source_id": "P38",
+      "block_id": "manuscript-7c86fffbddab-1",
+      "quote": "but this was inferred from dissociated single-cell data that inherently lose spatial tissue context",
+      "start": 268,
+      "end": 367
+    },
+    "VB-A16": {
+      "source_id": "P88",
+      "block_id": "manuscript-eeb8d22d73b4-1",
+      "quote": "Raw counts were aggregated by donor and cell type",
+      "start": 76,
+      "end": 125
+    },
+    "VB-A17": {
+      "source_id": "P93",
+      "block_id": "manuscript-c20135622014-1",
+      "quote": "each patient was modeled with random effects",
+      "start": 375,
+      "end": 419
+    },
+    "VB-A18": {
+      "source_id": "P90",
+      "block_id": "manuscript-dc00773fbd2e-1",
+      "quote": "the workflow first trained a negative binomial regression model",
+      "start": 137,
+      "end": 200
+    },
+    "VB-A19": {
+      "source_id": "P84",
+      "block_id": "manuscript-e8a8d67c16b6-1",
+      "quote": "setting the threshold at the midpoint of the two cluster centers (τ = 0.69)",
+      "start": 238,
+      "end": 313
+    },
+    "VB-A20": {
+      "source_id": "P22",
+      "block_id": "manuscript-5d050e8c3acc-1",
+      "quote": "Agreement between human reviewer and the agent was 89.7% (78/87)",
+      "start": 466,
+      "end": 530
+    },
+    "VB-A21": {
+      "source_id": "P74",
+      "block_id": "manuscript-89a3bd131217-1",
+      "quote": "50 randomly sampled from all Phase II trials, and 50 from all Phase III",
+      "start": 123,
+      "end": 194
+    },
+    "VB-A22": {
+      "source_id": "P18",
+      "block_id": "manuscript-ee5af6d891b0-1",
+      "quote": "allows users to download the corresponding data, reproducible code, and reports",
+      "start": 147,
+      "end": 226
+    },
+    "VB-A23": {
+      "source_id": "P70",
+      "block_id": "manuscript-1d7195563c5d-1",
+      "quote": "Pseudobulked differential expression profiles were procured from Tahoe-100M",
+      "start": 548,
+      "end": 623
+    },
+    "VB-A24": {
+      "source_id": "P23",
+      "block_id": "manuscript-8f2922be6ead-1",
+      "quote": "studies with multiple experimental arms in which some arms achieved the primary endpoint while others did not",
+      "start": 379,
+      "end": 488
+    },
+    "VB-A25": {
+      "source_id": "P91",
+      "block_id": "manuscript-985e136e11cd-1",
+      "quote": "top quartile",
+      "start": 240,
+      "end": 252
+    },
+    "VB-A26": {
+      "source_id": "P56",
+      "block_id": "manuscript-030e33e92c3a-1",
+      "quote": "our trial analyses are observational and should be interpreted as such",
+      "start": 14,
+      "end": 84
+    },
+    "VB-A27": {
+      "source_id": "P87",
+      "block_id": "manuscript-06aad9db57c2-1",
+      "quote": "Batch effects were corrected using Harmony",
+      "start": 91,
+      "end": 133
+    }
+  },
+  "items": [
+    {
+      "id": "VB-1",
+      "title": "Keep spatial association separate from B7-H3 mechanism",
+      "decision": "retain",
+      "assessment": "The spatial analysis adds useful tissue-context evidence, but expression, inferred neighboring cell abundance and observational survival associations do not establish that perturbing B7-H3 causes immune exclusion or reverses it. The phrase “functional evidence” risks overstating what these measurements demonstrate.",
+      "evidence": [
+        "VB-A1"
+      ],
+      "challenge": "The methods exclude B7-H3 from deconvolution and adjust for spatial composition and sample effects. These directly answer a simplistic circularity or no-sample-adjustment objection. The discussion also labels the case studies as hypotheses requiring validation.",
+      "counterevidence": [
+        "VB-A2",
+        "VB-A3",
+        "VB-A4"
+      ],
+      "next_step": "First align the mechanistic wording with the observational evidence. If a causal claim is essential, propose a new intervention study: perturb B7-H3 in matched fibroblast–immune–tumor systems across independent donors, compare with appropriate controls and measure immune exclusion or function while checking viability. No such experimental result is established by this review.",
+      "decision_change": "Replicated intervention evidence separating B7-H3 activity from correlated fibroblast state would support stronger mechanistic language. An expression association alone would not.",
+      "engine_finding_ids": []
+    },
+    {
+      "id": "VB-2",
+      "title": "Treat OSMR enrichment as a testable trial-design hypothesis",
+      "decision": "narrow",
+      "assessment": "Baseline OSMR associations with nonresponse to other biologics do not identify a subgroup with greater benefit from vixarelimab. Nor do they establish the reason MOONGLOW stopped. The proposal is scientifically interesting, but predictive treatment benefit and a retrospective failure explanation remain untested.",
+      "evidence": [
+        "VB-A5",
+        "VB-A6"
+      ],
+      "challenge": "The authors use conditional language, explicitly call the case studies hypotheses, and identify assay/cutoff decisions still to be made. The proper review action is to preserve that boundary, not accuse the paper of claiming a validated clinical test.",
+      "counterevidence": [
+        "VB-A4",
+        "VB-A7"
+      ],
+      "next_step": "Check whether baseline biopsies, treatment assignments and outcomes from MOONGLOW are available. If so, estimate an exploratory randomized treatment-by-biomarker interaction with uncertainty; that cannot retrospectively validate a selected cutoff. A prespecified assay, cutoff and independent prospective evaluation are needed before adopting enrichment as a validated selection strategy.",
+      "decision_change": "Treatment-interaction evidence replicated in an independent cohort could justify predictive language. General association with disease severity or other-therapy nonresponse would not.",
+      "engine_finding_ids": [
+        "check.treatment_interaction",
+        "check.clinical_utility",
+        "check.clinical_use"
+      ]
+    },
+    {
+      "id": "VB-3",
+      "title": "Verify the independent unit behind trial-level precision",
+      "decision": "verify",
+      "assessment": "Molecular features are shared across trials testing related drugs or targets. The reported random effects describe modality and disease-area combinations; they do not by themselves establish that dependence from repeated drugs, targets or development programs is handled. Shuffling individual outcomes also does not necessarily preserve that dependence. This is a question about uncertainty and generalization, not proof that the associations disappear.",
+      "evidence": [
+        "VB-A8",
+        "VB-A10"
+      ],
+      "challenge": "The manuscript includes adjusted mixed models, genetic-evidence adjustment, multiplicity control and an explicit observational limitation. Saying “no confounder adjustment” would ignore these safeguards.",
+      "counterevidence": [
+        "VB-A9",
+        "VB-A26"
+      ],
+      "next_step": "Inspect the trial–drug–target mapping and scripts; report unique clusters and overlap first. If repeated-program dependence remains, compare the main intervals with an appropriate drug/program/target-aware resampling or variance model, specifying treatment of multi-target overlap. For prospective prediction claims, add a time- and group-held-out evaluation. Required mappings and code were not audited here.",
+      "decision_change": "Existing adequate dependence handling in code, or stable effect sizes and uncertainty under the appropriate grouped analysis, would close or narrow this concern.",
+      "engine_finding_ids": [
+        "check.external_validation",
+        "check.train_test_split"
+      ]
+    },
+    {
+      "id": "VB-4",
+      "title": "Bound claims about comparative quality and objectivity",
+      "decision": "narrow",
+      "assessment": "Illustrative case studies, API expenditure and parallel throughput establish feasibility. They do not by themselves measure superiority to human teams or the incremental scientific benefit of a reviewer agent. Avoid reading inexpensive execution as a validated gain in correctness, unbiased judgment or total project cost.",
+      "evidence": [
+        "VB-A11",
+        "VB-A12"
+      ],
+      "challenge": "The workflow is inspectable and the authors explicitly acknowledge propagated agent errors. Those are meaningful strengths, but not a matched comparison or ablation.",
+      "counterevidence": [
+        "VB-A13",
+        "VB-A14"
+      ],
+      "next_step": "Narrow unqualified comparative language. To evaluate the architecture, use the same held-out questions, information access and budget across full workflow, no-reviewer and simpler-agent conditions, with blinded expert scoring of correct conclusions, unsupported claims, missing key evidence, time and total cost. This is a proposed validation study, not work performed for this showcase.",
+      "decision_change": "A controlled assessment showing repeatable quality gains would support a stronger claim about the reviewer loop. Reported case costs alone would not.",
+      "engine_finding_ids": [
+        "check.baseline_models"
+      ]
+    },
+    {
+      "id": "VB-5",
+      "title": "Preserve the concrete critique-to-analysis handoff",
+      "decision": "strength",
+      "assessment": "A reviewer identifies the loss of spatial context, and the workflow responds with a spatial analysis instead of merely rephrasing its answer. That is a useful operational pattern for MAR: attach a critique to a discriminating next check and re-evaluate the claim afterward.",
+      "evidence": [
+        "VB-A14",
+        "VB-A15"
+      ],
+      "challenge": "Spatial triangulation still shares modeling assumptions and is observational. The case demonstrates the pattern, not a measured improvement in scientific review accuracy.",
+      "counterevidence": [
+        "VB-A4"
+      ],
+      "next_step": "Keep the evidence challenge in the final review and measure its contribution in a future blinded evaluation.",
+      "decision_change": "If logs showed that the follow-up was unrelated to the critique, the claimed workflow example would weaken; execution logs were not audited.",
+      "engine_finding_ids": []
+    },
+    {
+      "id": "VB-6",
+      "title": "Dismiss a blanket donor-unaware inference complaint",
+      "decision": "dismiss",
+      "assessment": "The generic pseudobulk contradiction mixes descriptions of different analyses. The methods explicitly aggregate counts by donor and cell type, use patient effects for longitudinal UC data, and include a sample intercept for spatial data. A blanket absence-of-donor-control criticism is unsupported.",
+      "evidence": [
+        "VB-A16",
+        "VB-A17"
+      ],
+      "challenge": "These safeguards do not resolve every possible dependence problem; trial reuse and within-slide spatial autocorrelation are distinct checks.",
+      "counterevidence": [
+        "VB-A3"
+      ],
+      "next_step": "Close the blanket contradiction. Audit a specific model and its biological unit before raising a new pseudoreplication concern.",
+      "decision_change": "A mismatch between the described and executed analysis could justify a specific issue.",
+      "engine_finding_ids": [
+        "check.pseudobulk"
+      ]
+    },
+    {
+      "id": "VB-7",
+      "title": "Dismiss “first trained” as an absolute-novelty claim",
+      "decision": "dismiss",
+      "assessment": "The deterministic pattern matched an ordering word in a methods description. It describes the first stage of model fitting, not the first-ever scientific achievement. This is a contextual false positive.",
+      "evidence": [
+        "VB-A18"
+      ],
+      "challenge": "The surrounding paragraph describes reference fitting followed by spatial mapping; there is no novelty assertion in this evidence span.",
+      "counterevidence": [
+        "VB-A2"
+      ],
+      "next_step": "Discard this particular novelty lead. Any actual priority or originality claim needs a separate literature check.",
+      "decision_change": "A different passage making an explicit first-ever claim would need its own evidence and review.",
+      "engine_finding_ids": [
+        "pattern.novelty_overclaim"
+      ]
+    },
+    {
+      "id": "VB-8",
+      "title": "Separate reported thresholds and endpoints from proposed ones",
+      "decision": "dismiss",
+      "assessment": "A tau threshold and within-sample spatial quartiles are reported. Trial endpoint failures and successes refer to different studies and are not a contradiction. The future OSMR enrollment cutoff remains to be developed; that is a different object from the existing analytical thresholds.",
+      "evidence": [
+        "VB-A19",
+        "VB-A25",
+        "VB-A24"
+      ],
+      "challenge": "Reported threshold selection is not the same as demonstrating robustness to that threshold. Multi-arm trial annotation can also remain ambiguous despite a clear ontology.",
+      "counterevidence": [
+        "VB-A7"
+      ],
+      "next_step": "Close the generic missing-cutoff and contradictory-endpoint accusations. Keep sensitivity or annotation questions specific to the relevant analysis.",
+      "decision_change": "An inconsistent definition for the same outcome or an unreported threshold used in a main analysis would reopen a specific reporting concern.",
+      "engine_finding_ids": [
+        "check.cutoff",
+        "check.endpoint"
+      ]
+    },
+    {
+      "id": "VB-9",
+      "title": "Verify reproducibility and annotation error without inventing absence",
+      "decision": "verify",
+      "assessment": "The source describes downloadable code/reports and human checks, but this review did not execute a pinned release or inspect the full supplementary protocol. Reported agreement on a reviewed subset is not universal annotation accuracy or proof that residual errors cannot affect downstream associations.",
+      "evidence": [
+        "VB-A20",
+        "VB-A21",
+        "VB-A22"
+      ],
+      "challenge": "The article actually includes two human annotators and a separate comparison with the TDC dataset. A claim that there was no human validation would be false; the question is its scope and error consequences.",
+      "counterevidence": [
+        "VB-A21"
+      ],
+      "next_step": "Locate the exact code/data release and supplementary annotation rules; inspect missingness, disagreement strata, seeds, assay/threshold sensitivity and versioned tool inputs. Recompute key results under plausible annotation-error sensitivity. Keep uninspected details in a verification queue rather than treating them as established missing methods.",
+      "decision_change": "A reproducible release plus an adequate error/missingness sensitivity analysis could close these checks. A confirmed execution or annotation failure would justify a narrower issue.",
+      "engine_finding_ids": [
+        "check.code_availability",
+        "check.missingness"
+      ]
+    },
+    {
+      "id": "VB-10",
+      "title": "Dismiss requirements for an original perturbation screen",
+      "decision": "dismiss",
+      "assessment": "Reusing Tahoe perturbation profiles and describing tool capabilities does not mean this manuscript performed a new pooled screen. Guide, MOI and perturbation-efficiency requirements cannot be inferred from those keywords alone.",
+      "evidence": [
+        "VB-A23"
+      ],
+      "challenge": "Dataset provenance and the validity of the reused signatures remain relevant, but must be checked against the original data and the actual analysis.",
+      "counterevidence": [
+        "VB-A23"
+      ],
+      "next_step": "Mark original-screen reporting leads out of scope; route provenance checks to the source dataset and released analysis.",
+      "decision_change": "If a new original screen were supplied, the corresponding experimental controls would become applicable.",
+      "engine_finding_ids": [
+        "check.guides",
+        "check.moi"
+      ]
+    },
+    {
+      "id": "VB-11",
+      "title": "Recognize batch handling without assuming it eliminates confounding",
+      "decision": "dismiss",
+      "assessment": "Harmony preprocessing and covariate-adjusted models are described. A generic no-batch-handling lead misses that context. Whether correction is adequate for a specific inference still requires inspecting the data and design.",
+      "evidence": [
+        "VB-A27"
+      ],
+      "challenge": "The authors acknowledge residual confounding in observational trial analysis; a named correction method is not a universal guarantee.",
+      "counterevidence": [
+        "VB-A26"
+      ],
+      "next_step": "Close the reporting-absence allegation and examine an actual residual-confounding contrast if needed.",
+      "decision_change": "Evidence that a relevant cohort/platform effect is inseparable from the biological contrast would justify a focused concern.",
+      "engine_finding_ids": [
+        "check.batch_platform"
+      ]
+    }
+  ],
+  "baseline_triage": [
+    {
+      "decision": "Contextual false positive",
+      "reason": "The novelty detector matched temporal sequencing in the methods.",
+      "review_item_ids": [
+        "VB-7"
+      ],
+      "finding_ids": [
+        "pattern.novelty_overclaim"
+      ]
+    },
+    {
+      "decision": "Already reported; do not conflate analyses",
+      "reason": "Donor aggregation, threshold selection, endpoint context and batch handling are described.",
+      "review_item_ids": [
+        "VB-6",
+        "VB-8",
+        "VB-11"
+      ],
+      "finding_ids": [
+        "check.pseudobulk",
+        "check.cutoff",
+        "check.endpoint",
+        "check.batch_platform"
+      ]
+    },
+    {
+      "decision": "Narrowed to a specific inference boundary",
+      "reason": "Keep clinical-benefit and architectural-comparison claims proportional to the evidence.",
+      "review_item_ids": [
+        "VB-2",
+        "VB-4"
+      ],
+      "finding_ids": [
+        "check.treatment_interaction",
+        "check.clinical_utility",
+        "check.clinical_use",
+        "check.baseline_models"
+      ]
+    },
+    {
+      "decision": "Verify the relevant unit and generalization target",
+      "reason": "These are observational associations; inspect shared targets/programs before assuming independent trial evidence or prospective performance.",
+      "review_item_ids": [
+        "VB-3"
+      ],
+      "finding_ids": [
+        "check.external_validation",
+        "check.train_test_split"
+      ]
+    },
+    {
+      "decision": "Out of scope",
+      "reason": "No original pooled perturbation screen or deployed diagnostic classifier is reported.",
+      "review_item_ids": [
+        "VB-10",
+        "VB-2"
+      ],
+      "finding_ids": [
+        "check.guides",
+        "check.perturbation_efficiency",
+        "check.screen_controls",
+        "check.moi",
+        "check.perturbation_model",
+        "check.screen_quality",
+        "check.calibration",
+        "check.metric_context",
+        "check.prevalence_shift"
+      ]
+    },
+    {
+      "decision": "Verify in unreviewed materials or establish applicability",
+      "reason": "Inspect the release, supplement and actual model before elevating these broad reporting cues to findings.",
+      "review_item_ids": [
+        "VB-9"
+      ],
+      "finding_ids": [
+        "check.code_availability",
+        "check.ambient_rna",
+        "check.annotation_robustness",
+        "check.cluster_stability",
+        "check.doublets",
+        "check.integration",
+        "check.missingness",
+        "check.random_seed",
+        "check.subgroups",
+        "check.thresholds"
+      ]
+    }
+  ]
+}

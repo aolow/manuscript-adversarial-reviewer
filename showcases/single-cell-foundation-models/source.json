@@ -1,0 +1,28 @@
+{
+  "title": "Zero-shot evaluation reveals limitations of single-cell foundation models",
+  "authors": [
+    "Kasia Z Kedzierska",
+    "Lorin Crawford",
+    "Ava P Amini",
+    "Alex X Lu"
+  ],
+  "doi": "10.1186/s13059-025-03574-x",
+  "pmcid": "PMC12007350",
+  "version": "Published article, 18 April 2025",
+  "article_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12007350/",
+  "xml_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12007350/fullTextXML",
+  "retrieved_on": "2026-10-24",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "xml_sha256": "8004058dbe9b4a8eee8a25c9c76704466e05d0282f4e18585a748fe73d99b382",
+  "normalized_sha256": "1e309477e63e5bcf7892a18480a24daa42cd86e593ea91c00956ee9a7f6c8e26",
+  "normalization": "scripts/showcases.py normalize_jats; whitespace collapsed; headings and source paragraph IDs retained. Reference list and duplicate Associated Data wrapper excluded. Abstract, main text, methods, availability, figure captions and supplement descriptions included. Equations flattened, not visually validated.",
+  "not_reviewed": [
+    "Figure images",
+    "External supplementary files (descriptions only included)",
+    "Peer-review history",
+    "Analysis code or raw experimental data"
+  ],
+  "engine_commit": "f998d546bd6107a8f19c8731b61f6ec335622348",
+  "skill_commit": "a8406f6eae748f2788349dd524598d62dab23e68"
+}

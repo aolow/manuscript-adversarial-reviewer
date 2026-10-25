@@ -1,0 +1,18 @@
+{
+  "paper": "single-cell-foundation-models",
+  "engine_run_id": "run-b92ad26598a949bb8dc030b80c2987fd",
+  "engine_created_at": "2026-10-25T00:10:54.212799+00:00",
+  "provider_calls": 0,
+  "baseline_matches": true,
+  "review_items": 10,
+  "exact_anchors": 20,
+  "baseline_findings_triaged": 32,
+  "scientific_validity_verified": false,
+  "reproduce_command": "python scripts/showcases.py single-cell-foundation-models --download",
+  "engine_source_commit": "f998d546bd6107a8f19c8731b61f6ec335622348",
+  "source_xml_sha256": "8004058dbe9b4a8eee8a25c9c76704466e05d0282f4e18585a748fe73d99b382",
+  "normalized_source_sha256": "1e309477e63e5bcf7892a18480a24daa42cd86e593ea91c00956ee9a7f6c8e26",
+  "public_baseline_sha256": "91632735dafb56504239b7fde1c2161ca04755ddab9b35cc205d166803713468",
+  "captured_raw_report_sha256": "cda880391d428ae171e869991fdb24b0c9aaa3ff861ffe655e8f7c82f7d744e2",
+  "receipt_scope": "Actual offline CLI run and local structural/span checks. Raw report contains the source and is intentionally not distributed. New runs have different IDs, timestamps and raw report hashes; the stable public baseline is compared exactly. Scientific reasoning and conclusions are not automatically reproduced or independently human-validated."
+}

@@ -1,0 +1,534 @@
+{
+  "mode": "offline_deterministic",
+  "provider_calls": 0,
+  "tool_version": "0.4.0",
+  "schema_version": "1.1.0",
+  "manuscript_sha256": "2296a41dd3f0145ae2cf2f3d70f1d0ead15dc40cfe29de49dccbf66e5cac35db",
+  "source_block_count": 150,
+  "findings": [
+    {
+      "id": "check.batch_platform",
+      "rule_id": "batch_platform",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Batch, platform, and cancer-type confounding: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.clinical_use",
+      "rule_id": "clinical_use",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Intended clinical use: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.code_availability",
+      "rule_id": "code_availability",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Code availability: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.cutoff",
+      "rule_id": "cutoff",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Cutoff selection: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.endpoint",
+      "rule_id": "endpoint",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Endpoint definition: contradictory reporting cues require reconciliation.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.external_validation",
+      "rule_id": "external_validation",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Independent external validation: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.guides",
+      "rule_id": "guides",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Multiple guides and guide-level consistency: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.perturbation_efficiency",
+      "rule_id": "perturbation_efficiency",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Perturbation efficiency: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.pseudobulk",
+      "rule_id": "pseudobulk",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Donor-aware single-cell inference: contradictory reporting cues require reconciliation.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.screen_controls",
+      "rule_id": "screen_controls",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Positive and negative controls: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.train_test_split",
+      "rule_id": "train_test_split",
+      "severity": "major",
+      "issue_status": "plausible_issue",
+      "issue": "Train/test separation: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.ambient_rna",
+      "rule_id": "ambient_rna",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Ambient RNA assessment: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.annotation_robustness",
+      "rule_id": "annotation_robustness",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Annotation and reference robustness: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.baseline_models",
+      "rule_id": "baseline_models",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Baseline models: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.calibration",
+      "rule_id": "calibration",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Predictive calibration: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.clinical_utility",
+      "rule_id": "clinical_utility",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Clinical utility: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.cluster_stability",
+      "rule_id": "cluster_stability",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Cluster stability: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.doublets",
+      "rule_id": "doublets",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Doublet handling: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.integration",
+      "rule_id": "integration",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Integration artifacts and leakage: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.metric_context",
+      "rule_id": "metric_context",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Discrimination metrics and class prevalence: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.missingness",
+      "rule_id": "missingness",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Missing data: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.moi",
+      "rule_id": "moi",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "MOI assumptions: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.perturbation_model",
+      "rule_id": "perturbation_model",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Modality and screen-model assumptions: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.prevalence_shift",
+      "rule_id": "prevalence_shift",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Population or prevalence shift: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.random_seed",
+      "rule_id": "random_seed",
+      "severity": "minor",
+      "issue_status": "plausible_issue",
+      "issue": "Random seeds: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.screen_quality",
+      "rule_id": "screen_quality",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Screen QC and replicate concordance: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.subgroups",
+      "rule_id": "subgroups",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Subgroup stability: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.thresholds",
+      "rule_id": "thresholds",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Threshold sensitivity: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "check.treatment_interaction",
+      "rule_id": "treatment_interaction",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Predictive versus prognostic interpretation: not established from the manuscript.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    },
+    {
+      "id": "pattern.novelty_overclaim",
+      "rule_id": "novelty_overclaim",
+      "severity": "moderate",
+      "issue_status": "plausible_issue",
+      "issue": "Absolute novelty claim: review the cited passage.",
+      "origin": "deterministic",
+      "disposition": "active",
+      "grounding_status": "source_verified"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "external_validation",
+      "status": "not_established"
+    },
+    {
+      "id": "confidence_intervals",
+      "status": "reported"
+    },
+    {
+      "id": "sample_sizes",
+      "status": "reported"
+    },
+    {
+      "id": "biological_replicates",
+      "status": "reported"
+    },
+    {
+      "id": "train_test_split",
+      "status": "not_established"
+    },
+    {
+      "id": "grouped_validation",
+      "status": "reported"
+    },
+    {
+      "id": "random_seed",
+      "status": "not_established"
+    },
+    {
+      "id": "code_availability",
+      "status": "not_established"
+    },
+    {
+      "id": "data_availability",
+      "status": "reported"
+    },
+    {
+      "id": "multiple_testing",
+      "status": "reported"
+    },
+    {
+      "id": "limitations",
+      "status": "reported"
+    },
+    {
+      "id": "calibration",
+      "status": "not_established"
+    },
+    {
+      "id": "metric_context",
+      "status": "not_established"
+    },
+    {
+      "id": "baseline_models",
+      "status": "not_established"
+    },
+    {
+      "id": "confounding",
+      "status": "reported"
+    },
+    {
+      "id": "sensitivity",
+      "status": "reported"
+    },
+    {
+      "id": "null_models",
+      "status": "reported"
+    },
+    {
+      "id": "software_versions",
+      "status": "reported"
+    },
+    {
+      "id": "pseudobulk",
+      "status": "conflicting"
+    },
+    {
+      "id": "donor_cell_balance",
+      "status": "reported"
+    },
+    {
+      "id": "batch_platform",
+      "status": "not_established"
+    },
+    {
+      "id": "cluster_stability",
+      "status": "not_established"
+    },
+    {
+      "id": "annotation_robustness",
+      "status": "not_established"
+    },
+    {
+      "id": "doublets",
+      "status": "not_established"
+    },
+    {
+      "id": "ambient_rna",
+      "status": "not_established"
+    },
+    {
+      "id": "integration",
+      "status": "not_established"
+    },
+    {
+      "id": "composition",
+      "status": "reported"
+    },
+    {
+      "id": "thresholds",
+      "status": "not_established"
+    },
+    {
+      "id": "perturbation_efficiency",
+      "status": "not_established"
+    },
+    {
+      "id": "guides",
+      "status": "not_established"
+    },
+    {
+      "id": "moi",
+      "status": "not_established"
+    },
+    {
+      "id": "toxicity",
+      "status": "reported"
+    },
+    {
+      "id": "off_targets",
+      "status": "reported"
+    },
+    {
+      "id": "screen_controls",
+      "status": "not_established"
+    },
+    {
+      "id": "screen_quality",
+      "status": "not_established"
+    },
+    {
+      "id": "perturbation_model",
+      "status": "not_established"
+    },
+    {
+      "id": "clinical_use",
+      "status": "not_established"
+    },
+    {
+      "id": "endpoint",
+      "status": "conflicting"
+    },
+    {
+      "id": "ascertainment",
+      "status": "reported"
+    },
+    {
+      "id": "prevalence_shift",
+      "status": "not_established"
+    },
+    {
+      "id": "cutoff",
+      "status": "not_established"
+    },
+    {
+      "id": "treatment_interaction",
+      "status": "not_established"
+    },
+    {
+      "id": "subgroups",
+      "status": "not_established"
+    },
+    {
+      "id": "missingness",
+      "status": "not_established"
+    },
+    {
+      "id": "censoring",
+      "status": "reported"
+    },
+    {
+      "id": "clinical_utility",
+      "status": "not_established"
+    }
+  ],
+  "reviewer_modes": [
+    {
+      "role": "scientific",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "methods",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "statistics",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "clinical",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "reviewer2",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "novelty",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "editor",
+      "mode": "deterministic_routing"
+    },
+    {
+      "role": "strategist",
+      "mode": "deterministic_routing"
+    }
+  ],
+  "warnings": [
+    "No underlying data, analysis code, figure images, or external literature were verified.",
+    "Reviewer roles route deterministic findings; no LLM review was performed."
+  ]
+}

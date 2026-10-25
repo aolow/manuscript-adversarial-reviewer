@@ -15,6 +15,11 @@
   brief. State that agreement among roles is not independent evidence.
 - Add boundary regression tests and a research-informed final-triage update in
   the separate mar-skill checkout. See HARDENING_REVIEW.md for scope and evidence.
+- Add two public-paper showcases: a published single-cell foundation-model
+  benchmark and the Virtual Biotech February 2026 preprint. Preserve all offline
+  leads alongside labeled model-native reviews, counterevidence and complete
+  triage; provide pinned source hashes, actual run receipts and reproduction
+  checks for 47 evidence anchors. No provider-panel or human-validation claim.
 
 ## 0.4.0 — 2026-10-07
 

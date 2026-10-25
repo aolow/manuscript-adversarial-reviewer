@@ -1,0 +1,18 @@
+{
+  "paper": "virtual-biotech",
+  "engine_run_id": "run-4630cc793afa49cf9095cf3ea6b44f45",
+  "engine_created_at": "2026-10-25T00:10:54.503038+00:00",
+  "provider_calls": 0,
+  "baseline_matches": true,
+  "review_items": 11,
+  "exact_anchors": 27,
+  "baseline_findings_triaged": 30,
+  "scientific_validity_verified": false,
+  "reproduce_command": "python scripts/showcases.py virtual-biotech --download",
+  "engine_source_commit": "f998d546bd6107a8f19c8731b61f6ec335622348",
+  "source_xml_sha256": "f799125ffcfce08824bd74a849c4f3eba90b17f5944bed3d13605f92916552c8",
+  "normalized_source_sha256": "2296a41dd3f0145ae2cf2f3d70f1d0ead15dc40cfe29de49dccbf66e5cac35db",
+  "public_baseline_sha256": "16cbf96cc40b6c103dbe1210670980456d885805afe3438feddde34dd0f0278a",
+  "captured_raw_report_sha256": "904a72f2741beee0c06ca00f885ede1680af0402d75dde2ad0b7002856bd9ac6",
+  "receipt_scope": "Actual offline CLI run and local structural/span checks. Raw report contains the source and is intentionally not distributed. New runs have different IDs, timestamps and raw report hashes; the stable public baseline is compared exactly. Scientific reasoning and conclusions are not automatically reproduced or independently human-validated."
+}

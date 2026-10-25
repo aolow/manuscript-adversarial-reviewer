@@ -1,0 +1,30 @@
+{
+  "title": "The Virtual Biotech: A Multi-Agent AI Framework for Therapeutic Discovery and Development",
+  "authors": [
+    "Harrison G. Zhang",
+    "Peter Eckmann",
+    "Jiacheng Miao",
+    "Andrew B. Mahon",
+    "James Zou"
+  ],
+  "doi": "10.64898/2026.02.23.707551",
+  "pmcid": "PMC12970349",
+  "version": "bioRxiv preprint v1, 23 February 2026; PMC12970349.1",
+  "article_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12970349/",
+  "xml_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12970349/fullTextXML",
+  "retrieved_on": "2026-10-24",
+  "license": "CC BY-ND 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-nd/4.0/",
+  "xml_sha256": "f799125ffcfce08824bd74a849c4f3eba90b17f5944bed3d13605f92916552c8",
+  "normalized_sha256": "2296a41dd3f0145ae2cf2f3d70f1d0ead15dc40cfe29de49dccbf66e5cac35db",
+  "normalization": "scripts/showcases.py normalize_jats; whitespace collapsed; headings and source paragraph IDs retained. Reference list and duplicate Associated Data wrapper excluded. Abstract, main text, methods, availability, figure captions and supplement descriptions included. Equations flattened, not visually validated.",
+  "not_reviewed": [
+    "Figure images",
+    "External supplementary files (descriptions only included)",
+    "Peer-review history",
+    "Analysis code or raw experimental data"
+  ],
+  "engine_commit": "f998d546bd6107a8f19c8731b61f6ec335622348",
+  "skill_commit": "a8406f6eae748f2788349dd524598d62dab23e68",
+  "later_article_not_reviewed": "https://doi.org/10.1126/science.aeg6779"
+}
